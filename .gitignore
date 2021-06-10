@@ -1,0 +1,13 @@
+# CLion
+.idea/
+# VSCode
+.vscode/
+
+# CMAKE
+cmake-*/
+
+# Project specific
+build/
+
+#things downloaded when using run.sh
+run/

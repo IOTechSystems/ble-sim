@@ -1,0 +1,44 @@
+FROM alpine:3.13 as builder
+
+RUN apk add --update --no-cache \
+  dbus \
+  dbus-dev \
+  dbus-libs \
+  build-base \
+  gcc \
+  cmake \
+  make \ 
+  linux-headers \
+  glib \
+  eudev-dev \
+  readline-dev \
+  libical-dev \ 
+  py3-docutils \
+  git \ 
+  automake \
+  autoconf
+
+
+COPY scripts /ble-sim/scripts
+COPY cmake /ble-sim/cmake
+COPY src /ble-sim/src
+COPY CMakeLists.txt /ble-sim/CMakeLists.txt
+COPY VERSION /ble-sim/VERSION
+
+RUN /ble-sim/scripts/build.sh
+
+#build btvirt
+RUN git clone https://github.com/bluez/bluez.git 
+WORKDIR bluez/
+RUN ./bootstrap
+RUN ./configure --prefix=/usr --mandir=/usr/share/man --sysconfdir=/etc --localstatedir=/var --enable-experimental --enable-testing --with-systemdsystemunitdir=/lib/systemd/system --with-systemduserunitdir=/usr/lib/systemd
+RUN make
+
+FROM alpine:3.13
+
+COPY --from=builder /ble-sim/build/release/ble-sim/ble-sim ble-sim/ble-sim
+COPY --from=builder /bluez/emulator/btvirt /ble-sim/btvirt
+COPY --from=builder /ble-sim/scripts/entrypoint.sh /
+
+ENTRYPOINT [ "/entrypoint.sh" ]
+
