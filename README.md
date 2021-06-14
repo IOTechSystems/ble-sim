@@ -21,16 +21,27 @@ machine.
 
 ### Running locally
 
-  we need to build btvirt (a bluez tool), so we need to build bluez:
-  GLib libudev libical
+  we need to build btvirt (a bluez tool), so we need to build bluez. 
+  
+  Bluez dependencies
   
   `sudo apt-get install libglib2.0 libudev-dev libical-dev `
 
-  rst2man :
+  rst2man:
   
-  apt-get install python-docutils
+  `apt-get install python-docutils`
 
+## Run the virtual controllers
+
+  First time you run this, the script will download the source and build the tool.
+
+  `./scripts/run-controller.sh`
 
 ## Build
 
-## Run
+  `./scripts/build.sh`
+
+
+## Run  
+
+  `./build/release/ble-sim/ble-sim`

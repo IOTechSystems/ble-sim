@@ -1,6 +1,5 @@
 #!/bin/sh
 
-
 if [ ! -d run ]; then
   mkdir run
 fi
@@ -21,5 +20,5 @@ if [ ! -f bluez/emulator/btvirt ]; then
   cd ..
 fi
 
-#create two LE adapters that we can use
-sudo ./bluez/emulator/btvirt -L -l2
+#create two LE controllers
+sudo ./bluez/emulator/btvirt -L -l2 
