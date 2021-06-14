@@ -13,14 +13,11 @@ machine.
 
 ## Prerequisites
 - [D-Bus](https://www.freedesktop.org/wiki/Software/dbus/) -
-D-Bus daemon is required to be running on the host machine
-alongside the Device Service to allow communication
-between the BLE Device Service and the BlueZ daemon.
+D-Bus daemon is required to be running on the host machine.
  
 - [BlueZ](http://www.bluez.org/) -
 BlueZ Linux module is required to be installed on the host
-machine. This allows the connection between the Device Service
-and BLE devices using D-Bus.
+machine.
 
 ### Running locally
 

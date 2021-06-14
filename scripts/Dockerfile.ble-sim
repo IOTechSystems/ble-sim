@@ -27,18 +27,26 @@ COPY VERSION /ble-sim/VERSION
 
 RUN /ble-sim/scripts/build.sh
 
-#build btvirt
-RUN git clone https://github.com/bluez/bluez.git 
-WORKDIR bluez/
-RUN ./bootstrap
-RUN ./configure --prefix=/usr --mandir=/usr/share/man --sysconfdir=/etc --localstatedir=/var --enable-experimental --enable-testing --with-systemdsystemunitdir=/lib/systemd/system --with-systemduserunitdir=/usr/lib/systemd
-RUN make
+## build btvirt
+# RUN git clone https://github.com/bluez/bluez.git 
+# WORKDIR bluez/
+# RUN ./bootstrap
+# RUN ./configure --prefix=/usr --mandir=/usr/share/man --sysconfdir=/etc --localstatedir=/var --enable-experimental --enable-testing --with-systemdsystemunitdir=/lib/systemd/system --with-systemduserunitdir=/usr/lib/systemd
+# RUN make
 
 FROM alpine:3.13
 
+RUN apk add --update --no-cache \ 
+  dbus \
+  bluez \
+  openrc
+
 COPY --from=builder /ble-sim/build/release/ble-sim/ble-sim ble-sim/ble-sim
-COPY --from=builder /bluez/emulator/btvirt /ble-sim/btvirt
+#COPY --from=builder /bluez/emulator/btvirt /ble-sim/btvirt
 COPY --from=builder /ble-sim/scripts/entrypoint.sh /
 
-ENTRYPOINT [ "/entrypoint.sh" ]
+#need this to run dbus and bluez on the container
+VOLUME [ "/sys/fs/cgroup" ] 
+RUN mkdir -p /run/openrc && touch /run/openrc/softlevel
 
+ENTRYPOINT [ "./entrypoint.sh" ]
