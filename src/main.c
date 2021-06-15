@@ -23,6 +23,5 @@ int main (int argc, char *argv[])
   }
   dbus_connection_close (conn);
 
-
   return 0;
 }
