@@ -9,16 +9,16 @@
 
 #include "service.h"
 
-service_t *service_new(const char* UUID, const char *device_path, bool primary, characteristic_t *characteristics)
+service_t *service_new (const char* UUID, const char *device_path, bool primary, characteristic_t *characteristics)
 {
-  service_t *new_service = calloc(1, sizeof(*new_service));
+  service_t *new_service = calloc (1, sizeof(*new_service));
   if (NULL == new_service)
   {
     return NULL;
   }
 
-  new_service->UUID = strdup(UUID);
-  new_service->device_path = strdup(device_path);
+  new_service->UUID = strdup (UUID);
+  new_service->device_path = strdup (device_path);
   new_service->primary = primary;
   new_service->characteristics = characteristics;
 
@@ -27,21 +27,21 @@ service_t *service_new(const char* UUID, const char *device_path, bool primary, 
   return new_service;
 }
 
-void service_free(service_t *service)
+void service_free (service_t *service)
 {
   if (NULL == service)
   {
     return;
   }
 
-  free(service->UUID);
-  free(service->device_path);
+  free (service->UUID);
+  free (service->device_path);
 
   characteristic_t *tmp = NULL;
-  while(service->characteristics)
+  while (service->characteristics)
   {
     tmp = service->characteristics->next;
-    characteristic_free(service->characteristics);
+    characteristic_free (service->characteristics);
     service->characteristics = tmp;
   }
 
@@ -50,7 +50,7 @@ void service_free(service_t *service)
   free(service);
 }
 
-void service_get_all(service_t *service)
+void service_get_all (service_t *service)
 {
   return;
 }
@@ -70,9 +70,9 @@ characteristic_t *service_get_characteristic (service_t *service, const char* ch
   return NULL; 
 }
 
-bool service_add_characteristic(service_t *service, characteristic_t *characteristic)
+bool service_add_characteristic (service_t *service, characteristic_t *characteristic)
 {
-  if (service_get_characteristic(service, characteristic->UUID))
+  if (service_get_characteristic (service, characteristic->UUID))
   {
     return false;
   }

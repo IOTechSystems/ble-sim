@@ -21,15 +21,14 @@ typedef struct descriptor_t
   struct descriptor_t *next;
 } descriptor_t;
 
-
-descriptor_t *descriptor_new(const char *UUID, const char *characteristic_path);
-void descriptor_free(descriptor_t *descriptor);
+descriptor_t *descriptor_new (const char *UUID, const char *characteristic_path);
+void descriptor_free (descriptor_t *descriptor);
 
 //DBus methods
-void descriptor_get_all(descriptor_t *descriptor);
+void descriptor_get_all (descriptor_t *descriptor);
 
 //Bluez methods
-void descriptor_read_value(descriptor_t *descriptor);
-void descriptor_write_value(descriptor_t *descriptor);
+void descriptor_read_value (descriptor_t *descriptor);
+void descriptor_write_value (descriptor_t *descriptor);
 
 #endif //BLE_SIM_DESCRIPTOR_H
