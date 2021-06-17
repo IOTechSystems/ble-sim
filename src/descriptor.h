@@ -17,7 +17,6 @@ typedef struct descriptor_t
   uint8_t * value;
   uint32_t value_size;
   uint16_t flags;
-
   struct descriptor_t *next;
 } descriptor_t;
 
