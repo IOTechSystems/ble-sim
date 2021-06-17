@@ -13,6 +13,8 @@
 #include "defines.h"
 #include "service.h"
 
+//TODO move this into device
+
 typedef struct server_t
 {
   char * object_path; //dbus object path

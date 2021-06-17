@@ -10,7 +10,7 @@
 
 #include "characteristic.h"
 
-characteristic_t *characteristic_new (const char *UUID, const char *service_path, descriptor_t *descriptors)
+characteristic_t *characteristic_new (const char *uuid, const char *service_path, descriptor_t *descriptors)
 {
   characteristic_t *new_characteristic = calloc (1, sizeof (*new_characteristic));
   if (NULL == new_characteristic)
@@ -18,7 +18,7 @@ characteristic_t *characteristic_new (const char *UUID, const char *service_path
     return NULL;
   }
 
-  new_characteristic->UUID = strdup (UUID);
+  new_characteristic->uuid = strdup (uuid);
   new_characteristic->service_path = strdup (service_path);
   new_characteristic->value = NULL;
   new_characteristic->value_size = 0;
@@ -37,7 +37,7 @@ void characteristic_free (characteristic_t *characteristic)
     return;
   }
 
-  free (characteristic->UUID);
+  free (characteristic->uuid);
   free (characteristic->service_path);
   free (characteristic->value);
 
@@ -57,7 +57,7 @@ descriptor_t *characteristic_get_descriptor (characteristic_t *characteristic, c
   descriptor_t *descriptor = characteristic->descriptors;
   while (descriptor)
   {
-    if (strcmp(descriptor_uuid, descriptor->UUID) == 0)
+    if (strcmp(descriptor_uuid, descriptor->uuid) == 0)
     {
       return descriptor;
     }
@@ -69,7 +69,7 @@ descriptor_t *characteristic_get_descriptor (characteristic_t *characteristic, c
 
 bool characteristic_add_descriptor (characteristic_t *characteristic, descriptor_t *descriptor)
 {
-  if (characteristic_get_descriptor (characteristic, descriptor->UUID))
+  if (characteristic_get_descriptor (characteristic, descriptor->uuid))
   {
     return false;
   }
@@ -79,44 +79,44 @@ bool characteristic_add_descriptor (characteristic_t *characteristic, descriptor
   return true;
 }
 
-//DBus Methods
-void characteristic_get_all (characteristic_t *characteristic)
-{
+// //DBus Methods
+// void characteristic_get_all (characteristic_t *characteristic)
+// {
 
-}
+// }
 
-void characteristic_properties_changed (characteristic_t *characteristic)
-{
+// void characteristic_properties_changed (characteristic_t *characteristic)
+// {
 
-}
+// }
 
-//Bluez methods
-void characteristic_read_value (characteristic_t *characteristic)
-{
+// //Bluez methods
+// void characteristic_read_value (characteristic_t *characteristic)
+// {
 
-}
+// }
 
-void characteristic_write_value (characteristic_t *characteristic)
-{
+// void characteristic_write_value (characteristic_t *characteristic)
+// {
 
-}
+// }
 
-void characteristic_aquire_write (characteristic_t *characteristic)
-{
+// void characteristic_aquire_write (characteristic_t *characteristic)
+// {
 
-}
+// }
 
-void characteristic_aquire_notify (characteristic_t *characteristic)
-{
+// void characteristic_aquire_notify (characteristic_t *characteristic)
+// {
 
-}
+// }
 
-void characteristic_start_notify (characteristic_t *characteristic)
-{
+// void characteristic_start_notify (characteristic_t *characteristic)
+// {
 
-}
+// }
 
-void characteristic_stop_notify (characteristic_t *characteristic)
-{
+// void characteristic_stop_notify (characteristic_t *characteristic)
+// {
 
-}
+// }

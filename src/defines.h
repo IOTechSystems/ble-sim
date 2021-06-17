@@ -8,7 +8,6 @@
 #ifndef BLE_SIM_DEFINES_H
 #define BLE_SIM_DEFINES_H
 
-
 #define UUID_LENGTH 32
 #define DEVICE_PATH_LENGTH 22
 

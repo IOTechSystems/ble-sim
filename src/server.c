@@ -15,7 +15,6 @@
 
 server_t *server_new (const char *object_path, service_t *services)
 {
-
   if ( NULL == object_path )
   {
     return NULL;
@@ -59,7 +58,7 @@ service_t* server_get_service (server_t *server, const char *service_uuid)
   service_t *service = server->services;
   while (service)
   {
-    if(strcmp (service_uuid, service->UUID) == 0)
+    if(strcmp (service_uuid, service->uuid) == 0)
     {
       return service;
     }
@@ -71,7 +70,7 @@ service_t* server_get_service (server_t *server, const char *service_uuid)
 
 bool server_add_service (server_t *server, service_t *service)
 {
-  if (server_get_service (server, service->UUID))
+  if (server_get_service (server, service->uuid))
   {
     return false;
   }
@@ -80,7 +79,6 @@ bool server_add_service (server_t *server, service_t *service)
   server->services = service;
   return true;
 }
-
 
 void server_get_managed_objects (DBusConnection *connection, DBusMessage *message, server_t *server)
 {
