@@ -19,7 +19,6 @@ typedef struct server_t
 {
   char * object_path; //dbus object path
   service_t *services;
-  
 } server_t;
 
 server_t *server_new (const char *object_path, service_t *services);

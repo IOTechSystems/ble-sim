@@ -19,7 +19,6 @@ typedef struct device_t
   char *controller; //does nothing for now - in future this will be the controller this "device" is exposed on
   char *device_name;
   struct device_t *next;
-
 } device_t;
 
 /**
