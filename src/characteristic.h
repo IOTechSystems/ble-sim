@@ -22,7 +22,6 @@ typedef struct characteristic_t
   bool notifying;
   uint32_t flags;
   descriptor_t *descriptors;
-
   struct characteristic_t *next;
 } characteristic_t;
 

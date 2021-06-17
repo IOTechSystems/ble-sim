@@ -22,7 +22,6 @@ typedef struct service_t
   char *device_path; // Object path of the Bluetooth device the service belongs to
   bool primary;
   characteristic_t * characteristics;
-  
   struct service_t *next;
 } service_t;
 

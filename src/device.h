@@ -24,7 +24,6 @@ typedef struct device_t
   char *device_name;
   char *object_path; //dbus object path to register to
   struct device_t *next;
-
 } device_t;
 
 /**
