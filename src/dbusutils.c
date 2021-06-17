@@ -73,7 +73,7 @@ DBusMessage *dbusutils_do_method_call (DBusConnection *connection, const char *b
     return false;
   }
 
-  DBusMessage *dbus_reply = dbus_connection_send_with_reply_and_block (connection, dbus_msg, DBUS_TIMEOUT_USE_DEFAULT, &err);
+  DBusMessage *dbus_reply = dbus_connection_send_with_reply_and_block (connection, dbus_msg, DEFAULT_TIMEOUT, &err);
   dbus_message_unref (dbus_msg);
 
   if (dbus_error_is_set (&err))
@@ -86,7 +86,6 @@ DBusMessage *dbusutils_do_method_call (DBusConnection *connection, const char *b
   dbus_error_free (&err);
   return dbus_reply;
 }
-
 
 static void dispatch (DBusConnection *connection)
 {

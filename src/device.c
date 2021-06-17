@@ -31,7 +31,7 @@ static DBusObjectPathVTable device_dbus_callbacks = {
   .message_function = device_handle_dbus_message,
 };
 
-//device list 
+//device list
 void device_cleanup_devices (void)
 {
   device_t *tmp = NULL;
@@ -73,7 +73,7 @@ static device_t *device_new (const char* device_name, const char* controller)
 
   device->device_name = strdup (device_name);
   device->controller = strdup (controller);
-  
+
   size_t required = snprintf(NULL, 0, "/dev%u",device_count) + 1;
   device->object_path = malloc(required);
   sprintf(device->object_path, "/dev%u",device_count);
@@ -135,10 +135,10 @@ static void device_get_managed_objects (device_t *device, DBusConnection *connec
   //TODO
 }
 
-static void device_register_with_bluez(device_t *device, DBusConnection * connection)
-{
-  //TODO
-}
+// static void device_register_with_bluez(device_t *device, DBusConnection * connection)
+// {
+//   //TODO
+//}
 
 //device manipulators - functions to create device, add services, characterisitcs etc
 bool device_add (const char* device_name)
@@ -185,14 +185,14 @@ static service_t* device_get_service (device_t *device, const char *service_uuid
   service_t *service = device->services;
   while (service)
   {
-    if(strcmp (service_uuid, service->UUID) == 0)
+    if(strcmp (service_uuid, service->uuid) == 0)
     {
       return service;
     }
     service = service->next;
   }
 
-  return NULL; 
+  return NULL;
 }
 
 bool device_add_service (const char* device_name, service_t *service)
@@ -204,7 +204,7 @@ bool device_add_service (const char* device_name, service_t *service)
     return false;
   }
 
-  if (device_get_service (device, service->UUID))
+  if (device_get_service (device, service->uuid))
   {
     return false;
   }
@@ -214,8 +214,8 @@ bool device_add_service (const char* device_name, service_t *service)
   return true;;
 }
 
-bool device_add_characteristic (const char* device_name, 
-                                const char *service_uuid, 
+bool device_add_characteristic (const char* device_name,
+                                const char *service_uuid,
                                 characteristic_t *characteristic)
 {
   device_t *device = device_get_device (device_name);
@@ -235,9 +235,9 @@ bool device_add_characteristic (const char* device_name,
   return service_add_characteristic (service, characteristic);
 }
 
-bool device_add_descriptor (const char* device_name, 
-                            const char *service_uuid, 
-                            const char *characteristic_uuid, 
+bool device_add_descriptor (const char* device_name,
+                            const char *service_uuid,
+                            const char *characteristic_uuid,
                             descriptor_t *descriptor)
 {
   device_t *device = device_get_device (device_name);

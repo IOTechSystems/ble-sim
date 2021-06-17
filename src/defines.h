@@ -8,7 +8,6 @@
 #ifndef BLE_SIM_DEFINES_H
 #define BLE_SIM_DEFINES_H
 
-
 #define UUID_LENGTH 32
 #define DEVICE_PATH_LENGTH 22
 
@@ -22,5 +21,7 @@
 #define BLUZ_GATT_SERVICE_INTERFACE		"org.bluez.GattService1"
 #define BLUZ_GATT_CHARACTERISTIC_INTERFACE			"org.bluez.GattCharacteristic1"
 #define BLUZ_GATT_DESCRIPTOR_INTERFACE		"org.bluez.GattDescriptor1"
+
+#define DEFAULT_TIMEOUT 1000
 
 #endif //BLE_SIM_DEFINES_H
