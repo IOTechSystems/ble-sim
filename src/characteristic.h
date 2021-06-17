@@ -39,7 +39,6 @@ characteristic_t *characteristic_new (const char *uuid, const char *service_path
  * Frees a characteristic_t and it's values
  * 
  * @param characteristic characteristic to free 
- * @return void
  **/
 void characteristic_free (characteristic_t *characteristic);
 
@@ -57,7 +56,7 @@ descriptor_t *characteristic_get_descriptor (characteristic_t *characteristic, c
  * 
  * @param characteristic characteristic to add the descriptor to
  * @param descriptor descriptor to add 
- * @return found descriptor or NULL if not found
+ * @return success true/false
  **/
 bool characteristic_add_descriptor (characteristic_t *characteristic, descriptor_t *descriptor);
 

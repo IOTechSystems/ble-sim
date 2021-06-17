@@ -57,7 +57,7 @@ characteristic_t *service_get_characteristic (service_t *service, const char* ch
  * 
  * @param service service to add the characteristic to
  * @param characteristic characteristic to add 
- * @return found descriptor or NULL if not found
+ * @return success true/false
  **/
 bool service_add_characteristic (service_t *service, characteristic_t *characteristic);
 
