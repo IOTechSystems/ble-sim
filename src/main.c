@@ -97,6 +97,7 @@ static void init_dev(void)
 
 static void update(void * user_data)
 {
+  printf("update\n");
   DBusMessage *reply = dbusutils_do_method_call(global_dbus_connection, IOTECH_BLE_SIM_SERVICE_NAME, "/dev0", DBUS_INTERFACE_OBJECT_MANAGER, DBUS_METHOD_GET_MANAGED_OBJECTS);
   if (NULL == reply)
   {
