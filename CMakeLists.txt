@@ -14,10 +14,11 @@ endif ()
 include_directories (
         ${DBUS_INCLUDE_DIR}
         ${DBUS_ARCH_INCLUDE_DIR}
+        src/
 )
 
 if (CMAKE_C_COMPILER_ID MATCHES GNU)
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11 -Wall -Wstrict-prototypes -Wmissing-prototypes")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11 -D_POSIX_C_SOURCE=200809L -Wall -Wstrict-prototypes -Wmissing-prototypes")
   set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -ggdb -O0")
   set(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -ggdb -O0")
   set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -O3 -DNDEBUG")
