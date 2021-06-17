@@ -18,4 +18,9 @@
 #define DBUS_INTERFACE_OBJECT_MANAGER "org.freedesktop.DBus.ObjectManager"
 #define DBUS_METHOD_GET_MANAGED_OBJECTS "GetManagedObjects"
 
+#define BLUZ_GATT_MANAGER_INTERFACE "org.bluez.GattManager1"
+#define BLUZ_GATT_SERVICE_INTERFACE		"org.bluez.GattService1"
+#define BLUZ_GATT_CHARACTERISTIC_INTERFACE			"org.bluez.GattCharacteristic1"
+#define BLUZ_GATT_DESCRIPTOR_INTERFACE		"org.bluez.GattDescriptor1"
+
 #endif //BLE_SIM_DEFINES_H

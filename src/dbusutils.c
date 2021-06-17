@@ -62,7 +62,7 @@ bool dbusutils_register_object (DBusConnection *connection,
   return true;
 }
 
-bool dbusutils_do_method_call (DBusConnection *connection, const char *bus_name, const char *path, const char *iface, const char *method)
+DBusMessage *dbusutils_do_method_call (DBusConnection *connection, const char *bus_name, const char *path, const char *iface, const char *method)
 {
   DBusError err;
   dbus_error_init (&err);
@@ -73,19 +73,18 @@ bool dbusutils_do_method_call (DBusConnection *connection, const char *bus_name,
     return false;
   }
 
-  DBusMessage *dbus_reply = dbus_connection_send_with_reply_and_block (connection, dbus_msg, 1000, &err);
+  DBusMessage *dbus_reply = dbus_connection_send_with_reply_and_block (connection, dbus_msg, DBUS_TIMEOUT_USE_DEFAULT, &err);
   dbus_message_unref (dbus_msg);
 
   if (dbus_error_is_set (&err))
   {
     printf ("Error Sending method call (%s: %s)\n", err.name, err.message); 
     dbus_error_free (&err);
-    return false;
+    return NULL;
   }
 
-  dbus_message_unref (dbus_reply);
   dbus_error_free (&err);
-  return true;
+  return dbus_reply;
 }
 
 

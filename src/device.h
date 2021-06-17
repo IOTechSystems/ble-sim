@@ -10,15 +10,19 @@
 
 #include <stdlib.h>
 
-#include "defines.h"
-#include "server.h"
+#include <dbus/dbus.h>
 
+#include "defines.h"
+#include "service.h"
+
+extern DBusConnection *global_dbus_connection;
 
 typedef struct device_t
 {
-  server_t *gatt_server;
+  service_t *services;
   char *controller; //does nothing for now - in future this will be the controller this "device" is exposed on
   char *device_name;
+  char *object_path; //dbus object path to register to
   struct device_t *next;
 
 } device_t;

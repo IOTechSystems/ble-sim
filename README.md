@@ -25,7 +25,7 @@ machine.
   
   Bluez dependencies
   
-  `sudo apt-get install libglib2.0 libudev-dev libical-dev `
+  `sudo apt-get install libglib2.0-dev libudev-dev libical-dev `
 
   rst2man:
   
