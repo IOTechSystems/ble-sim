@@ -13,14 +13,10 @@
 #include "descriptor.h"
 #include "dbusutils.h"
 
-
-static device_t *device_new (const char* device_name, const char* controller);
-static void device_free (device_t *device);
-
 static void add_device_to_device_list(device_t *device);
 static void device_handle_unregister_device(DBusConnection *connection, void *data);
 static DBusHandlerResult device_handle_dbus_message(DBusConnection *connection, DBusMessage *message, void *data);
-static void device_get_managed_objects (device_t *device, DBusConnection *connection, DBusMessage *message );
+static bool device_get_managed_objects (device_t *device, DBusConnection *connection, DBusMessage *message );
 static service_t* device_get_service (device_t *device, const char *service_uuid);
 
 static device_t *device_list_head = NULL;
@@ -63,7 +59,7 @@ static void add_device_to_device_list(device_t *device)
 }
 
 //device constructors destructors
-static device_t *device_new (const char* device_name, const char* controller)
+device_t *device_new (const char* device_name, const char* controller, service_t *services)
 {
   device_t *device = calloc (1, sizeof (*device));
   if (NULL == device)
@@ -73,17 +69,16 @@ static device_t *device_new (const char* device_name, const char* controller)
 
   device->device_name = strdup (device_name);
   device->controller = strdup (controller);
-
-  size_t required = snprintf(NULL, 0, "/dev%u",device_count) + 1;
-  device->object_path = malloc(required);
-  sprintf(device->object_path, "/dev%u",device_count);
-
+  device->application_registered = false;
+  device->services = services;
+  device->service_count = 0;
+  device->object_path = dbusutils_create_object_path (EMPTY_STRING, DEVICE_OBJECT_NAME, device_count);
   device->next = NULL;
 
   return device;
 }
 
-static void device_free (device_t *device)
+void device_free (device_t *device)
 {
   if (NULL == device)
   {
@@ -123,16 +118,116 @@ static DBusHandlerResult device_handle_dbus_message(DBusConnection *connection, 
 
   if (dbus_message_is_method_call (message, DBUS_INTERFACE_OBJECT_MANAGER, DBUS_METHOD_GET_MANAGED_OBJECTS))
   {
-    device_get_managed_objects (device, connection, message);
+    //device_get_managed_objects (device, connection, message);
   }
 
   return DBUS_HANDLER_RESULT_HANDLED;
 }
 
-static void device_get_managed_objects (device_t *device, DBusConnection *connection, DBusMessage *message )
+static bool device_get_managed_objects (device_t *device, DBusConnection *connection, DBusMessage *message )
 {
   printf("Device (%s) GetManagedObjects \n", device->device_name);
   // TODO: Implement get managed objects
+  if (NULL == device) 
+  { 
+    printf("%s: Device was null", __FUNCTION__);
+    return false;
+  }
+  if (NULL == connection) 
+  { 
+    printf("%s: Connection was null", __FUNCTION__);
+    return false;
+  }
+  if (NULL == message) 
+  { 
+    printf("%s: Message was null", __FUNCTION__);
+    return false;
+  }
+
+  DBusMessage *reply = dbus_message_new_method_return(message);
+	if (reply == NULL)
+  {
+    printf("%s: Could not create a method return message", __FUNCTION__);
+		return false;
+  }
+
+  //create the response - signature a{oa{sa{sv}}}
+  DBusMessageIter iter, array;
+  dbus_message_iter_init_append (message, &iter);
+	dbus_message_iter_open_container (
+    &iter, 
+    DBUS_TYPE_ARRAY, 
+    DBUS_DICT_ENTRY_BEGIN_CHAR_AS_STRING //{oa{sa{sv}}}
+    DBUS_TYPE_OBJECT_PATH_AS_STRING
+    DBUS_TYPE_ARRAY_AS_STRING
+    DBUS_DICT_ENTRY_BEGIN_CHAR_AS_STRING
+    DBUS_TYPE_STRING_AS_STRING
+    DBUS_TYPE_ARRAY_AS_STRING
+    DBUS_DICT_ENTRY_BEGIN_CHAR_AS_STRING
+    DBUS_TYPE_STRING_AS_STRING
+    DBUS_TYPE_VARIANT_AS_STRING
+    DBUS_DICT_ENTRY_END_CHAR_AS_STRING
+    DBUS_DICT_ENTRY_END_CHAR_AS_STRING
+    DBUS_DICT_ENTRY_END_CHAR_AS_STRING,
+    &array
+  );
+
+  service_t *service = device->services;
+  // characteristic_t *characteristic = NULL;
+  // descriptor_t *descriptor = NULL;
+
+  while (service)
+  {
+    //call services func
+    service_get_object(service, &array);
+
+
+    // characteristic = service->characteristics;
+    // while(characteristic)
+    // {
+    //   descriptor = characteristic->descriptors;
+    //   while (descriptor)
+    //   {
+
+    //     descriptor = descriptor->next;
+    //   }
+    //   characteristic = characteristic->next;
+    // }
+    service = service->next;
+  }
+
+  dbus_message_iter_close_container (&iter, &array);
+
+  //send reply
+  dbus_connection_send(connection, message, NULL);
+
+  return true;
+}
+
+static void on_register_application_reply(DBusPendingCall *pending_call, void *user_data)
+{
+
+  device_t *device = (device_t*) user_data;
+	DBusMessage *reply;
+	reply = dbus_pending_call_steal_reply(pending_call);
+  if (NULL == reply)
+  {
+    return;
+  }
+
+	if (dbus_message_get_type(reply) == DBUS_MESSAGE_TYPE_ERROR)
+  {
+    printf("Unable to Register device with bluez: (%s : %s)\n", dbus_message_get_error_name(reply), dbusutils_get_error_message_from_reply (reply));
+    //TODO : remove device from list and unregister
+  }
+  else
+  {
+    printf("Succesfully Registered device (%s) with bluez\n", device->device_name);
+    device->application_registered = true;
+  }
+
+	dbus_message_unref(reply);
+	dbus_pending_call_unref(pending_call);
 }
 
 static bool device_register_with_bluez(device_t *device, DBusConnection * connection)
@@ -148,17 +243,19 @@ static bool device_register_with_bluez(device_t *device, DBusConnection * connec
 
   printf("%s\n", device->object_path);
 
-  //setup message
+  //setup message "oa{sv}""
   DBusMessageIter args, dict;
   dbus_message_iter_init_append (message, &args);
   dbus_message_iter_append_basic (&args, DBUS_TYPE_OBJECT_PATH, &device->object_path);
-  dbus_message_iter_open_container (&args, 
-                                    DBUS_TYPE_ARRAY, 
-                                    DBUS_DICT_ENTRY_BEGIN_CHAR_AS_STRING // signature "{sv}"
-                                    DBUS_TYPE_STRING_AS_STRING
-                                    DBUS_TYPE_VARIANT_AS_STRING
-                                    DBUS_DICT_ENTRY_END_CHAR_AS_STRING,
-                                    &dict);
+  dbus_message_iter_open_container (
+    &args, 
+    DBUS_TYPE_ARRAY, 
+    DBUS_DICT_ENTRY_BEGIN_CHAR_AS_STRING // signature "{sv}"
+    DBUS_TYPE_STRING_AS_STRING
+    DBUS_TYPE_VARIANT_AS_STRING
+    DBUS_DICT_ENTRY_END_CHAR_AS_STRING,
+    &dict
+  );
 	// TODO: Could add options to dictionary 
 	dbus_message_iter_close_container(&args, &dict);
 
@@ -166,43 +263,45 @@ static bool device_register_with_bluez(device_t *device, DBusConnection * connec
   DBusError error;
   dbus_error_init (&error);
 
-  //TODO set up dbus_conneciton_send_with_reply so that we can get the response
-  dbus_connection_send(connection, message, NULL);
+  DBusPendingCall *pending_call = NULL;
+
+  dbus_connection_send_with_reply(connection, message, &pending_call, DBUS_TIMEOUT_USE_DEFAULT);
+  if (pending_call)
+  {
+    dbus_pending_call_set_notify(pending_call, on_register_application_reply, NULL, NULL);
+  }
+  
+  if (message) dbus_message_unref (message);
+  if (pending_call) dbus_pending_call_unref (pending_call);
 
   return true;
 }
 
 //device manipulators - functions to create device, add services, characterisitcs etc
-bool device_add (const char* device_name)
+bool device_add (device_t* device)
 {
   bool success = false;
-  if (device_get_device (device_name))
+  if (device_get_device (device->device_name))
   {
     printf ("Device with that name already exists\n");
     return false;
   }
 
-  device_t *new_device = device_new (device_name, DEFAULT_CONTROLLER);
-
-  success = dbusutils_register_object (global_dbus_connection,  new_device->object_path, &device_dbus_callbacks, new_device);
+  success = dbusutils_register_object (global_dbus_connection, device->object_path, &device_dbus_callbacks, device);
   if (!success)
   {
-    device_free (new_device);
     return false;
   }
 
-  success = device_register_with_bluez (new_device, global_dbus_connection);
+  success = device_register_with_bluez (device, global_dbus_connection);
   if (!success)
   {
-    dbus_connection_unregister_object_path(global_dbus_connection, new_device->object_path);
-    device_free (new_device);
     return false;
   }
 
   //init controller for device
   //TODO
-
-  add_device_to_device_list(new_device);
+  add_device_to_device_list(device);
 
   return true;
 }
@@ -236,69 +335,77 @@ static service_t* device_get_service (device_t *device, const char *service_uuid
   return NULL;
 }
 
-bool device_add_service (const char* device_name, service_t *service)
+bool device_add_service (device_t *device, service_t *service)
 {
-  device_t *device = device_get_device (device_name);
   if (NULL == device)
   {
-    printf ("Could not add service to device %s, as the device doesn't exist\n", device_name);
+    printf ("Device was null\n");
     return false;
   }
 
-  if (device_get_service (device, service->uuid))
+  if (device_get_service (device, service->uuid)) 
   {
+    printf ("Service %s already exists for device %s", service->uuid, device->device_name);
     return false;
   }
+
+  char *service_object_path = dbusutils_create_object_path (device->object_path, SERVICE_OBJECT_NAME, device->service_count);
+  if (!dbusutils_register_object (global_dbus_connection, service_object_path, &service_dbus_callbacks, service))
+  {
+    free (service_object_path);
+    return false;
+  }
+  service->object_path = service_object_path;
 
   service->next = device->services;
   device->services = service;
-  return true;;
+
+  device->service_count++;
+  return true;
 }
 
-bool device_add_characteristic (const char* device_name,
+bool device_add_characteristic (device_t *device,
                                 const char *service_uuid,
                                 characteristic_t *characteristic)
 {
-  device_t *device = device_get_device (device_name);
   if (NULL == device)
   {
-    printf ("Could not add characteristic to device %s as the device doesn't exist\n", device_name);
+    printf ("Device was null\n");
     return false;
   }
 
   service_t *service = device_get_service (device, service_uuid);
   if (NULL == service)
   {
-    printf ("Could not add characteristic to device %s as the service with uuid %s doesn't exist\n", device_name, service_uuid);
+    printf ("Could not add characteristic to device %s as the service with uuid %s doesn't exist\n", device->device_name, service_uuid);
     return false;
   }
 
   return service_add_characteristic (service, characteristic);
 }
 
-bool device_add_descriptor (const char* device_name,
+bool device_add_descriptor (device_t *device,
                             const char *service_uuid,
                             const char *characteristic_uuid,
                             descriptor_t *descriptor)
 {
-  device_t *device = device_get_device (device_name);
   if (NULL == device)
   {
-    printf ("Could not add descriptor to device %s as the device doesn't exist\n", device_name);
+    printf ("Device was null\n");
     return false;
   }
 
   service_t *service = device_get_service (device, service_uuid);
   if (NULL == service)
   {
-    printf ("Could not add descriptor to device %s as the service with uuid %s doesn't exist\n", device_name, service_uuid);
+    printf ("Could not add descriptor to device %s as the service with uuid %s doesn't exist\n", device->device_name, service_uuid);
     return false;
   }
 
   characteristic_t *characteristic = service_get_characteristic (service, characteristic_uuid);
   if (NULL == characteristic)
   {
-    printf ("Could not add characteristic to device %s as the characteristic with uuid %s doesn't exist\n", device_name, characteristic_uuid);
+    printf ("Could not add characteristic to device %s as the characteristic with uuid %s doesn't exist\n", device->device_name, characteristic_uuid);
     return false;
   }
 

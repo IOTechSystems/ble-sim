@@ -6,9 +6,46 @@
  **********************************************************************/
 
 #include <stdio.h>
+#include <string.h>
+
 #include "dbusutils.h"
 
 bool dbusutils_mainloop_running = false;
+
+char *dbusutils_create_object_path(
+  const char* prev_path, 
+  const char* object_name,
+  unsigned int object_id
+)
+{
+  size_t required = snprintf(NULL, 0, "%s/%s%u",prev_path, object_name, object_id) + 1;
+  char* path = malloc(required);
+  sprintf(path, "%s/%s%u", prev_path, object_name, object_id);
+  return path;
+}
+
+const char* dbusutils_get_error_message_from_reply(DBusMessage *reply)
+{
+  if (dbus_message_get_type(reply) != DBUS_MESSAGE_TYPE_ERROR)
+  {
+    return NULL;
+  }
+
+  if(strcmp(dbus_message_get_signature(reply), "s") != 0)
+  {
+    return NULL;
+  }
+
+  DBusMessageIter err_iter;
+
+  const char* error_message = NULL;
+  dbus_message_iter_init(reply, &err_iter);
+  dbus_message_iter_get_basic(&err_iter, &error_message);
+
+  printf("%s\n", error_message);
+
+  return error_message;
+}
 
 DBusConnection * dbusutils_get_connection (void)
 {
@@ -53,10 +90,12 @@ bool dbusutils_register_object (DBusConnection *connection,
   dbus_connection_try_register_object_path (connection, object_path, vtable, user_data, &err);
   if (dbus_error_is_set(&err))
   { 
-    printf ("Error registering object path (%s)\n", err.message); 
+    printf ("Error registering object path (%s): (%s)\n", object_path, err.message); 
     dbus_error_free (&err); 
     return false;
   }
+
+  printf("Successfully registered object path %s\n", object_path);
 
   return true;
 }

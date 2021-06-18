@@ -16,11 +16,35 @@
 extern DBusConnection *global_dbus_connection;
 
 /**
+ * creates a valid dbus object path:
+ * prev_path + "/" + object_name + object_id
+ * 
+ * e.g prev_path = "/dev", object_name = "service", object_id = 1
+ *  output would be "/dev/service1"
+ * 
+ * @param prev_path object hierarchy path
+ * @param object_name name of the object
+ * @param object_id id of the object
+ * @return the created object path
+ **/
+char *dbusutils_create_object_path(
+  const char* prev_path, 
+  const char* object_name,
+  unsigned int object_id
+);
+
+/**
+ * @param The dbus message to get the error message from
+ * @return error message (should not be free'd) or NULL
+ **/
+const char *dbusutils_get_error_message_from_reply(DBusMessage *reply);
+
+/**
  * Creates a dbus connection
  * 
  * @return a new DBusConnection or NULL if one could not be created
  **/
-DBusConnection * dbusutils_get_connection (void);
+DBusConnection *dbusutils_get_connection (void);
 
 /**
  *  Asks DBus to assign IOTECH_BLE_SIM_SERVICE_NAME to a connection 

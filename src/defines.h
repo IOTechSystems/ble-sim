@@ -13,6 +13,13 @@
 
 #define DEFAULT_CONTROLLER "/org/bluez/hci0"
 
+#define EMPTY_STRING ""
+
+#define DEVICE_OBJECT_NAME "dev"
+#define SERVICE_OBJECT_NAME "serv"
+#define CHARACTERISTIC_OBJECT_NAME "char"
+#define DESCRIPTOR_OBJECT_NAME "desc"
+
 #define BLUEZ_BUS_NAME "org.bluez"
 #define BLE_SIM_SERVICE_NAME "org.blesim"
 

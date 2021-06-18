@@ -82,18 +82,24 @@ static void dbus_cleanup (void)
 static void init_dev(void)
 {
   const char *devname = "test-dev";
-  device_add (devname);
 
-  device_add_service (devname, service_new(TST_SRVC1, TST_PATH, true, NULL) );
-  device_add_service (devname, service_new(TST_SRVC2, TST_PATH, true, NULL) );
-  device_add_service (devname, service_new(TST_SRVC3, TST_PATH, true, NULL) );
-  device_add_service (devname, service_new(TST_SRVC4, TST_PATH, true, NULL) );
+  device_t *new_device = device_new (devname, DEFAULT_CONTROLLER, NULL);
 
-  device_add_characteristic (devname, TST_SRVC1, characteristic_new ( TST_CHR1, TST_PATH, NULL));
-  device_add_characteristic (devname, TST_SRVC1, characteristic_new ( TST_CHR2, TST_PATH, NULL));
+  device_add_service (new_device, service_new(TST_SRVC1, TST_PATH, true, NULL) );
+  device_add_service (new_device, service_new(TST_SRVC2, TST_PATH, true, NULL) );
+  device_add_service (new_device, service_new(TST_SRVC3, TST_PATH, true, NULL) );
+  device_add_service (new_device, service_new(TST_SRVC4, TST_PATH, true, NULL) );
 
-  device_add_descriptor (devname, TST_SRVC1, TST_CHR1, descriptor_new (TST_DESC1, TST_PATH));
+  device_add_characteristic (new_device, TST_SRVC1, characteristic_new ( TST_CHR1, TST_PATH, NULL));
+  device_add_characteristic (new_device, TST_SRVC1, characteristic_new ( TST_CHR2, TST_PATH, NULL));
 
+  device_add_descriptor (new_device, TST_SRVC1, TST_CHR1, descriptor_new (TST_DESC1, TST_PATH));
+
+  if (!device_add (new_device))
+  {
+    printf ("Failed to add test device\n");
+    device_free(new_device);
+  }
 }
 
 static void update(void * user_data)

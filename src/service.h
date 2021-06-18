@@ -13,6 +13,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include <dbus/dbus.h>
+
 #include "defines.h"
 #include "characteristic.h"
 
@@ -21,9 +23,13 @@ typedef struct service_t
   char *uuid; //128-bit service UUID
   char *device_path; // Object path of the Bluetooth device the service belongs to
   bool primary;
+  char *object_path;
   characteristic_t * characteristics;
+  unsigned int characteristic_count;
   struct service_t *next;
 } service_t;
+
+extern DBusObjectPathVTable service_dbus_callbacks;
 
 /**
  * Allocates memory and initialises values for a new service_t 
@@ -63,6 +69,8 @@ bool service_add_characteristic (service_t *service, characteristic_t *character
 
 // TODO
 // //DBus methods
-// void service_get_all (service_t *service);
+void service_get_object (service_t *service, DBusMessageIter* iter);
+
+
 
 #endif //BLE_SIM_SERVICE_H

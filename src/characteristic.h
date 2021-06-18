@@ -9,6 +9,7 @@
 #define BLE_SIM_CHARACTERISTIC_H
 
 #include <stdint.h>
+#include <dbus/dbus.h>
 
 #include "defines.h"
 #include "descriptor.h"
@@ -17,13 +18,17 @@ typedef struct characteristic_t
 {
   char *uuid; //128-bit characteristic UUID.
   char *service_path; //Object path of the GATT service the characteristic belongs to.
+  char *object_path;
   uint8_t * value;
   uint32_t value_size;
   bool notifying;
   uint32_t flags;
   descriptor_t *descriptors;
+  unsigned int descriptor_count;
   struct characteristic_t *next;
 } characteristic_t;
+
+extern DBusObjectPathVTable characteristic_dbus_callbacks;
 
 /**
  * Allocates memory and initialises values for a new characteristic_t 
