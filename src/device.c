@@ -118,7 +118,7 @@ static DBusHandlerResult device_handle_dbus_message(DBusConnection *connection, 
 
   if (dbus_message_is_method_call (message, DBUS_INTERFACE_OBJECT_MANAGER, DBUS_METHOD_GET_MANAGED_OBJECTS))
   {
-    //device_get_managed_objects (device, connection, message);
+    device_get_managed_objects (device, connection, message);
   }
 
   return DBUS_HANDLER_RESULT_HANDLED;

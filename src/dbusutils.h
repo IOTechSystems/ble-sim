@@ -15,6 +15,25 @@
 
 extern DBusConnection *global_dbus_connection;
 
+
+typedef void(*dbus_get_property_function) (void *user_data, DBusMessageIter* iter);
+
+typedef struct dbus_property_t
+{
+  const char* name;
+  const char* signature;
+  dbus_get_property_function get_function;
+}dbus_property_t;
+
+
+void dbusutils_get_object_data(
+  DBusMessageIter *iter,
+  const dbus_property_t *properties_table,
+  const char* object_path,
+  const char* interface,
+  void* object_ptr
+);
+
 /**
  * creates a valid dbus object path:
  * prev_path + "/" + object_name + object_id

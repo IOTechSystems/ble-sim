@@ -13,15 +13,23 @@
 
 static void service_handle_unregister_device(DBusConnection *connection, void *data);
 static DBusHandlerResult service_handle_dbus_message(DBusConnection *connection, DBusMessage *message, void *data);
-static void service_get_uuid (service_t *service, DBusMessageIter* iter);
-static void service_get_device_path (service_t *service, DBusMessageIter* iter);
-static void service_get_primary (service_t *service, DBusMessageIter* iter);
+static void service_get_uuid (void *user_data, DBusMessageIter* iter);
+static void service_get_device_path (void *user_data, DBusMessageIter* iter);
+static void service_get_primary (void *user_data, DBusMessageIter* iter);
 static void service_get_properties (service_t *service, DBusMessageIter* iter);
 
 DBusObjectPathVTable service_dbus_callbacks = {
   .unregister_function = service_handle_unregister_device,
   .message_function = service_handle_dbus_message,
 };
+
+static const dbus_property_t service_properties[] =
+  {
+    {BLE_PROPERTY_UUID, DBUS_TYPE_STRING_AS_STRING, service_get_uuid},
+    {BLE_PROPERTY_DEVICE, DBUS_TYPE_STRING_AS_STRING, service_get_device_path},
+    {BLE_PROPERTY_PRIMARY, DBUS_TYPE_BOOLEAN_AS_STRING, service_get_primary},
+    {NULL, NULL, NULL}
+  };
 
 service_t *service_new (const char* uuid, const char *device_path, bool primary, characteristic_t *characteristics)
 {
@@ -123,64 +131,26 @@ bool service_add_characteristic (service_t *service, characteristic_t *character
 }
 
 //DBUS
-static void service_get_uuid (service_t *service, DBusMessageIter* iter)
+static void service_get_uuid (void *user_data, DBusMessageIter* iter)
 {
-  dbus_message_iter_append_basic(iter, DBUS_TYPE_STRING, &service->uuid);
+  service_t* service = (service_t*) user_data;
+  dbus_message_iter_append_basic (iter, DBUS_TYPE_STRING, &service->uuid);
 }
 
-static void service_get_device_path (service_t *service, DBusMessageIter* iter)
+static void service_get_device_path (void *user_data, DBusMessageIter* iter)
 {
-  dbus_message_iter_append_basic(iter, DBUS_TYPE_STRING, &service->device_path);
+  service_t* service = (service_t*) user_data;
+  dbus_message_iter_append_basic (iter, DBUS_TYPE_STRING, &service->device_path);
 }
 
-static void service_get_primary (service_t *service, DBusMessageIter* iter)
+static void service_get_primary (void *user_data, DBusMessageIter* iter)
 {
+  service_t* service = (service_t*) user_data;
   dbus_message_iter_append_basic(iter, DBUS_TYPE_BOOLEAN, &service->primary);
-}
-
-static void service_get_properties (service_t *service, DBusMessageIter* iter)
-{
-  DBusMessageIter array;
-  dbus_message_iter_open_container(
-    iter,
-    DBUS_TYPE_ARRAY, 
-    DBUS_DICT_ENTRY_BEGIN_CHAR_AS_STRING //signature "{sv}"
-    DBUS_TYPE_STRING_AS_STRING
-    DBUS_TYPE_VARIANT_AS_STRING
-    DBUS_DICT_ENTRY_END_CHAR_AS_STRING,
-    &array
-  );
-
-  service_get_uuid (service, &array);
-  service_get_device_path (service, &array);
-  service_get_primary (service, &array);
-
-  dbus_message_iter_close_container(iter, &array);
 }
 
 void service_get_object(service_t *service, DBusMessageIter* iter)
 {
-  //this might need to be /org/blesim + service->object_path
-  dbus_message_iter_append_basic(iter, DBUS_TYPE_OBJECT_PATH, service->object_path);
-
-  DBusMessageIter array;
-  dbus_message_iter_open_container(
-    iter,
-    DBUS_TYPE_ARRAY, 
-    DBUS_DICT_ENTRY_BEGIN_CHAR_AS_STRING //signature "{sa{sv}}"
-    DBUS_TYPE_STRING_AS_STRING
-    DBUS_TYPE_ARRAY_AS_STRING
-    DBUS_DICT_ENTRY_BEGIN_CHAR_AS_STRING
-    DBUS_TYPE_STRING_AS_STRING
-    DBUS_TYPE_VARIANT_AS_STRING
-    DBUS_DICT_ENTRY_END_CHAR_AS_STRING
-    DBUS_DICT_ENTRY_END_CHAR_AS_STRING,
-    &array
-  );
-  
-  dbus_message_iter_append_basic(&array, DBUS_TYPE_STRING, BLUEZ_GATT_SERVICE_INTERFACE);
-  service_get_properties(service, &array);
-  
-  dbus_message_iter_close_container(iter, &array);
+  dbusutils_get_object_data (iter, &service_properties, service->object_path, BLUEZ_GATT_SERVICE_INTERFACE, service);
 }
 

@@ -20,6 +20,10 @@
 #define CHARACTERISTIC_OBJECT_NAME "char"
 #define DESCRIPTOR_OBJECT_NAME "desc"
 
+#define BLE_PROPERTY_UUID "UUID"
+#define BLE_PROPERTY_PRIMARY "Primary"
+#define BLE_PROPERTY_DEVICE "Device"
+
 #define BLUEZ_BUS_NAME "org.bluez"
 #define BLE_SIM_SERVICE_NAME "org.blesim"
 

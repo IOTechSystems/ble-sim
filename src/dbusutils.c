@@ -6,11 +6,93 @@
  **********************************************************************/
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "dbusutils.h"
 
 bool dbusutils_mainloop_running = false;
+
+
+static void dbusutils_get_object_property_data(
+  DBusMessageIter *iter,
+  const dbus_property_t *properties_table,
+  void* object_ptr
+)
+{
+  DBusMessageIter array;
+  dbus_message_iter_open_container(
+    iter,
+    DBUS_TYPE_ARRAY,
+    DBUS_DICT_ENTRY_BEGIN_CHAR_AS_STRING //signature "{sv}"
+    DBUS_TYPE_STRING_AS_STRING
+    DBUS_TYPE_VARIANT_AS_STRING
+    DBUS_DICT_ENTRY_END_CHAR_AS_STRING,
+    &array
+  );
+
+  dbus_property_t *property = NULL;
+
+  for (property = properties_table; property && property->name; property++)
+  {
+    printf("%s\n", property->name);
+    DBusMessageIter entry, variant_container;
+    dbus_message_iter_open_container(&array, DBUS_TYPE_DICT_ENTRY, NULL, &entry);
+
+
+    char *tmp = strdup (property->name);
+    dbus_message_iter_append_basic (&entry, DBUS_TYPE_STRING, &tmp);
+    free (tmp);
+
+    dbus_message_iter_open_container (&entry, DBUS_TYPE_VARIANT, property->signature, &variant_container);
+
+    property->get_function(object_ptr, &variant_container);
+
+    dbus_message_iter_close_container(&entry, &variant_container);
+    dbus_message_iter_close_container(&array, &entry);
+  }
+
+
+  dbus_message_iter_close_container(iter, &array);
+}
+
+void dbusutils_get_object_data(
+  DBusMessageIter *iter,
+  const struct dbus_property_t *properties_table,
+  const char* object_path,
+  const char* interface,
+  void* object_ptr
+)
+{
+  DBusMessageIter entry, array, interface_entry;
+
+  dbus_message_iter_open_container(iter, DBUS_TYPE_DICT_ENTRY, NULL, &entry);
+  dbus_message_iter_append_basic(&entry, DBUS_TYPE_OBJECT_PATH, &object_path);
+  dbus_message_iter_open_container(
+    &entry,
+    DBUS_TYPE_ARRAY,
+    DBUS_DICT_ENTRY_BEGIN_CHAR_AS_STRING //signature "{sa{sv}}"
+    DBUS_TYPE_STRING_AS_STRING
+    DBUS_TYPE_ARRAY_AS_STRING
+    DBUS_DICT_ENTRY_BEGIN_CHAR_AS_STRING
+    DBUS_TYPE_STRING_AS_STRING
+    DBUS_TYPE_VARIANT_AS_STRING
+    DBUS_DICT_ENTRY_END_CHAR_AS_STRING
+    DBUS_DICT_ENTRY_END_CHAR_AS_STRING,
+    &array
+  );
+  dbus_message_iter_open_container (&array, DBUS_TYPE_DICT_ENTRY, NULL, &interface_entry); // open {sa{sv}}
+
+  dbus_message_iter_append_basic (&interface_entry, DBUS_TYPE_STRING, &interface);
+
+  dbusutils_get_object_property_data(&interface_entry, properties_table,object_ptr);
+
+  dbus_message_iter_close_container (&array, &interface_entry);  // close {sv}
+  dbus_message_iter_close_container(&entry, &array);
+  dbus_message_iter_close_container(iter, &entry);
+
+}
+
 
 char *dbusutils_create_object_path(
   const char* prev_path, 
