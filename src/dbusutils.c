@@ -15,7 +15,7 @@ DBusConnection * dbusutils_get_connection (void)
   DBusError err;
   dbus_error_init (&err);
 
-  DBusConnection* conn = dbus_bus_get (DBUS_BUS_SESSION, &err);
+  DBusConnection* conn = dbus_bus_get (DBUS_BUS_SYSTEM, &err);
   if (dbus_error_is_set (&err))
   { 
     printf ("Connection Error (%s)\n", err.message); 
@@ -29,8 +29,7 @@ bool dbusutils_request_application_bus_name (DBusConnection *connection)
   DBusError err;
   dbus_error_init (&err);
 
-  int ret = dbus_bus_request_name (connection, IOTECH_BLE_SIM_SERVICE_NAME, DBUS_NAME_FLAG_REPLACE_EXISTING, &err);
-
+  int ret = dbus_bus_request_name (connection, BLE_SIM_SERVICE_NAME, DBUS_NAME_FLAG_REPLACE_EXISTING, &err);
   if (dbus_error_is_set (&err)) 
   { 
       fprintf (stderr, "Name Error (%s)\n", err.message); 

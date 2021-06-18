@@ -14,7 +14,7 @@
 #define DEFAULT_CONTROLLER "/org/bluez/hci0"
 
 #define BLUEZ_BUS_NAME "org.bluez"
-#define IOTECH_BLE_SIM_SERVICE_NAME "org.iotech.BLESim"
+#define BLE_SIM_SERVICE_NAME "org.blesim"
 
 #define DBUS_INTERFACE_OBJECT_MANAGER "org.freedesktop.DBus.ObjectManager"
 #define DBUS_METHOD_GET_MANAGED_OBJECTS "GetManagedObjects"

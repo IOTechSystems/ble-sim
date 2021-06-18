@@ -37,6 +37,12 @@ machine.
 
   `./scripts/run-controller.sh`
 
+## Setup 
+
+  We need to install the ble sim dbus config file. Use the following script to install:
+
+  `./scrips/setup.sh`
+
 ## Build
 
   `./scripts/build.sh`

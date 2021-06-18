@@ -138,8 +138,6 @@ static void device_get_managed_objects (device_t *device, DBusConnection *connec
 static bool device_register_with_bluez(device_t *device, DBusConnection * connection)
 {
 
-  DBusConnection *conn = dbus_bus_get_private(DBUS_BUS_SYSTEM, NULL);
-
   //init message
   DBusMessage *message = dbus_message_new_method_call(BLUEZ_BUS_NAME, device->controller, BLUEZ_GATT_MANAGER_INTERFACE, BLUEZ_METHOD_REGISTER_APPLICATION);
   if (NULL == message)
@@ -168,14 +166,8 @@ static bool device_register_with_bluez(device_t *device, DBusConnection * connec
   DBusError error;
   dbus_error_init (&error);
 
-  dbus_connection_send_with_reply_and_block (conn, message, DBUS_TIMEOUT_USE_DEFAULT, &error);
-  dbus_message_unref(message);
-  if (dbus_error_is_set (&error))
-  {
-    printf ("Error Registering Application: (%s: %s)\n", error.name, error.message); 
-    dbus_error_free(&error);
-    return false;
-  }
+  //TODO set up dbus_conneciton_send_with_reply so that we can get the response
+  dbus_connection_send(connection, message, NULL);
 
   return true;
 }
