@@ -14,6 +14,7 @@
 #define DEFAULT_CONTROLLER "/org/bluez/hci0"
 
 #define EMPTY_STRING ""
+#define ROOT_PATH "/"
 #define DBUS_PROPERTY_NULL { NULL, NULL, NULL }
 
 #define DEVICE_OBJECT_NAME "dev"

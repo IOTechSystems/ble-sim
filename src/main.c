@@ -7,6 +7,7 @@
 
 #include <stdio.h>
 #include <unistd.h>
+#include <string.h>
 
 #include <dbus/dbus.h>
 
@@ -102,6 +103,54 @@ static void update(void * user_data)
 {
 
 }
+
+static void list_adapters(void)
+{
+  DBusMessage *reply = dbusutils_do_method_call(global_dbus_connection, BLUEZ_BUS_NAME, ROOT_PATH, DBUS_INTERFACE_OBJECT_MANAGER, DBUS_METHOD_GET_MANAGED_OBJECTS);
+  if (NULL == reply)
+  {
+    printf("List adapters message reply was null");
+    return;
+  }
+  DBusMessageIter iter, array;
+
+  dbus_message_iter_init (reply, &iter);
+  dbus_message_iter_recurse (&iter, &array);
+
+  while (dbus_message_iter_has_next (&array)) //loop through array to get object paths
+  {
+    DBusMessageIter dict_entry;
+
+    dbus_message_iter_recurse(&array, &dict_entry);
+    char *object_path;
+    dbus_message_iter_get_basic (&dict_entry, &object_path);
+
+    //loop through properties
+    DBusMessageIter properties;
+    dbus_message_iter_next(&dict_entry);
+    dbus_message_iter_recurse(&dict_entry, &properties);
+
+    while ( dbus_message_iter_has_next (&properties) )
+    {
+      DBusMessageIter property_entry;
+      char *interface_name;
+      dbus_message_iter_recurse (&properties, &property_entry);
+      dbus_message_iter_get_basic (&property_entry, &interface_name);
+      
+      if (strcmp(BLUEZ_GATT_MANAGER_INTERFACE, interface_name) == 0 )
+      {
+        printf("ADAPTER_PATH: %s\n", object_path);
+      }
+
+      dbus_message_iter_next(&properties);
+    }
+
+    dbus_message_iter_next(&array);
+  }
+
+  dbus_message_unref(reply);
+
+}
   
 int main (int argc, char *argv[]) 
 {
@@ -112,7 +161,9 @@ int main (int argc, char *argv[])
   }
 
   init_dev();
+  list_adapters();
 
+  update(NULL);
   dbusutils_mainloop_run (global_dbus_connection, &update);  
   
   dbus_cleanup ();
