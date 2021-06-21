@@ -25,7 +25,8 @@
 #define TST_CHR2 "00002a39-0000-1000-8000-00805f9b34fb"
 #define TST_DESC1 "12345678-1234-5678-1234-56789abcdef2"
 
-DBusConnection* global_dbus_connection;
+DBusConnection *global_dbus_connection;
+char *default_adapter = NULL;
 
 static DBusHandlerResult filter_message (DBusConnection *connection, DBusMessage *message, void *data)
 {
@@ -80,7 +81,7 @@ static void init_dev(void)
 {
   const char *devname = "test-dev";
 
-  device_t *new_device = device_new (devname, DEFAULT_CONTROLLER, NULL);
+  device_t *new_device = device_new (devname, default_adapter, NULL);
 
   device_add_service (new_device, service_new (TST_SRVC1, true, NULL) );
   device_add_service (new_device, service_new (TST_SRVC2, true, NULL) );
@@ -104,13 +105,13 @@ static void update(void * user_data)
 
 }
 
-static void list_adapters(void)
+static char *get_default_adapter(void)
 {
   DBusMessage *reply = dbusutils_do_method_call(global_dbus_connection, BLUEZ_BUS_NAME, ROOT_PATH, DBUS_INTERFACE_OBJECT_MANAGER, DBUS_METHOD_GET_MANAGED_OBJECTS);
   if (NULL == reply)
   {
     printf("List adapters message reply was null");
-    return;
+    return NULL;
   }
   DBusMessageIter iter, array;
 
@@ -139,7 +140,8 @@ static void list_adapters(void)
       
       if (strcmp(BLUEZ_GATT_MANAGER_INTERFACE, interface_name) == 0 )
       {
-        printf("ADAPTER_PATH: %s\n", object_path);
+        dbus_message_unref(reply);
+        return object_path;
       }
 
       dbus_message_iter_next(&properties);
@@ -149,7 +151,7 @@ static void list_adapters(void)
   }
 
   dbus_message_unref(reply);
-
+  return NULL;
 }
   
 int main (int argc, char *argv[]) 
@@ -160,14 +162,24 @@ int main (int argc, char *argv[])
     return 1;
   }
 
+  default_adapter = get_default_adapter();
+  if (NULL == default_adapter)
+  {
+    printf("Could not find an adapter\n");
+    return 0;
+  }
+  printf("Found default adapter: %s\n", default_adapter);
+
   init_dev();
-  list_adapters();
+
 
   update(NULL);
   dbusutils_mainloop_run (global_dbus_connection, &update);  
   
   dbus_cleanup ();
   device_cleanup_devices ();
+
+  //free (default_adapter);
 
   return 0;
 }

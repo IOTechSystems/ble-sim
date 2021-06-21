@@ -176,8 +176,6 @@ bool dbusutils_register_object (DBusConnection *connection,
     return false;
   }
 
-  printf("Successfully registered object path %s\n", object_path);
-
   return true;
 }
 

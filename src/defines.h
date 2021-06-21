@@ -11,8 +11,6 @@
 #define UUID_LENGTH 32
 #define DEVICE_PATH_LENGTH 22
 
-#define DEFAULT_CONTROLLER "/org/bluez/hci0"
-
 #define EMPTY_STRING ""
 #define ROOT_PATH "/"
 #define DBUS_PROPERTY_NULL { NULL, NULL, NULL }

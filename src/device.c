@@ -198,8 +198,6 @@ static bool device_get_managed_objects (device_t *device, DBusConnection *connec
 
   dbus_message_iter_close_container (&iter, &array);
 
-
-  printf("Sending get_managed_objects\n");
   //send reply
   dbus_connection_send (connection, reply, NULL);
 
@@ -242,8 +240,6 @@ static bool device_register_with_bluez (device_t *device, DBusConnection * conne
     printf("Register Application: Could not set up message\n");
     return false;
   }
-
-  printf("%s\n", device->object_path);
 
   //setup message "oa{sv}""
   DBusMessageIter args, dict;
