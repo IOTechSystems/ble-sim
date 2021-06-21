@@ -10,6 +10,6 @@
 
 #include <stdbool.h>
 
-bool utils_is_flag_set(unsigned int x, unsigned int flag);
+bool utils_is_flag_set (unsigned int x, unsigned int flag);
 
 #endif //BLE_SIM_UTILS_H

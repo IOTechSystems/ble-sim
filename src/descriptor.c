@@ -15,13 +15,18 @@
 #include "utils.h"
 
 static void descriptor_handle_unregister_device (DBusConnection *connection, void *data);
-static DBusHandlerResult descriptor_handle_dbus_message (DBusConnection *connection, DBusMessage *message, void *data);
-static void descriptor_get_uuid(void *user_data, DBusMessageIter* iter);
-static void descriptor_get_characteristic(void *user_data, DBusMessageIter* iter);
-static void descriptor_get_flags(void *user_data, DBusMessageIter* iter);
-static void descriptor_get_value(void *user_data, DBusMessageIter* iter);
 
-static void descriptor_read_value(descriptor_t *descriptor, DBusMessageIter* iter);
+static DBusHandlerResult descriptor_handle_dbus_message (DBusConnection *connection, DBusMessage *message, void *data);
+
+static void descriptor_get_uuid (void *user_data, DBusMessageIter *iter);
+
+static void descriptor_get_characteristic (void *user_data, DBusMessageIter *iter);
+
+static void descriptor_get_flags (void *user_data, DBusMessageIter *iter);
+
+static void descriptor_get_value (void *user_data, DBusMessageIter *iter);
+
+static void descriptor_read_value (descriptor_t *descriptor, DBusMessageIter *iter);
 
 DBusObjectPathVTable descriptor_dbus_callbacks = {
   .unregister_function = descriptor_handle_unregister_device,
@@ -29,26 +34,26 @@ DBusObjectPathVTable descriptor_dbus_callbacks = {
 };
 
 static dbus_property_t descriptor_properties[] =
-{
-  {BLE_PROPERTY_UUID, DBUS_TYPE_STRING_AS_STRING, descriptor_get_uuid}, //s
-  {BLE_PROPERTY_CHARACTERISTIC, DBUS_TYPE_OBJECT_PATH_AS_STRING, descriptor_get_characteristic}, //o
-  {BLE_PROPERTY_FLAGS, DBUS_TYPE_ARRAY_AS_STRING DBUS_TYPE_STRING_AS_STRING, descriptor_get_flags}, //as
-  {BLE_PROPERTY_VALUE, DBUS_TYPE_ARRAY_AS_STRING DBUS_TYPE_BYTE_AS_STRING, descriptor_get_value}, //ay
-  DBUS_PROPERTY_NULL
-};
+  {
+    {BLE_PROPERTY_UUID, DBUS_TYPE_STRING_AS_STRING, descriptor_get_uuid},
+    {BLE_PROPERTY_CHARACTERISTIC, DBUS_TYPE_OBJECT_PATH_AS_STRING, descriptor_get_characteristic},
+    {BLE_PROPERTY_FLAGS, DBUS_TYPE_ARRAY_AS_STRING DBUS_TYPE_STRING_AS_STRING, descriptor_get_flags},
+    {BLE_PROPERTY_VALUE, DBUS_TYPE_ARRAY_AS_STRING DBUS_TYPE_BYTE_AS_STRING, descriptor_get_value},
+    DBUS_PROPERTY_NULL
+  };
 
-static object_flag_t descriptor_flags[] = 
-{
-  {DESCRIPTOR_FLAG_READ,DESCRIPTOR_FLAG_READ_ENABLED_BIT},
-  {DESCRIPTOR_FLAG_WRITE,DESCRIPTOR_FLAG_WRITE_ENABLED_BIT},
-  {DESCRIPTOR_FLAG_ENCRYPT_READ,DESCRIPTOR_FLAG_ENCRYPT_READ_ENABLED_BIT},
-  {DESCRIPTOR_FLAG_ENCRYPT_WRITE,DESCRIPTOR_FLAG_ENCRYPT_WRITE_BIT},
-  {DESCRIPTOR_FLAG_ENCRYPT_AUTHENTICATED_READ,DESCRIPTOR_FLAG_ENCRYPT_AUTHENTICATED_READ_ENABLED_BIT},
-  {DESCRIPTOR_FLAG_ENCRYTP_AUTHENTICATED_WRITE,DESCRIPTOR_FLAG_ENCRYPT_AUTHENTICATED_WRITE_ENABLED_BIT},
-  {DESCRIPTOR_FLAG_SECURE_READ,DESCRIPTOR_FLAG_SECURE_READ_ENABLED_BIT},
-  {DESCRIPTOR_FLAG_SECURE_WRITE,DESCRIPTOR_FLAG_SECURE_WRITE_ENABLED_BIT},
-  {DESCRIPTOR_FLAG_AUTHORIZE,DESCRIPTOR_FLAG_AUTHORIZE_ENABLED_BIT}
-};
+static object_flag_t descriptor_flags[] =
+  {
+    {DESCRIPTOR_FLAG_READ,                        DESCRIPTOR_FLAG_READ_ENABLED_BIT},
+    {DESCRIPTOR_FLAG_WRITE,                       DESCRIPTOR_FLAG_WRITE_ENABLED_BIT},
+    {DESCRIPTOR_FLAG_ENCRYPT_READ,                DESCRIPTOR_FLAG_ENCRYPT_READ_ENABLED_BIT},
+    {DESCRIPTOR_FLAG_ENCRYPT_WRITE,               DESCRIPTOR_FLAG_ENCRYPT_WRITE_BIT},
+    {DESCRIPTOR_FLAG_ENCRYPT_AUTHENTICATED_READ,  DESCRIPTOR_FLAG_ENCRYPT_AUTHENTICATED_READ_ENABLED_BIT},
+    {DESCRIPTOR_FLAG_ENCRYTP_AUTHENTICATED_WRITE, DESCRIPTOR_FLAG_ENCRYPT_AUTHENTICATED_WRITE_ENABLED_BIT},
+    {DESCRIPTOR_FLAG_SECURE_READ,                 DESCRIPTOR_FLAG_SECURE_READ_ENABLED_BIT},
+    {DESCRIPTOR_FLAG_SECURE_WRITE,                DESCRIPTOR_FLAG_SECURE_WRITE_ENABLED_BIT},
+    {DESCRIPTOR_FLAG_AUTHORIZE,                   DESCRIPTOR_FLAG_AUTHORIZE_ENABLED_BIT}
+  };
 
 descriptor_t *descriptor_new (const char *uuid)
 {
@@ -89,13 +94,13 @@ static void descriptor_handle_unregister_device (DBusConnection *connection, voi
 
 static DBusHandlerResult descriptor_handle_dbus_message (DBusConnection *connection, DBusMessage *message, void *data)
 {
-  descriptor_t *descriptor = (descriptor_t*) data;
+  descriptor_t *descriptor = (descriptor_t *) data;
   printf ("DESCRIPTOR MESSAGE: got dbus message sent to %s %s %s (service: %s) \n",
-          dbus_message_get_destination(message),
-          dbus_message_get_interface(message),
-          dbus_message_get_path(message),
+          dbus_message_get_destination (message),
+          dbus_message_get_interface (message),
+          dbus_message_get_path (message),
           descriptor->uuid
-          );
+  );
 
   return DBUS_HANDLER_RESULT_HANDLED;
 }
@@ -106,26 +111,26 @@ void descriptor_get_object (descriptor_t *descriptor, DBusMessageIter *iter)
   dbusutils_get_object_data (iter, &descriptor_properties[0], descriptor->object_path, BLUEZ_GATT_DESCRIPTOR_INTERFACE, descriptor);
 }
 
-static void descriptor_get_uuid (void *user_data, DBusMessageIter* iter)
+static void descriptor_get_uuid (void *user_data, DBusMessageIter *iter)
 {
   descriptor_t *descriptor = (descriptor_t *) user_data;
   dbus_message_iter_append_basic (iter, DBUS_TYPE_STRING, &descriptor->uuid);
 }
 
-static void descriptor_get_characteristic (void *user_data, DBusMessageIter* iter)
+static void descriptor_get_characteristic (void *user_data, DBusMessageIter *iter)
 {
   descriptor_t *descriptor = (descriptor_t *) user_data;
   dbus_message_iter_append_basic (iter, DBUS_TYPE_OBJECT_PATH, &descriptor->characteristic_path);
 }
 
-static void descriptor_get_flags (void *user_data, DBusMessageIter* iter)
+static void descriptor_get_flags (void *user_data, DBusMessageIter *iter)
 {
   descriptor_t *descriptor = (descriptor_t *) user_data;
   DBusMessageIter array;
 
   dbus_message_iter_open_container (iter, DBUS_TYPE_ARRAY, DBUS_TYPE_STRING_AS_STRING, &array);
   unsigned int flag_count = sizeof (descriptor_flags) / sizeof (descriptor_flags[0]);
-  for (unsigned int i=0; i < flag_count; i++)
+  for (unsigned int i = 0; i < flag_count; i++)
   {
     if (utils_is_flag_set (descriptor->flags, descriptor_flags[i].enabled_bit))
     {
@@ -136,13 +141,13 @@ static void descriptor_get_flags (void *user_data, DBusMessageIter* iter)
   dbus_message_iter_close_container (iter, &array);
 }
 
-static void descriptor_get_value(void *user_data, DBusMessageIter* iter)
+static void descriptor_get_value (void *user_data, DBusMessageIter *iter)
 {
   descriptor_t *descriptor = (descriptor_t *) user_data;
   descriptor_read_value (descriptor, iter);
 }
 
-static void descriptor_read_value (descriptor_t *descriptor, DBusMessageIter* iter)
+static void descriptor_read_value (descriptor_t *descriptor, DBusMessageIter *iter)
 {
   DBusMessageIter array;
 
@@ -151,7 +156,7 @@ static void descriptor_read_value (descriptor_t *descriptor, DBusMessageIter* it
   dbus_message_iter_close_container (iter, &array);
 }
 
-// TODO
+// TODO: implement these functions
 // void descriptor_get_all (descriptor_t *descriptor)
 // {
 

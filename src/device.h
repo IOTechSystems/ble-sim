@@ -35,7 +35,7 @@ typedef struct device_t
  * @param controller name of the controller 
  * @return initialised device  
  **/
-device_t *device_new (const char* device_name, const char* controller, service_t *services);
+device_t *device_new (const char *device_name, const char *controller, service_t *services);
 
 /**
  * Frees a device and it's values
@@ -50,7 +50,7 @@ void device_free (device_t *device);
  * @param device_name name of the device to find
  * @return found device or NULL if not found  
  **/
-device_t * device_get_device (const char* device_name);
+device_t *device_get_device (const char *device_name);
 
 /**
  * Adds a device to the internal device list, registers it as a dbus object 
@@ -59,14 +59,14 @@ device_t * device_get_device (const char* device_name);
  * @param device the device to add
  * @return succesful true/false
  **/
-bool device_add (device_t* device);
+bool device_add (device_t *device);
 
 /**
  * Removes a device from the list
  * @param device_name unique name of the device
  * @return succesful true/false if the device was added to the list
  **/
-bool device_remove (const char* device_name);
+bool device_remove (const char *device_name);
 
 /**
  * Adds a service to device

@@ -39,9 +39,9 @@ machine.
 
 ## Setup 
 
-  We need to install the ble sim dbus config file. Use the following script to install:
+  We need to install the ble-sim dbus config file. Use the following script to install:
 
-  `./scrips/setup.sh`
+  `./scripts/setup.sh`
 
 ## Build
 
