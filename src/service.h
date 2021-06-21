@@ -40,7 +40,7 @@ extern DBusObjectPathVTable service_dbus_callbacks;
  * @param characteristics services characteristics 
  * @return initialised service  
  **/
-service_t *service_new (const char* uuid, const char *device_path, bool primary, characteristic_t *characteristics);
+service_t *service_new (const char* uuid, bool primary, characteristic_t *characteristics);
 
 /**
  * Frees a service and it's values

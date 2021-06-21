@@ -153,7 +153,7 @@ static bool device_get_managed_objects (device_t *device, DBusConnection *connec
 
   //create the response - signature a{oa{sa{sv}}}
   DBusMessageIter iter, array;
-  dbus_message_iter_init_append (message, &iter);
+  dbus_message_iter_init_append (reply, &iter);
 	dbus_message_iter_open_container (
     &iter, 
     DBUS_TYPE_ARRAY, 
@@ -173,33 +173,35 @@ static bool device_get_managed_objects (device_t *device, DBusConnection *connec
   );
 
   service_t *service = device->services;
-  // characteristic_t *characteristic = NULL;
-  // descriptor_t *descriptor = NULL;
+  characteristic_t *characteristic = NULL;
+  descriptor_t *descriptor = NULL;
 
   while (service)
   {
     //call services func
     service_get_object(service, &array);
 
-
-    // characteristic = service->characteristics;
-    // while(characteristic)
-    // {
-    //   descriptor = characteristic->descriptors;
-    //   while (descriptor)
-    //   {
-
-    //     descriptor = descriptor->next;
-    //   }
-    //   characteristic = characteristic->next;
-    // }
+    characteristic = service->characteristics;
+    while(characteristic)
+    {
+      characteristic_get_object (characteristic, &array);
+      descriptor = characteristic->descriptors;
+      while (descriptor)
+      {
+        descriptor_get_object (descriptor, &array);
+        descriptor = descriptor->next;
+      }
+      characteristic = characteristic->next;
+    }
     service = service->next;
   }
 
   dbus_message_iter_close_container (&iter, &array);
 
+
+  printf("Sending get_managed_objects\n");
   //send reply
-  dbus_connection_send(connection, message, NULL);
+  dbus_connection_send(connection, reply, NULL);
 
   return true;
 }
@@ -268,7 +270,7 @@ static bool device_register_with_bluez(device_t *device, DBusConnection * connec
   dbus_connection_send_with_reply(connection, message, &pending_call, DBUS_TIMEOUT_USE_DEFAULT);
   if (pending_call)
   {
-    dbus_pending_call_set_notify(pending_call, on_register_application_reply, NULL, NULL);
+    dbus_pending_call_set_notify(pending_call, on_register_application_reply, device, NULL);
   }
   
   if (message) dbus_message_unref (message);
@@ -356,6 +358,7 @@ bool device_add_service (device_t *device, service_t *service)
     return false;
   }
   service->object_path = service_object_path;
+  service->device_path = strdup(device->object_path);
 
   service->next = device->services;
   device->services = service;

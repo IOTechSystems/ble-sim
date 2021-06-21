@@ -13,10 +13,16 @@
 
 bool dbusutils_mainloop_running = false;
 
+void dbusutils_iter_append_string(DBusMessageIter *iter, int type, const char* string)
+{
+  char *tmp = strdup (string);
+  dbus_message_iter_append_basic (iter, type, &tmp);
+  free (tmp);
+}
 
 static void dbusutils_get_object_property_data(
   DBusMessageIter *iter,
-  const dbus_property_t *properties_table,
+  dbus_property_t *properties_table,
   void* object_ptr
 )
 {
@@ -39,10 +45,7 @@ static void dbusutils_get_object_property_data(
     DBusMessageIter entry, variant_container;
     dbus_message_iter_open_container(&array, DBUS_TYPE_DICT_ENTRY, NULL, &entry);
 
-
-    char *tmp = strdup (property->name);
-    dbus_message_iter_append_basic (&entry, DBUS_TYPE_STRING, &tmp);
-    free (tmp);
+    dbusutils_iter_append_string (&entry, DBUS_TYPE_STRING, property->name);
 
     dbus_message_iter_open_container (&entry, DBUS_TYPE_VARIANT, property->signature, &variant_container);
 
@@ -52,13 +55,12 @@ static void dbusutils_get_object_property_data(
     dbus_message_iter_close_container(&array, &entry);
   }
 
-
   dbus_message_iter_close_container(iter, &array);
 }
 
 void dbusutils_get_object_data(
   DBusMessageIter *iter,
-  const struct dbus_property_t *properties_table,
+  dbus_property_t *properties_table,
   const char* object_path,
   const char* interface,
   void* object_ptr
@@ -84,15 +86,13 @@ void dbusutils_get_object_data(
   dbus_message_iter_open_container (&array, DBUS_TYPE_DICT_ENTRY, NULL, &interface_entry); // open {sa{sv}}
 
   dbus_message_iter_append_basic (&interface_entry, DBUS_TYPE_STRING, &interface);
-
-  dbusutils_get_object_property_data(&interface_entry, properties_table,object_ptr);
+  dbusutils_get_object_property_data(&interface_entry, properties_table, object_ptr);
 
   dbus_message_iter_close_container (&array, &interface_entry);  // close {sv}
   dbus_message_iter_close_container(&entry, &array);
   dbus_message_iter_close_container(iter, &entry);
 
 }
-
 
 char *dbusutils_create_object_path(
   const char* prev_path, 

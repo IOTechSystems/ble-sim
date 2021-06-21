@@ -34,11 +34,10 @@ extern DBusObjectPathVTable characteristic_dbus_callbacks;
  * Allocates memory and initialises values for a new characteristic_t 
  * 
  * @param uuid the uuid of the characteristic 
- * @param service_path the path to the service the characteristic belongs to 
  * @param descriptors characteristic descriptors 
  * @return initialised characteristic  
  **/
-characteristic_t *characteristic_new (const char *uuid, const char *service_path, descriptor_t *descriptors);
+characteristic_t *characteristic_new (const char *uuid, descriptor_t *descriptors);
 
 /**
  * Frees a characteristic_t and it's values
@@ -65,8 +64,8 @@ descriptor_t *characteristic_get_descriptor (characteristic_t *characteristic, c
  **/
 bool characteristic_add_descriptor (characteristic_t *characteristic, descriptor_t *descriptor);
 
-// TODO
 // //DBus Methods
+void characteristic_get_object (characteristic_t *characteristic, DBusMessageIter* iter);
 // void characteristic_get_all (characteristic_t *characteristic);
 // void characteristic_properties_changed (characteristic_t *characteristic);
 // //Bluez methods

@@ -31,7 +31,7 @@ extern DBusObjectPathVTable descriptor_dbus_callbacks;
  * @param characteristic the path to the characteristic the descriptor belongs to 
  * @return initialised descriptor  
  **/
-descriptor_t *descriptor_new (const char *uuid, const char *characteristic_path);
+descriptor_t *descriptor_new (const char *uuid);
 
 /**
  * Frees a descriptor_t and it's values
@@ -40,9 +40,9 @@ descriptor_t *descriptor_new (const char *uuid, const char *characteristic_path)
  **/
 void descriptor_free (descriptor_t *descriptor);
 
-// TODO
 // //DBus methods
 // void descriptor_get_all (descriptor_t *descriptor);
+void descriptor_get_object (descriptor_t *descriptor, DBusMessageIter* iter);
 
 // //Bluez methods
 // void descriptor_read_value (descriptor_t *descriptor);

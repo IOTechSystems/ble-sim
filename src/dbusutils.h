@@ -25,13 +25,37 @@ typedef struct dbus_property_t
   dbus_get_property_function get_function;
 }dbus_property_t;
 
+typedef struct object_flag_t
+{
+  const char* flag_value;
+  unsigned int enabled_bit;
+} object_flag_t;
 
+/**
+ * Appends a string to a dbus iter - trying to appends a string literal causes a segfault
+ * so this function allows the use of string literals
+ * 
+ * @param iter the dbus message iter to append to 
+ * @param type the type to append - can be either DBUS_TYPE_STRING or DBUS_TYPE_OBJECT_PATH
+ * @param string the string to append
+ **/
+void dbusutils_iter_append_string(DBusMessageIter *iter, int type, const char* string);
+
+/**
+ * Populates a dbus message iterator with object data based on a property table
+ * 
+ * @param iter the dbus iter to populate
+ * @param properties_table a NULL terminated properties table
+ * @param object_path the object path
+ * @param interface the interface the object implements
+ * @param object_pointer a pointer to the object that will be passed to the functions in the properties table 
+ **/
 void dbusutils_get_object_data(
   DBusMessageIter *iter,
-  const dbus_property_t *properties_table,
-  const char* object_path,
-  const char* interface,
-  void* object_ptr
+  dbus_property_t *properties_table,
+  const char *object_path,
+  const char *interface,
+  void *object_pointer
 );
 
 /**

@@ -16,22 +16,21 @@ static DBusHandlerResult service_handle_dbus_message(DBusConnection *connection,
 static void service_get_uuid (void *user_data, DBusMessageIter* iter);
 static void service_get_device_path (void *user_data, DBusMessageIter* iter);
 static void service_get_primary (void *user_data, DBusMessageIter* iter);
-static void service_get_properties (service_t *service, DBusMessageIter* iter);
 
 DBusObjectPathVTable service_dbus_callbacks = {
   .unregister_function = service_handle_unregister_device,
   .message_function = service_handle_dbus_message,
 };
 
-static const dbus_property_t service_properties[] =
-  {
-    {BLE_PROPERTY_UUID, DBUS_TYPE_STRING_AS_STRING, service_get_uuid},
-    {BLE_PROPERTY_DEVICE, DBUS_TYPE_STRING_AS_STRING, service_get_device_path},
-    {BLE_PROPERTY_PRIMARY, DBUS_TYPE_BOOLEAN_AS_STRING, service_get_primary},
-    {NULL, NULL, NULL}
-  };
+static dbus_property_t service_properties[] =
+{
+  {BLE_PROPERTY_UUID, DBUS_TYPE_STRING_AS_STRING, service_get_uuid},
+  {BLE_PROPERTY_DEVICE, DBUS_TYPE_OBJECT_PATH_AS_STRING, service_get_device_path},
+  {BLE_PROPERTY_PRIMARY, DBUS_TYPE_BOOLEAN_AS_STRING, service_get_primary},
+  DBUS_PROPERTY_NULL
+};
 
-service_t *service_new (const char* uuid, const char *device_path, bool primary, characteristic_t *characteristics)
+service_t *service_new (const char* uuid, bool primary, characteristic_t *characteristics)
 {
   service_t *new_service = calloc (1, sizeof(*new_service));
   if (NULL == new_service)
@@ -40,7 +39,7 @@ service_t *service_new (const char* uuid, const char *device_path, bool primary,
   }
 
   new_service->uuid = strdup (uuid);
-  new_service->device_path = strdup (device_path);
+  new_service->device_path = NULL;
   new_service->object_path = NULL;
   new_service->primary = primary;
   new_service->characteristics = characteristics;
@@ -68,7 +67,6 @@ void service_free (service_t *service)
     characteristic_free (service->characteristics);
     service->characteristics = tmp;
   }
-
   service->next = NULL;
 
   free(service);
@@ -122,6 +120,7 @@ bool service_add_characteristic (service_t *service, characteristic_t *character
     return false;
   }
   characteristic->object_path = characteristic_object_path;
+  characteristic->service_path = strdup(service->object_path);
 
   characteristic->next = service->characteristics;
   service->characteristics = characteristic;
@@ -140,7 +139,7 @@ static void service_get_uuid (void *user_data, DBusMessageIter* iter)
 static void service_get_device_path (void *user_data, DBusMessageIter* iter)
 {
   service_t* service = (service_t*) user_data;
-  dbus_message_iter_append_basic (iter, DBUS_TYPE_STRING, &service->device_path);
+  dbus_message_iter_append_basic (iter, DBUS_TYPE_OBJECT_PATH, &service->device_path);
 }
 
 static void service_get_primary (void *user_data, DBusMessageIter* iter)
@@ -151,6 +150,6 @@ static void service_get_primary (void *user_data, DBusMessageIter* iter)
 
 void service_get_object(service_t *service, DBusMessageIter* iter)
 {
-  dbusutils_get_object_data (iter, &service_properties, service->object_path, BLUEZ_GATT_SERVICE_INTERFACE, service);
+  dbusutils_get_object_data (iter, &service_properties[0], service->object_path, BLUEZ_GATT_SERVICE_INTERFACE, service);
 }
 

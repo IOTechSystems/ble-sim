@@ -85,15 +85,15 @@ static void init_dev(void)
 
   device_t *new_device = device_new (devname, DEFAULT_CONTROLLER, NULL);
 
-  device_add_service (new_device, service_new(TST_SRVC1, TST_PATH, true, NULL) );
-  device_add_service (new_device, service_new(TST_SRVC2, TST_PATH, true, NULL) );
-  device_add_service (new_device, service_new(TST_SRVC3, TST_PATH, true, NULL) );
-  device_add_service (new_device, service_new(TST_SRVC4, TST_PATH, true, NULL) );
+  device_add_service (new_device, service_new(TST_SRVC1, true, NULL) );
+  device_add_service (new_device, service_new(TST_SRVC2, true, NULL) );
+  device_add_service (new_device, service_new(TST_SRVC3, true, NULL) );
+  device_add_service (new_device, service_new(TST_SRVC4, true, NULL) );
 
-  device_add_characteristic (new_device, TST_SRVC1, characteristic_new ( TST_CHR1, TST_PATH, NULL));
-  device_add_characteristic (new_device, TST_SRVC1, characteristic_new ( TST_CHR2, TST_PATH, NULL));
+  device_add_characteristic (new_device, TST_SRVC1, characteristic_new ( TST_CHR1, NULL));
+  device_add_characteristic (new_device, TST_SRVC1, characteristic_new ( TST_CHR2, NULL));
 
-  device_add_descriptor (new_device, TST_SRVC1, TST_CHR1, descriptor_new (TST_DESC1, TST_PATH));
+  device_add_descriptor (new_device, TST_SRVC1, TST_CHR1, descriptor_new (TST_DESC1));
 
   if (!device_add (new_device))
   {
@@ -104,14 +104,7 @@ static void init_dev(void)
 
 static void update(void * user_data)
 {
-  // printf("update\n");
-  // DBusMessage *reply = dbusutils_do_method_call(global_dbus_connection, IOTECH_BLE_SIM_SERVICE_NAME, "/dev0", DBUS_INTERFACE_OBJECT_MANAGER, DBUS_METHOD_GET_MANAGED_OBJECTS);
-  // if (NULL == reply)
-  // {
-  //   return;
-  // }
-  
-  // dbus_message_unref(reply);
+
 }
   
 
