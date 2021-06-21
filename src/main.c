@@ -20,11 +20,8 @@
 #define TST_SRVC2 "0000180d-0000-1000-8000-00805f9b34f1"
 #define TST_SRVC3 "0000180d-0000-1000-8000-00805f9b34f2"
 #define TST_SRVC4 "0000180d-0000-1000-8000-00805f9b34f3"
-#define TST_PATH "/path/to/dev"
-
 #define TST_CHR1 "00002a38-0000-1000-8000-00805f9b34fb"
 #define TST_CHR2 "00002a39-0000-1000-8000-00805f9b34fb"
-
 #define TST_DESC1 "12345678-1234-5678-1234-56789abcdef2"
 
 DBusConnection* global_dbus_connection;
@@ -78,17 +75,16 @@ static void dbus_cleanup (void)
   dbus_connection_unref (global_dbus_connection);
 }
 
-
 static void init_dev(void)
 {
   const char *devname = "test-dev";
 
   device_t *new_device = device_new (devname, DEFAULT_CONTROLLER, NULL);
 
-  device_add_service (new_device, service_new(TST_SRVC1, true, NULL) );
-  device_add_service (new_device, service_new(TST_SRVC2, true, NULL) );
-  device_add_service (new_device, service_new(TST_SRVC3, true, NULL) );
-  device_add_service (new_device, service_new(TST_SRVC4, true, NULL) );
+  device_add_service (new_device, service_new (TST_SRVC1, true, NULL) );
+  device_add_service (new_device, service_new (TST_SRVC2, true, NULL) );
+  device_add_service (new_device, service_new (TST_SRVC3, true, NULL) );
+  device_add_service (new_device, service_new (TST_SRVC4, true, NULL) );
 
   device_add_characteristic (new_device, TST_SRVC1, characteristic_new ( TST_CHR1, NULL));
   device_add_characteristic (new_device, TST_SRVC1, characteristic_new ( TST_CHR2, NULL));
@@ -107,7 +103,6 @@ static void update(void * user_data)
 
 }
   
-
 int main (int argc, char *argv[]) 
 {
 
@@ -118,7 +113,7 @@ int main (int argc, char *argv[])
 
   init_dev();
 
-  dbusutils_mainloop_run(global_dbus_connection, &update);  
+  dbusutils_mainloop_run (global_dbus_connection, &update);  
   
   dbus_cleanup ();
   device_cleanup_devices ();

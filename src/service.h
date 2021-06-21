@@ -71,6 +71,4 @@ bool service_add_characteristic (service_t *service, characteristic_t *character
 // //DBus methods
 void service_get_object (service_t *service, DBusMessageIter* iter);
 
-
-
 #endif //BLE_SIM_SERVICE_H

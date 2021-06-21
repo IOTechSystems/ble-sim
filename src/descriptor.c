@@ -106,19 +106,19 @@ void descriptor_get_object (descriptor_t *descriptor, DBusMessageIter *iter)
   dbusutils_get_object_data (iter, &descriptor_properties[0], descriptor->object_path, BLUEZ_GATT_DESCRIPTOR_INTERFACE, descriptor);
 }
 
-static void descriptor_get_uuid(void *user_data, DBusMessageIter* iter)
+static void descriptor_get_uuid (void *user_data, DBusMessageIter* iter)
 {
   descriptor_t *descriptor = (descriptor_t *) user_data;
   dbus_message_iter_append_basic (iter, DBUS_TYPE_STRING, &descriptor->uuid);
 }
 
-static void descriptor_get_characteristic(void *user_data, DBusMessageIter* iter)
+static void descriptor_get_characteristic (void *user_data, DBusMessageIter* iter)
 {
   descriptor_t *descriptor = (descriptor_t *) user_data;
   dbus_message_iter_append_basic (iter, DBUS_TYPE_OBJECT_PATH, &descriptor->characteristic_path);
 }
 
-static void descriptor_get_flags(void *user_data, DBusMessageIter* iter)
+static void descriptor_get_flags (void *user_data, DBusMessageIter* iter)
 {
   descriptor_t *descriptor = (descriptor_t *) user_data;
   DBusMessageIter array;
@@ -139,10 +139,10 @@ static void descriptor_get_flags(void *user_data, DBusMessageIter* iter)
 static void descriptor_get_value(void *user_data, DBusMessageIter* iter)
 {
   descriptor_t *descriptor = (descriptor_t *) user_data;
-  descriptor_read_value(descriptor, iter);
+  descriptor_read_value (descriptor, iter);
 }
 
-static void descriptor_read_value(descriptor_t *descriptor, DBusMessageIter* iter)
+static void descriptor_read_value (descriptor_t *descriptor, DBusMessageIter* iter)
 {
   DBusMessageIter array;
 

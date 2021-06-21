@@ -15,7 +15,6 @@
 
 extern DBusConnection *global_dbus_connection;
 
-
 typedef void(*dbus_get_property_function) (void *user_data, DBusMessageIter* iter);
 
 typedef struct dbus_property_t
@@ -39,7 +38,7 @@ typedef struct object_flag_t
  * @param type the type to append - can be either DBUS_TYPE_STRING or DBUS_TYPE_OBJECT_PATH
  * @param string the string to append
  **/
-void dbusutils_iter_append_string(DBusMessageIter *iter, int type, const char* string);
+void dbusutils_iter_append_string (DBusMessageIter *iter, int type, const char* string);
 
 /**
  * Populates a dbus message iterator with object data based on a property table
@@ -50,7 +49,7 @@ void dbusutils_iter_append_string(DBusMessageIter *iter, int type, const char* s
  * @param interface the interface the object implements
  * @param object_pointer a pointer to the object that will be passed to the functions in the properties table 
  **/
-void dbusutils_get_object_data(
+void dbusutils_get_object_data (
   DBusMessageIter *iter,
   dbus_property_t *properties_table,
   const char *object_path,
@@ -70,7 +69,7 @@ void dbusutils_get_object_data(
  * @param object_id id of the object
  * @return the created object path
  **/
-char *dbusutils_create_object_path(
+char *dbusutils_create_object_path (
   const char* prev_path, 
   const char* object_name,
   unsigned int object_id
@@ -80,7 +79,7 @@ char *dbusutils_create_object_path(
  * @param The dbus message to get the error message from
  * @return error message (should not be free'd) or NULL
  **/
-const char *dbusutils_get_error_message_from_reply(DBusMessage *reply);
+const char *dbusutils_get_error_message_from_reply (DBusMessage *reply);
 
 /**
  * Creates a dbus connection

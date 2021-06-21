@@ -11,8 +11,8 @@
 #include "characteristic.h"
 #include "dbusutils.h"
 
-static void service_handle_unregister_device(DBusConnection *connection, void *data);
-static DBusHandlerResult service_handle_dbus_message(DBusConnection *connection, DBusMessage *message, void *data);
+static void service_handle_unregister_device (DBusConnection *connection, void *data);
+static DBusHandlerResult service_handle_dbus_message (DBusConnection *connection, DBusMessage *message, void *data);
 static void service_get_uuid (void *user_data, DBusMessageIter* iter);
 static void service_get_device_path (void *user_data, DBusMessageIter* iter);
 static void service_get_primary (void *user_data, DBusMessageIter* iter);
@@ -32,7 +32,7 @@ static dbus_property_t service_properties[] =
 
 service_t *service_new (const char* uuid, bool primary, characteristic_t *characteristics)
 {
-  service_t *new_service = calloc (1, sizeof(*new_service));
+  service_t *new_service = calloc (1, sizeof (*new_service));
   if (NULL == new_service)
   {
     return NULL;
@@ -73,12 +73,12 @@ void service_free (service_t *service)
 }
 
 //device object dbus functions
-static void service_handle_unregister_device(DBusConnection *connection, void *data)
+static void service_handle_unregister_device (DBusConnection *connection, void *data)
 {
 
 }
 
-static DBusHandlerResult service_handle_dbus_message(DBusConnection *connection, DBusMessage *message, void *data)
+static DBusHandlerResult service_handle_dbus_message (DBusConnection *connection, DBusMessage *message, void *data)
 {
   service_t *service = (service_t *) data;
   printf ("SERVICE MESSAGE: got dbus message sent to %s %s %s (service: %s) \n",
@@ -120,7 +120,7 @@ bool service_add_characteristic (service_t *service, characteristic_t *character
     return false;
   }
   characteristic->object_path = characteristic_object_path;
-  characteristic->service_path = strdup(service->object_path);
+  characteristic->service_path = strdup (service->object_path);
 
   characteristic->next = service->characteristics;
   service->characteristics = characteristic;

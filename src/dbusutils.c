@@ -13,21 +13,21 @@
 
 bool dbusutils_mainloop_running = false;
 
-void dbusutils_iter_append_string(DBusMessageIter *iter, int type, const char* string)
+void dbusutils_iter_append_string (DBusMessageIter *iter, int type, const char* string)
 {
   char *tmp = strdup (string);
   dbus_message_iter_append_basic (iter, type, &tmp);
   free (tmp);
 }
 
-static void dbusutils_get_object_property_data(
+static void dbusutils_get_object_property_data (
   DBusMessageIter *iter,
   dbus_property_t *properties_table,
   void* object_ptr
 )
 {
   DBusMessageIter array;
-  dbus_message_iter_open_container(
+  dbus_message_iter_open_container (
     iter,
     DBUS_TYPE_ARRAY,
     DBUS_DICT_ENTRY_BEGIN_CHAR_AS_STRING //signature "{sv}"
@@ -41,9 +41,8 @@ static void dbusutils_get_object_property_data(
 
   for (property = properties_table; property && property->name; property++)
   {
-    printf("%s\n", property->name);
     DBusMessageIter entry, variant_container;
-    dbus_message_iter_open_container(&array, DBUS_TYPE_DICT_ENTRY, NULL, &entry);
+    dbus_message_iter_open_container (&array, DBUS_TYPE_DICT_ENTRY, NULL, &entry);
 
     dbusutils_iter_append_string (&entry, DBUS_TYPE_STRING, property->name);
 
@@ -58,7 +57,7 @@ static void dbusutils_get_object_property_data(
   dbus_message_iter_close_container(iter, &array);
 }
 
-void dbusutils_get_object_data(
+void dbusutils_get_object_data (
   DBusMessageIter *iter,
   dbus_property_t *properties_table,
   const char* object_path,
@@ -68,9 +67,9 @@ void dbusutils_get_object_data(
 {
   DBusMessageIter entry, array, interface_entry;
 
-  dbus_message_iter_open_container(iter, DBUS_TYPE_DICT_ENTRY, NULL, &entry);
-  dbus_message_iter_append_basic(&entry, DBUS_TYPE_OBJECT_PATH, &object_path);
-  dbus_message_iter_open_container(
+  dbus_message_iter_open_container (iter, DBUS_TYPE_DICT_ENTRY, NULL, &entry);
+  dbus_message_iter_append_basic (&entry, DBUS_TYPE_OBJECT_PATH, &object_path);
+  dbus_message_iter_open_container (
     &entry,
     DBUS_TYPE_ARRAY,
     DBUS_DICT_ENTRY_BEGIN_CHAR_AS_STRING //signature "{sa{sv}}"
@@ -86,34 +85,34 @@ void dbusutils_get_object_data(
   dbus_message_iter_open_container (&array, DBUS_TYPE_DICT_ENTRY, NULL, &interface_entry); // open {sa{sv}}
 
   dbus_message_iter_append_basic (&interface_entry, DBUS_TYPE_STRING, &interface);
-  dbusutils_get_object_property_data(&interface_entry, properties_table, object_ptr);
+  dbusutils_get_object_property_data (&interface_entry, properties_table, object_ptr);
 
   dbus_message_iter_close_container (&array, &interface_entry);  // close {sv}
-  dbus_message_iter_close_container(&entry, &array);
-  dbus_message_iter_close_container(iter, &entry);
+  dbus_message_iter_close_container (&entry, &array);
+  dbus_message_iter_close_container (iter, &entry);
 
 }
 
-char *dbusutils_create_object_path(
+char *dbusutils_create_object_path (
   const char* prev_path, 
   const char* object_name,
   unsigned int object_id
 )
 {
-  size_t required = snprintf(NULL, 0, "%s/%s%u",prev_path, object_name, object_id) + 1;
-  char* path = malloc(required);
-  sprintf(path, "%s/%s%u", prev_path, object_name, object_id);
+  size_t required = snprintf (NULL, 0, "%s/%s%u",prev_path, object_name, object_id) + 1;
+  char* path = malloc (required);
+  sprintf (path, "%s/%s%u", prev_path, object_name, object_id);
   return path;
 }
 
-const char* dbusutils_get_error_message_from_reply(DBusMessage *reply)
+const char* dbusutils_get_error_message_from_reply (DBusMessage *reply)
 {
-  if (dbus_message_get_type(reply) != DBUS_MESSAGE_TYPE_ERROR)
+  if (dbus_message_get_type (reply) != DBUS_MESSAGE_TYPE_ERROR)
   {
     return NULL;
   }
 
-  if(strcmp(dbus_message_get_signature(reply), "s") != 0)
+  if(strcmp (dbus_message_get_signature (reply), "s") != 0)
   {
     return NULL;
   }
@@ -121,10 +120,10 @@ const char* dbusutils_get_error_message_from_reply(DBusMessage *reply)
   DBusMessageIter err_iter;
 
   const char* error_message = NULL;
-  dbus_message_iter_init(reply, &err_iter);
-  dbus_message_iter_get_basic(&err_iter, &error_message);
+  dbus_message_iter_init (reply, &err_iter);
+  dbus_message_iter_get_basic (&err_iter, &error_message);
 
-  printf("%s\n", error_message);
+  printf ("%s\n", error_message);
 
   return error_message;
 }

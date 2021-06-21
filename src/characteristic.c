@@ -111,9 +111,9 @@ static DBusHandlerResult characteristic_handle_dbus_message (DBusConnection *con
 {
   characteristic_t *characterisitc = (characteristic_t *) data;
   printf ("CHARACTERISTIC MESSAGE: got dbus message sent to %s %s %s (service: %s) \n",
-          dbus_message_get_destination(message),
-          dbus_message_get_interface(message),
-          dbus_message_get_path(message),
+          dbus_message_get_destination (message),
+          dbus_message_get_interface (message),
+          dbus_message_get_path (message),
           characterisitc->uuid
           );
 
@@ -125,7 +125,7 @@ descriptor_t *characteristic_get_descriptor (characteristic_t *characteristic, c
   descriptor_t *descriptor = characteristic->descriptors;
   while (descriptor)
   {
-    if (strcmp(descriptor_uuid, descriptor->uuid) == 0)
+    if (strcmp (descriptor_uuid, descriptor->uuid) == 0)
     {
       return descriptor;
     }
@@ -175,7 +175,7 @@ static void characteristic_get_service(void *user_data, DBusMessageIter* iter)
   dbus_message_iter_append_basic (iter, DBUS_TYPE_OBJECT_PATH, &characteristic->service_path);
 }
 
-static void characteristic_get_flags(void *user_data, DBusMessageIter* iter)
+static void characteristic_get_flags (void *user_data, DBusMessageIter* iter)
 {
   characteristic_t *characteristic = (characteristic_t *) user_data;
   DBusMessageIter array;

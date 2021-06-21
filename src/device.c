@@ -13,9 +13,9 @@
 #include "descriptor.h"
 #include "dbusutils.h"
 
-static void add_device_to_device_list(device_t *device);
-static void device_handle_unregister_device(DBusConnection *connection, void *data);
-static DBusHandlerResult device_handle_dbus_message(DBusConnection *connection, DBusMessage *message, void *data);
+static void add_device_to_device_list (device_t *device);
+static void device_handle_unregister_device (DBusConnection *connection, void *data);
+static DBusHandlerResult device_handle_dbus_message (DBusConnection *connection, DBusMessage *message, void *data);
 static bool device_get_managed_objects (device_t *device, DBusConnection *connection, DBusMessage *message );
 static service_t* device_get_service (device_t *device, const char *service_uuid);
 
@@ -40,7 +40,7 @@ void device_cleanup_devices (void)
   device_count = 0;
 }
 
-static void add_device_to_device_list(device_t *device)
+static void add_device_to_device_list (device_t *device)
 {
   if (NULL == device)
   {
@@ -101,12 +101,12 @@ void device_free (device_t *device)
 }
 
 //device object dbus functions
-static void device_handle_unregister_device(DBusConnection *connection, void *data)
+static void device_handle_unregister_device (DBusConnection *connection, void *data)
 {
 
 }
 
-static DBusHandlerResult device_handle_dbus_message(DBusConnection *connection, DBusMessage *message, void *data)
+static DBusHandlerResult device_handle_dbus_message (DBusConnection *connection, DBusMessage *message, void *data)
 {
   device_t *device = (device_t *) data;
   printf ("DEVICE MESSAGE: got dbus message sent to %s %s %s (device: %s) \n",
@@ -144,7 +144,7 @@ static bool device_get_managed_objects (device_t *device, DBusConnection *connec
     return false;
   }
 
-  DBusMessage *reply = dbus_message_new_method_return(message);
+  DBusMessage *reply = dbus_message_new_method_return (message);
 	if (reply == NULL)
   {
     printf("%s: Could not create a method return message", __FUNCTION__);
@@ -179,7 +179,7 @@ static bool device_get_managed_objects (device_t *device, DBusConnection *connec
   while (service)
   {
     //call services func
-    service_get_object(service, &array);
+    service_get_object (service, &array);
 
     characteristic = service->characteristics;
     while(characteristic)
@@ -201,25 +201,25 @@ static bool device_get_managed_objects (device_t *device, DBusConnection *connec
 
   printf("Sending get_managed_objects\n");
   //send reply
-  dbus_connection_send(connection, reply, NULL);
+  dbus_connection_send (connection, reply, NULL);
 
   return true;
 }
 
-static void on_register_application_reply(DBusPendingCall *pending_call, void *user_data)
+static void on_register_application_reply (DBusPendingCall *pending_call, void *user_data)
 {
 
   device_t *device = (device_t*) user_data;
 	DBusMessage *reply;
-	reply = dbus_pending_call_steal_reply(pending_call);
+	reply = dbus_pending_call_steal_reply (pending_call);
   if (NULL == reply)
   {
     return;
   }
 
-	if (dbus_message_get_type(reply) == DBUS_MESSAGE_TYPE_ERROR)
+	if (dbus_message_get_type (reply) == DBUS_MESSAGE_TYPE_ERROR)
   {
-    printf("Unable to Register device with bluez: (%s : %s)\n", dbus_message_get_error_name(reply), dbusutils_get_error_message_from_reply (reply));
+    printf("Unable to Register device with bluez: (%s : %s)\n", dbus_message_get_error_name (reply), dbusutils_get_error_message_from_reply (reply));
     //TODO : remove device from list and unregister
   }
   else
@@ -228,15 +228,15 @@ static void on_register_application_reply(DBusPendingCall *pending_call, void *u
     device->application_registered = true;
   }
 
-	dbus_message_unref(reply);
-	dbus_pending_call_unref(pending_call);
+	dbus_message_unref (reply);
+	dbus_pending_call_unref (pending_call);
 }
 
-static bool device_register_with_bluez(device_t *device, DBusConnection * connection)
+static bool device_register_with_bluez (device_t *device, DBusConnection * connection)
 {
 
   //init message
-  DBusMessage *message = dbus_message_new_method_call(BLUEZ_BUS_NAME, device->controller, BLUEZ_GATT_MANAGER_INTERFACE, BLUEZ_METHOD_REGISTER_APPLICATION);
+  DBusMessage *message = dbus_message_new_method_call (BLUEZ_BUS_NAME, device->controller, BLUEZ_GATT_MANAGER_INTERFACE, BLUEZ_METHOD_REGISTER_APPLICATION);
   if (NULL == message)
   {
     printf("Register Application: Could not set up message\n");
@@ -259,7 +259,7 @@ static bool device_register_with_bluez(device_t *device, DBusConnection * connec
     &dict
   );
 	// TODO: Could add options to dictionary 
-	dbus_message_iter_close_container(&args, &dict);
+	dbus_message_iter_close_container (&args, &dict);
 
   //send message
   DBusError error;
@@ -267,10 +267,10 @@ static bool device_register_with_bluez(device_t *device, DBusConnection * connec
 
   DBusPendingCall *pending_call = NULL;
 
-  dbus_connection_send_with_reply(connection, message, &pending_call, DBUS_TIMEOUT_USE_DEFAULT);
+  dbus_connection_send_with_reply (connection, message, &pending_call, DBUS_TIMEOUT_USE_DEFAULT);
   if (pending_call)
   {
-    dbus_pending_call_set_notify(pending_call, on_register_application_reply, device, NULL);
+    dbus_pending_call_set_notify (pending_call, on_register_application_reply, device, NULL);
   }
   
   if (message) dbus_message_unref (message);

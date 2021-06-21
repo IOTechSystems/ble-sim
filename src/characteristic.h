@@ -64,7 +64,7 @@ descriptor_t *characteristic_get_descriptor (characteristic_t *characteristic, c
  **/
 bool characteristic_add_descriptor (characteristic_t *characteristic, descriptor_t *descriptor);
 
-// //DBus Methods
+//DBus Methods TODO
 void characteristic_get_object (characteristic_t *characteristic, DBusMessageIter* iter);
 // void characteristic_get_all (characteristic_t *characteristic);
 // void characteristic_properties_changed (characteristic_t *characteristic);
