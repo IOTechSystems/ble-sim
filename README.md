@@ -25,7 +25,7 @@ machine.
   
   Bluez dependencies
   
-  `sudo apt-get install libglib2.0 libudev-dev libical-dev `
+  `sudo apt-get install libglib2.0-dev libudev-dev libical-dev `
 
   rst2man:
   
@@ -36,6 +36,12 @@ machine.
   First time you run this, the script will download the source and build the tool.
 
   `./scripts/run-controller.sh`
+
+## Setup 
+
+  We need to install the ble-sim dbus config file. Use the following script to install:
+
+  `./scripts/setup.sh`
 
 ## Build
 

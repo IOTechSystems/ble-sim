@@ -9,16 +9,20 @@
 #define BLE_SIM_DESCRIPTOR_H
 
 #include <stdint.h>
+#include <dbus/dbus.h>
 
 typedef struct descriptor_t
 {
   char *uuid; //128-bit descriptor UUID.
   char *characteristic_path; //Object path of the GATT characteristic the descriptor belongs to.
-  uint8_t * value;
+  char *object_path; //Object path of the descriptor object
+  uint8_t *value; //Descriptors value
   uint32_t value_size;
-  uint16_t flags;
+  uint16_t flags; //Flags that define how the descriptor value can be used
   struct descriptor_t *next;
 } descriptor_t;
+
+extern DBusObjectPathVTable descriptor_dbus_callbacks;
 
 /**
  * Allocates memory and initialises values for a new characteristic_t 
@@ -27,7 +31,7 @@ typedef struct descriptor_t
  * @param characteristic the path to the characteristic the descriptor belongs to 
  * @return initialised descriptor  
  **/
-descriptor_t *descriptor_new (const char *uuid, const char *characteristic_path);
+descriptor_t *descriptor_new (const char *uuid);
 
 /**
  * Frees a descriptor_t and it's values
@@ -36,9 +40,9 @@ descriptor_t *descriptor_new (const char *uuid, const char *characteristic_path)
  **/
 void descriptor_free (descriptor_t *descriptor);
 
-// TODO
 // //DBus methods
 // void descriptor_get_all (descriptor_t *descriptor);
+void descriptor_get_object (descriptor_t *descriptor, DBusMessageIter *iter);
 
 // //Bluez methods
 // void descriptor_read_value (descriptor_t *descriptor);

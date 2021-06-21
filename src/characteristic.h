@@ -9,6 +9,7 @@
 #define BLE_SIM_CHARACTERISTIC_H
 
 #include <stdint.h>
+#include <dbus/dbus.h>
 
 #include "defines.h"
 #include "descriptor.h"
@@ -17,23 +18,26 @@ typedef struct characteristic_t
 {
   char *uuid; //128-bit characteristic UUID.
   char *service_path; //Object path of the GATT service the characteristic belongs to.
-  uint8_t * value;
+  char *object_path; //Object path of the characteristic object
+  uint8_t *value; //The characteristic's value
   uint32_t value_size;
-  bool notifying;
-  uint32_t flags;
+  bool notifying; //if notifications or indications on this	characteristic are currently enabled
+  uint32_t flags; //Flags to define how the characteristic value can be used
   descriptor_t *descriptors;
+  unsigned int descriptor_count;
   struct characteristic_t *next;
 } characteristic_t;
+
+extern DBusObjectPathVTable characteristic_dbus_callbacks;
 
 /**
  * Allocates memory and initialises values for a new characteristic_t 
  * 
  * @param uuid the uuid of the characteristic 
- * @param service_path the path to the service the characteristic belongs to 
  * @param descriptors characteristic descriptors 
  * @return initialised characteristic  
  **/
-characteristic_t *characteristic_new (const char *uuid, const char *service_path, descriptor_t *descriptors);
+characteristic_t *characteristic_new (const char *uuid, descriptor_t *descriptors);
 
 /**
  * Frees a characteristic_t and it's values
@@ -60,8 +64,8 @@ descriptor_t *characteristic_get_descriptor (characteristic_t *characteristic, c
  **/
 bool characteristic_add_descriptor (characteristic_t *characteristic, descriptor_t *descriptor);
 
-// TODO
-// //DBus Methods
+//DBus Methods TODO
+void characteristic_get_object (characteristic_t *characteristic, DBusMessageIter *iter);
 // void characteristic_get_all (characteristic_t *characteristic);
 // void characteristic_properties_changed (characteristic_t *characteristic);
 // //Bluez methods
