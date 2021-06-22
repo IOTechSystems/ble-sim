@@ -61,7 +61,7 @@ static object_flag_t characteristic_flags[] =
     {CHARACTERISTIC_FLAG_AUTHORIZE,                     CHARACTERISTIC_FLAG_AUTHORIZE_ENABLED_BIT}
   };
 
-characteristic_t *characteristic_new (const char *uuid, descriptor_t *descriptors)
+characteristic_t *characteristic_new (const char *uuid)
 {
   characteristic_t *new_characteristic = calloc (1, sizeof (*new_characteristic));
   if (NULL == new_characteristic)
@@ -82,7 +82,7 @@ characteristic_t *characteristic_new (const char *uuid, descriptor_t *descriptor
   new_characteristic->value_size = sizeof(int);
 
   new_characteristic->flags = CHARACTERISTIC_FLAGS_ALL_ENABLED; //all enabled for now
-  new_characteristic->descriptors = descriptors;
+  new_characteristic->descriptors = NULL;
   new_characteristic->descriptor_count = 0;
   new_characteristic->next = NULL;
 
@@ -156,7 +156,7 @@ bool characteristic_register (characteristic_t *characteristic)
 //DBus Methods
 void characteristic_get_object (characteristic_t *characteristic, DBusMessageIter *iter)
 {
-  dbusutils_get_object_data (iter, &characteristic_properties[0], characteristic->object_path, BLUEZ_GATT_CHARACTERISTIC_INTERFACE, characteristic);
+  dbusutils_get_object_data (iter, characteristic_properties, characteristic->object_path, BLUEZ_GATT_CHARACTERISTIC_INTERFACE, characteristic);
 }
 
 static void characteristic_get_uuid (void *user_data, DBusMessageIter *iter)

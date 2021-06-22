@@ -38,7 +38,7 @@ typedef struct service_t
  * @param characteristics services characteristics 
  * @return initialised service  
  **/
-service_t *service_new (const char *uuid, bool primary, characteristic_t *characteristics);
+service_t *service_new (const char *uuid, bool primary);
 
 /**
  * Frees a service and it's values

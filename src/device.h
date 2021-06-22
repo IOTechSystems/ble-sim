@@ -14,17 +14,19 @@
 
 #include "defines.h"
 #include "service.h"
+#include "advertising.h"
 
 extern DBusConnection *global_dbus_connection;
 
 typedef struct device_t
 {
-  service_t *services;
+  service_t *services; //list of services
   unsigned int service_count;
-  char *controller;
-  char *device_name;
+  char *controller; //path to bluez controller
+  char *device_name; //name of the device
   char *object_path; //dbus object path to register to
   bool application_registered;
+  advertisement_t advertisement; //advertisement
   struct device_t *next;
 } device_t;
 
@@ -35,7 +37,7 @@ typedef struct device_t
  * @param controller name of the controller 
  * @return initialised device  
  **/
-device_t *device_new (const char *device_name, const char *controller, service_t *services);
+device_t *device_new (const char *device_name, const char *controller);
 
 /**
  * Frees a device and it's values

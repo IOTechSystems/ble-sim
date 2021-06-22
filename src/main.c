@@ -81,14 +81,14 @@ static void init_dev (void)
 {
   const char *devname = "test-dev";
 
-  device_t *new_device = device_new (devname, default_adapter, NULL);
+  device_t *new_device = device_new (devname, default_adapter);
 
-  device_add_service (new_device, service_new (TST_SRVC1, true, NULL));
+  device_add_service (new_device, service_new (TST_SRVC1, true));
   // device_add_service (new_device, service_new (TST_SRVC2, true, NULL));
   // device_add_service (new_device, service_new (TST_SRVC3, true, NULL));
   // device_add_service (new_device, service_new (TST_SRVC4, true, NULL));
 
-  device_add_characteristic (new_device, TST_SRVC1, characteristic_new (TST_CHR1, NULL));
+  device_add_characteristic (new_device, TST_SRVC1, characteristic_new (TST_CHR1));
   //device_add_characteristic (new_device, TST_SRVC1, characteristic_new (TST_CHR2, NULL));
 
   device_add_descriptor (new_device, TST_SRVC1, TST_CHR1, descriptor_new (TST_DESC1));
@@ -160,7 +160,6 @@ static char *get_default_adapter(void)
   
 int main (int argc, char *argv[]) 
 {
-
   if (dbus_init () == false)
   {
     return 1;

@@ -98,7 +98,7 @@ bool descriptor_register (descriptor_t *descriptor)
 //DBus methods
 void descriptor_get_object (descriptor_t *descriptor, DBusMessageIter *iter)
 {
-  dbusutils_get_object_data (iter, &descriptor_properties[0], descriptor->object_path, BLUEZ_GATT_DESCRIPTOR_INTERFACE, descriptor);
+  dbusutils_get_object_data (iter, descriptor_properties, descriptor->object_path, BLUEZ_GATT_DESCRIPTOR_INTERFACE, descriptor);
 }
 
 static void descriptor_get_uuid (void *user_data, DBusMessageIter *iter)

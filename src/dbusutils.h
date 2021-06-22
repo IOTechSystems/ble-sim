@@ -16,7 +16,7 @@
 extern DBusConnection *global_dbus_connection;
 
 typedef void(*dbus_get_object_property_function) (void *user_data, DBusMessageIter *iter);
-typedef void(*dbus_call_object_method_function) (void *user_data, DBusConnection *connection, DBusMessage *message);
+typedef bool(*dbus_call_object_method_function) (void *user_data, DBusConnection *connection, DBusMessage *message);
 
 typedef struct dbus_property_t
 {

@@ -27,7 +27,7 @@ static void append_variant(DBusMessageIter *iter, int type, const void *val)
 	dbus_message_iter_close_container(iter, &value);
 }
 
-static void append_fixed_array_variant(DBusMessageIter *iter, int type, void *val, int elements)
+static void append_fixed_array_variant(DBusMessageIter *iter, int type, const void *val, int elements)
 {
   assert(dbus_type_is_fixed(type) == TRUE);
 
@@ -43,7 +43,6 @@ static void append_fixed_array_variant(DBusMessageIter *iter, int type, void *va
 	dbus_message_iter_close_container(&variant, &array);
 	dbus_message_iter_close_container(iter, &variant);
 }
-
 
 void dbusutils_iter_append_dict_entry_fixed_array (
   DBusMessageIter *iter, 
@@ -232,7 +231,7 @@ typedef struct object_data_t {
 
 static void dbusutils_object_handle_unregister (DBusConnection *connection, void *data)
 {
-  object_data_t *object_data = (object_data_t*) data;
+  //object_data_t *object_data = (object_data_t*) data;
 
   free(data);
 }
@@ -282,6 +281,7 @@ bool dbusutils_register_object (DBusConnection *connection,
     return false;
   }
 
+  printf ("Registered object: %s\n", object_path);
   return true;
 }
 

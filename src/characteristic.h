@@ -35,7 +35,7 @@ typedef struct characteristic_t
  * @param descriptors characteristic descriptors 
  * @return initialised characteristic  
  **/
-characteristic_t *characteristic_new (const char *uuid, descriptor_t *descriptors);
+characteristic_t *characteristic_new (const char *uuid);
 
 /**
  * Frees a characteristic_t and it's values

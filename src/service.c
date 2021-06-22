@@ -31,7 +31,7 @@ static dbus_method_t service_methods[] =
     DBUS_METHOD_NULL
   };
 
-service_t *service_new (const char *uuid, bool primary, characteristic_t *characteristics)
+service_t *service_new (const char *uuid, bool primary)
 {
   service_t *new_service = calloc (1, sizeof (*new_service));
   if (NULL == new_service)
@@ -43,7 +43,7 @@ service_t *service_new (const char *uuid, bool primary, characteristic_t *charac
   new_service->device_path = NULL;
   new_service->object_path = NULL;
   new_service->primary = primary;
-  new_service->characteristics = characteristics;
+  new_service->characteristics = NULL;
   new_service->characteristic_count = 0;
   new_service->next = NULL;
 
@@ -135,6 +135,6 @@ static void service_get_primary (void *user_data, DBusMessageIter *iter)
 
 void service_get_object (service_t *service, DBusMessageIter *iter)
 {
-  dbusutils_get_object_data (iter, &service_properties[0], service->object_path, BLUEZ_GATT_SERVICE_INTERFACE, service);
+  dbusutils_get_object_data (iter, service_properties, service->object_path, BLUEZ_GATT_SERVICE_INTERFACE, service);
 }
 

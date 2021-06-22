@@ -8,6 +8,10 @@
 #ifndef BLE_SIM_DEFINES_H
 #define BLE_SIM_DEFINES_H
 
+#include <stdbool.h>
+
+#define BLE_SIM_SERVICE_NAME "org.blesim"
+
 #define UUID_LENGTH 32
 #define DEVICE_PATH_LENGTH 22
 
@@ -20,6 +24,17 @@
 #define SERVICE_OBJECT_NAME "serv"
 #define CHARACTERISTIC_OBJECT_NAME "char"
 #define DESCRIPTOR_OBJECT_NAME "desc"
+#define ADVERTISEMENT_OBJECT_NAME "advrt"
+
+#define ADVERTISEMENT_TYPE_DEFAULT "peripheral"
+#define ADVERTISEMENT_SECONDARY_CHANNEL_DEFAULT "1M"
+#define ADVERTISEMENT_DURATION_DEFAULT 5
+#define ADVERTISEMENT_TIMEOUT_DEFAULT 0
+#define ADVERTISEMENT_DISCOVERABLE_TIMEOUT_DEFAULT 0
+#define ADVERTISEMENT_DISCOVERABLE_DEFAULT true
+#define ADVERTISEMENT_MIN_INTERVAL_DEFAULT 1000
+#define ADVERTISEMENT_MAX_INTERVAL_DEFAULT 5000
+#define ADVERTISEMENT_TX_POWER_DEFAULT -127
 
 #define BLE_PROPERTY_UUID "UUID"
 #define BLE_PROPERTY_PRIMARY "Primary"
@@ -46,26 +61,27 @@
 #define BLE_PROPERTY_MAX_INTERVAL "MaxInterval"
 #define BLE_PROPERTY_TX_POWER "TxPower"
 
-#define BLUEZ_BUS_NAME "org.bluez"
-#define BLE_SIM_SERVICE_NAME "org.blesim"
-
 #define DBUS_INTERFACE_PROPERTIES "org.freedesktop.DBus.Properties"
 #define DBUS_METHOD_SET "Set"
 
 #define DBUS_INTERFACE_OBJECT_MANAGER "org.freedesktop.DBus.ObjectManager"
 #define DBUS_METHOD_GET_MANAGED_OBJECTS "GetManagedObjects"
 
-#define BLUEZ_GATT_MANAGER_INTERFACE "org.bluez.GattManager1"
-#define BLUEZ_METHOD_REGISTER_APPLICATION "RegisterApplication"
-
+#define BLUEZ_BUS_NAME "org.bluez"
 #define BLUEZ_ADAPTER_INTERFACE "org.bluez.Adapter1"
-#define BLUEZ_ADAPTER_PROPERTY_POWERED "Powered"
-#define BLUEZ_ADAPTER_PROPERTY_DISCOVERABLE "Discoverable"
-
-
+#define BLUEZ_GATT_MANAGER_INTERFACE "org.bluez.GattManager1"
 #define BLUEZ_GATT_SERVICE_INTERFACE "org.bluez.GattService1"
 #define BLUEZ_GATT_CHARACTERISTIC_INTERFACE "org.bluez.GattCharacteristic1"
 #define BLUEZ_GATT_DESCRIPTOR_INTERFACE "org.bluez.GattDescriptor1"
+#define BLUEZ_LE_ADVERTISING_MANAGER_INTERFACE "org.bluez.LEAdvertisingManager1"
+#define BLUEZ_LE_ADVERTISEMENT_INTERFACE "org.bluez.LEAdvertisement1"
+
+#define BLUEZ_ADAPTER_PROPERTY_POWERED "Powered"
+#define BLUEZ_ADAPTER_PROPERTY_DISCOVERABLE "Discoverable"
+
+#define BLUEZ_METHOD_RELEASE "Release"
+#define BLUEZ_METHOD_REGISTER_APPLICATION "RegisterApplication"
+#define BLUEZ_METHOD_REGISTER_ADVERTISEMENT "RegisterAdvertisement"
 
 #define DEFAULT_TIMEOUT 1000
 
