@@ -15,10 +15,10 @@ typedef struct descriptor_t
 {
   char *uuid; //128-bit descriptor UUID.
   char *characteristic_path; //Object path of the GATT characteristic the descriptor belongs to.
-  char *object_path;
-  uint8_t *value;
+  char *object_path; //Object path of the descriptor object
+  uint8_t *value; //Descriptors value
   uint32_t value_size;
-  uint16_t flags;
+  uint16_t flags; //Flags that define how the descriptor value can be used
   struct descriptor_t *next;
 } descriptor_t;
 
@@ -42,7 +42,7 @@ void descriptor_free (descriptor_t *descriptor);
 
 // //DBus methods
 // void descriptor_get_all (descriptor_t *descriptor);
-void descriptor_get_object (descriptor_t *descriptor, DBusMessageIter* iter);
+void descriptor_get_object (descriptor_t *descriptor, DBusMessageIter *iter);
 
 // //Bluez methods
 // void descriptor_read_value (descriptor_t *descriptor);

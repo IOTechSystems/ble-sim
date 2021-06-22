@@ -16,12 +16,18 @@
 #include "utils.h"
 
 static void characteristic_handle_unregister_device (DBusConnection *connection, void *data);
+
 static DBusHandlerResult characteristic_handle_dbus_message (DBusConnection *connection, DBusMessage *message, void *data);
-static void characteristic_get_uuid(void *user_data, DBusMessageIter* iter);
-static void characteristic_get_service(void *user_data, DBusMessageIter* iter);
-static void characteristic_get_flags(void *user_data, DBusMessageIter* iter);
-static void characteristic_get_value(void *user_data, DBusMessageIter* iter);
-static void characteristic_read_value (characteristic_t *characteristic, DBusMessageIter* iter);
+
+static void characteristic_get_uuid (void *user_data, DBusMessageIter *iter);
+
+static void characteristic_get_service (void *user_data, DBusMessageIter *iter);
+
+static void characteristic_get_flags (void *user_data, DBusMessageIter *iter);
+
+static void characteristic_get_value (void *user_data, DBusMessageIter *iter);
+
+static void characteristic_read_value (characteristic_t *characteristic, DBusMessageIter *iter);
 
 DBusObjectPathVTable characteristic_dbus_callbacks = {
   .unregister_function = characteristic_handle_unregister_device,
@@ -29,34 +35,34 @@ DBusObjectPathVTable characteristic_dbus_callbacks = {
 };
 
 static dbus_property_t characteristic_properties[] =
-{
-  {BLE_PROPERTY_UUID, DBUS_TYPE_STRING_AS_STRING, characteristic_get_uuid}, //s
-  {BLE_PROPERTY_SERVICE, DBUS_TYPE_OBJECT_PATH_AS_STRING, characteristic_get_service}, //o
-  {BLE_PROPERTY_FLAGS, DBUS_TYPE_ARRAY_AS_STRING DBUS_TYPE_STRING_AS_STRING, characteristic_get_flags}, //as
-  {BLE_PROPERTY_VALUE, DBUS_TYPE_ARRAY_AS_STRING DBUS_TYPE_BYTE_AS_STRING, characteristic_get_value}, //ay
-  DBUS_PROPERTY_NULL
-};
+  {
+    {BLE_PROPERTY_UUID, DBUS_TYPE_STRING_AS_STRING, characteristic_get_uuid},
+    {BLE_PROPERTY_SERVICE, DBUS_TYPE_OBJECT_PATH_AS_STRING, characteristic_get_service},
+    {BLE_PROPERTY_FLAGS, DBUS_TYPE_ARRAY_AS_STRING DBUS_TYPE_STRING_AS_STRING, characteristic_get_flags},
+    {BLE_PROPERTY_VALUE, DBUS_TYPE_ARRAY_AS_STRING DBUS_TYPE_BYTE_AS_STRING, characteristic_get_value},
+    DBUS_PROPERTY_NULL
+  };
 
-static object_flag_t characteristic_flags[] = 
-{
-  { CHARACTERISTIC_FLAG_BROADCAST, CHARACTERISTIC_FLAG_BROADCAST_ENABLED_BIT },
-  { CHARACTERISTIC_FLAG_READ, CHARACTERISTIC_FLAG_READ_ENABLED_BIT },
-  { CHARACTERISTIC_FLAG_WRITE_WITHOUT_RESPONSE, CHARACTERISTIC_FLAG_WRITE_WITHOUT_RESPONSE_ENABLED_BIT },
-  { CHARACTERISTIC_FLAG_WRITE, CHARACTERISTIC_FLAG_WRITE_ENABLED_BIT },
-  { CHARACTERISTIC_FLAG_NOTIFY, CHARACTERISTIC_FLAG_NOTIFY_ENABLED_BIT },
-  { CHARACTERISTIC_FLAG_INDICATE, CHARACTERISTIC_FLAG_INDICATE_ENABLED_BIT },
-  { CHARACTERISTIC_FLAG_AUTHENTICATED_SIGNED_WRITES, CHARACTERISTIC_FLAG_AUTHENTICATED_SIGNED_WRITES_ENABLED_BIT },
-  { CHARACTERISTIC_FLAG_EXTENDED_PROPERTIES, CHARACTERISTIC_FLAG_EXTENDED_PROPERTIES_ENABLED_BIT },
-  { CHARACTERISTIC_FLAG_RELIABLE_WRITE, CHARACTERISTIC_FLAG_RELIABLE_WRITE_ENABLED_BIT },
-  { CHARACTERISTIC_FLAG_WRITABLE_AUXILIARIES, CHARACTERISTIC_FLAG_WRITABLE_AUXILIARIES_ENABLED_BIT },
-  { CHARACTERISTIC_FLAG_ENCRYPTED_READ, CHARACTERISTIC_FLAG_ENCRYPTED_READ_ENABLED_BIT },
-  { CHARACTERISTIC_FLAG_ENCRYPTED_WRITE, CHARACTERISTIC_FLAG_ENCRYPTED_WRITE_ENABLED_BIT },
-  { CHARACTERISTIC_FLAG_ENCRYPTED_AUTHENTICATED_READ, CHARACTERISTIC_FLAG_ENCRYPTED_AUTHENTICATED_READ_ENABLED_BIT },
-  { CHARACTERISTIC_FLAG_ENCRYPTED_AUTHENTICATED_WRITE, CHARACTERISTIC_FLAG_ENCRYPTED_AUTHENTICATED_WRITE_ENABLED_BIT },
-  { CHARACTERISTIC_FLAG_SECURE_READ, CHARACTERISTIC_FLAG_SECURE_READ_ENABLED_BIT },
-  { CHARACTERISTIC_FLAG_SECURE_WRITE, CHARACTERISTIC_FLAG_SECURE_WRITE_ENABLED_BIT },
-  { CHARACTERISTIC_FLAG_AUTHORIZE, CHARACTERISTIC_FLAG_AUTHORIZE_ENABLED_BIT }
-};
+static object_flag_t characteristic_flags[] =
+  {
+    {CHARACTERISTIC_FLAG_BROADCAST,                     CHARACTERISTIC_FLAG_BROADCAST_ENABLED_BIT},
+    {CHARACTERISTIC_FLAG_READ,                          CHARACTERISTIC_FLAG_READ_ENABLED_BIT},
+    {CHARACTERISTIC_FLAG_WRITE_WITHOUT_RESPONSE,        CHARACTERISTIC_FLAG_WRITE_WITHOUT_RESPONSE_ENABLED_BIT},
+    {CHARACTERISTIC_FLAG_WRITE,                         CHARACTERISTIC_FLAG_WRITE_ENABLED_BIT},
+    {CHARACTERISTIC_FLAG_NOTIFY,                        CHARACTERISTIC_FLAG_NOTIFY_ENABLED_BIT},
+    {CHARACTERISTIC_FLAG_INDICATE,                      CHARACTERISTIC_FLAG_INDICATE_ENABLED_BIT},
+    {CHARACTERISTIC_FLAG_AUTHENTICATED_SIGNED_WRITES,   CHARACTERISTIC_FLAG_AUTHENTICATED_SIGNED_WRITES_ENABLED_BIT},
+    {CHARACTERISTIC_FLAG_EXTENDED_PROPERTIES,           CHARACTERISTIC_FLAG_EXTENDED_PROPERTIES_ENABLED_BIT},
+    {CHARACTERISTIC_FLAG_RELIABLE_WRITE,                CHARACTERISTIC_FLAG_RELIABLE_WRITE_ENABLED_BIT},
+    {CHARACTERISTIC_FLAG_WRITABLE_AUXILIARIES,          CHARACTERISTIC_FLAG_WRITABLE_AUXILIARIES_ENABLED_BIT},
+    {CHARACTERISTIC_FLAG_ENCRYPTED_READ,                CHARACTERISTIC_FLAG_ENCRYPTED_READ_ENABLED_BIT},
+    {CHARACTERISTIC_FLAG_ENCRYPTED_WRITE,               CHARACTERISTIC_FLAG_ENCRYPTED_WRITE_ENABLED_BIT},
+    {CHARACTERISTIC_FLAG_ENCRYPTED_AUTHENTICATED_READ,  CHARACTERISTIC_FLAG_ENCRYPTED_AUTHENTICATED_READ_ENABLED_BIT},
+    {CHARACTERISTIC_FLAG_ENCRYPTED_AUTHENTICATED_WRITE, CHARACTERISTIC_FLAG_ENCRYPTED_AUTHENTICATED_WRITE_ENABLED_BIT},
+    {CHARACTERISTIC_FLAG_SECURE_READ,                   CHARACTERISTIC_FLAG_SECURE_READ_ENABLED_BIT},
+    {CHARACTERISTIC_FLAG_SECURE_WRITE,                  CHARACTERISTIC_FLAG_SECURE_WRITE_ENABLED_BIT},
+    {CHARACTERISTIC_FLAG_AUTHORIZE,                     CHARACTERISTIC_FLAG_AUTHORIZE_ENABLED_BIT}
+  };
 
 characteristic_t *characteristic_new (const char *uuid, descriptor_t *descriptors)
 {
@@ -69,8 +75,15 @@ characteristic_t *characteristic_new (const char *uuid, descriptor_t *descriptor
   new_characteristic->uuid = strdup (uuid);
   new_characteristic->service_path = NULL;
   new_characteristic->object_path = NULL;
-  new_characteristic->value = NULL;
-  new_characteristic->value_size = 0;
+
+  //TODO: revert back 
+  // new_characteristic->value = NULL;
+  // new_characteristic->value_size = 0;
+  new_characteristic->value = malloc(sizeof(int));
+  int a = 42;
+  memcpy(new_characteristic->value, &a, sizeof(int));
+  new_characteristic->value_size = sizeof(int);
+
   new_characteristic->flags = CHARACTERISTIC_FLAGS_ALL_ENABLED; //all enabled for now
   new_characteristic->descriptors = descriptors;
   new_characteristic->descriptor_count = 0;
@@ -115,7 +128,7 @@ static DBusHandlerResult characteristic_handle_dbus_message (DBusConnection *con
           dbus_message_get_interface (message),
           dbus_message_get_path (message),
           characterisitc->uuid
-          );
+  );
 
   return DBUS_HANDLER_RESULT_HANDLED;
 }
@@ -132,7 +145,7 @@ descriptor_t *characteristic_get_descriptor (characteristic_t *characteristic, c
     descriptor = descriptor->next;
   }
 
-  return NULL; 
+  return NULL;
 }
 
 bool characteristic_add_descriptor (characteristic_t *characteristic, descriptor_t *descriptor)
@@ -163,19 +176,19 @@ void characteristic_get_object (characteristic_t *characteristic, DBusMessageIte
   dbusutils_get_object_data (iter, &characteristic_properties[0], characteristic->object_path, BLUEZ_GATT_CHARACTERISTIC_INTERFACE, characteristic);
 }
 
-static void characteristic_get_uuid(void *user_data, DBusMessageIter* iter)
+static void characteristic_get_uuid (void *user_data, DBusMessageIter *iter)
 {
   characteristic_t *characteristic = (characteristic_t *) user_data;
   dbus_message_iter_append_basic (iter, DBUS_TYPE_STRING, &characteristic->uuid);
 }
 
-static void characteristic_get_service(void *user_data, DBusMessageIter* iter)
+static void characteristic_get_service (void *user_data, DBusMessageIter *iter)
 {
   characteristic_t *characteristic = (characteristic_t *) user_data;
   dbus_message_iter_append_basic (iter, DBUS_TYPE_OBJECT_PATH, &characteristic->service_path);
 }
 
-static void characteristic_get_flags (void *user_data, DBusMessageIter* iter)
+static void characteristic_get_flags (void *user_data, DBusMessageIter *iter)
 {
   characteristic_t *characteristic = (characteristic_t *) user_data;
   DBusMessageIter array;
@@ -183,7 +196,7 @@ static void characteristic_get_flags (void *user_data, DBusMessageIter* iter)
   dbus_message_iter_open_container (iter, DBUS_TYPE_ARRAY, DBUS_TYPE_STRING_AS_STRING, &array);
 
   unsigned int flag_count = sizeof (characteristic_flags) / sizeof (characteristic_flags[0]);
-  for (unsigned int i=0; i < flag_count; i++)
+  for (unsigned int i = 0; i < flag_count; i++)
   {
     if (utils_is_flag_set (characteristic->flags, characteristic_flags[i].enabled_bit))
     {
@@ -194,10 +207,10 @@ static void characteristic_get_flags (void *user_data, DBusMessageIter* iter)
   dbus_message_iter_close_container (iter, &array);
 }
 
-static void characteristic_get_value(void *user_data, DBusMessageIter* iter)
+static void characteristic_get_value (void *user_data, DBusMessageIter *iter)
 {
   characteristic_t *characteristic = (characteristic_t *) user_data;
-  characteristic_read_value(characteristic, iter);
+  characteristic_read_value (characteristic, iter);
 }
 
 // void characteristic_get_all (characteristic_t *characteristic)
@@ -211,7 +224,7 @@ static void characteristic_get_value(void *user_data, DBusMessageIter* iter)
 // }
 
 // //Bluez methods
-static void characteristic_read_value (characteristic_t *characteristic, DBusMessageIter* iter)
+static void characteristic_read_value (characteristic_t *characteristic, DBusMessageIter *iter)
 {
   DBusMessageIter array;
 

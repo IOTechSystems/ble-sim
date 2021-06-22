@@ -1,3 +1,4 @@
+#!/bin/sh
 . ./scripts/env.sh
 
 ARCHIVE=$1

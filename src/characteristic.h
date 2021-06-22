@@ -18,11 +18,11 @@ typedef struct characteristic_t
 {
   char *uuid; //128-bit characteristic UUID.
   char *service_path; //Object path of the GATT service the characteristic belongs to.
-  char *object_path;
-  uint8_t * value;
+  char *object_path; //Object path of the characteristic object
+  uint8_t *value; //The characteristic's value
   uint32_t value_size;
-  bool notifying;
-  uint32_t flags;
+  bool notifying; //if notifications or indications on this	characteristic are currently enabled
+  uint32_t flags; //Flags to define how the characteristic value can be used
   descriptor_t *descriptors;
   unsigned int descriptor_count;
   struct characteristic_t *next;
@@ -65,7 +65,7 @@ descriptor_t *characteristic_get_descriptor (characteristic_t *characteristic, c
 bool characteristic_add_descriptor (characteristic_t *characteristic, descriptor_t *descriptor);
 
 //DBus Methods TODO
-void characteristic_get_object (characteristic_t *characteristic, DBusMessageIter* iter);
+void characteristic_get_object (characteristic_t *characteristic, DBusMessageIter *iter);
 // void characteristic_get_all (characteristic_t *characteristic);
 // void characteristic_properties_changed (characteristic_t *characteristic);
 // //Bluez methods

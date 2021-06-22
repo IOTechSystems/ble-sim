@@ -31,11 +31,19 @@
 #define BLUEZ_BUS_NAME "org.bluez"
 #define BLE_SIM_SERVICE_NAME "org.blesim"
 
+#define DBUS_INTERFACE_PROPERTIES "org.freedesktop.DBus.Properties"
+#define DBUS_METHOD_SET "Set"
+
 #define DBUS_INTERFACE_OBJECT_MANAGER "org.freedesktop.DBus.ObjectManager"
 #define DBUS_METHOD_GET_MANAGED_OBJECTS "GetManagedObjects"
 
 #define BLUEZ_GATT_MANAGER_INTERFACE "org.bluez.GattManager1"
 #define BLUEZ_METHOD_REGISTER_APPLICATION "RegisterApplication"
+
+#define BLUEZ_ADAPTER_INTERFACE "org.bluez.Adapter1"
+#define BLUEZ_ADAPTER_PROPERTY_POWERED "Powered"
+#define BLUEZ_ADAPTER_PROPERTY_DISCOVERABLE "Discoverable"
+
 
 #define BLUEZ_GATT_SERVICE_INTERFACE "org.bluez.GattService1"
 #define BLUEZ_GATT_CHARACTERISTIC_INTERFACE "org.bluez.GattCharacteristic1"
@@ -93,9 +101,9 @@
 #define DESCRIPTOR_FLAG_ENCRYPT_AUTHENTICATED_READ_ENABLED_BIT (1 << 4)
 #define DESCRIPTOR_FLAG_ENCRYTP_AUTHENTICATED_WRITE "encrypt-authenticated-write"
 #define DESCRIPTOR_FLAG_ENCRYPT_AUTHENTICATED_WRITE_ENABLED_BIT (1 << 5)
-#define DESCRIPTOR_FLAG_SECURE_READ "secure-read" 
+#define DESCRIPTOR_FLAG_SECURE_READ "secure-read"
 #define DESCRIPTOR_FLAG_SECURE_READ_ENABLED_BIT (1 << 6)
-#define DESCRIPTOR_FLAG_SECURE_WRITE "secure-write" 
+#define DESCRIPTOR_FLAG_SECURE_WRITE "secure-write"
 #define DESCRIPTOR_FLAG_SECURE_WRITE_ENABLED_BIT (1 << 7)
 #define DESCRIPTOR_FLAG_AUTHORIZE "authorize"
 #define DESCRIPTOR_FLAG_AUTHORIZE_ENABLED_BIT (1 << 8)
