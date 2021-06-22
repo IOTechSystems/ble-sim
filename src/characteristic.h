@@ -28,8 +28,6 @@ typedef struct characteristic_t
   struct characteristic_t *next;
 } characteristic_t;
 
-extern DBusObjectPathVTable characteristic_dbus_callbacks;
-
 /**
  * Allocates memory and initialises values for a new characteristic_t 
  * 
@@ -64,6 +62,7 @@ descriptor_t *characteristic_get_descriptor (characteristic_t *characteristic, c
  **/
 bool characteristic_add_descriptor (characteristic_t *characteristic, descriptor_t *descriptor);
 
+bool characteristic_register (characteristic_t *characteristic);
 //DBus Methods TODO
 void characteristic_get_object (characteristic_t *characteristic, DBusMessageIter *iter);
 // void characteristic_get_all (characteristic_t *characteristic);

@@ -14,10 +14,6 @@
 #include "dbusutils.h"
 #include "utils.h"
 
-static void descriptor_handle_unregister_device (DBusConnection *connection, void *data);
-
-static DBusHandlerResult descriptor_handle_dbus_message (DBusConnection *connection, DBusMessage *message, void *data);
-
 static void descriptor_get_uuid (void *user_data, DBusMessageIter *iter);
 
 static void descriptor_get_characteristic (void *user_data, DBusMessageIter *iter);
@@ -28,10 +24,6 @@ static void descriptor_get_value (void *user_data, DBusMessageIter *iter);
 
 static void descriptor_read_value (descriptor_t *descriptor, DBusMessageIter *iter);
 
-DBusObjectPathVTable descriptor_dbus_callbacks = {
-  .unregister_function = descriptor_handle_unregister_device,
-  .message_function = descriptor_handle_dbus_message,
-};
 
 static dbus_property_t descriptor_properties[] =
   {
@@ -40,6 +32,11 @@ static dbus_property_t descriptor_properties[] =
     {BLE_PROPERTY_FLAGS, DBUS_TYPE_ARRAY_AS_STRING DBUS_TYPE_STRING_AS_STRING, descriptor_get_flags},
     {BLE_PROPERTY_VALUE, DBUS_TYPE_ARRAY_AS_STRING DBUS_TYPE_BYTE_AS_STRING, descriptor_get_value},
     DBUS_PROPERTY_NULL
+  };
+
+static dbus_method_t descriptor_methods[] = 
+  {
+    DBUS_METHOD_NULL
   };
 
 static object_flag_t descriptor_flags[] =
@@ -93,22 +90,9 @@ void descriptor_free (descriptor_t *descriptor)
   free (descriptor);
 }
 
-static void descriptor_handle_unregister_device (DBusConnection *connection, void *data)
+bool descriptor_register (descriptor_t *descriptor)
 {
-
-}
-
-static DBusHandlerResult descriptor_handle_dbus_message (DBusConnection *connection, DBusMessage *message, void *data)
-{
-  descriptor_t *descriptor = (descriptor_t *) data;
-  printf ("DESCRIPTOR MESSAGE: got dbus message sent to %s %s %s (service: %s) \n",
-          dbus_message_get_destination (message),
-          dbus_message_get_interface (message),
-          dbus_message_get_path (message),
-          descriptor->uuid
-  );
-
-  return DBUS_HANDLER_RESULT_HANDLED;
+  return dbusutils_register_object (global_dbus_connection, descriptor->object_path, descriptor_properties, descriptor_methods, descriptor);
 }
 
 //DBus methods

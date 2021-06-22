@@ -29,8 +29,6 @@ typedef struct service_t
   struct service_t *next;
 } service_t;
 
-extern DBusObjectPathVTable service_dbus_callbacks;
-
 /**
  * Allocates memory and initialises values for a new service_t 
  * 
@@ -69,6 +67,7 @@ bool service_add_characteristic (service_t *service, characteristic_t *character
 
 // TODO
 // //DBus methods
+bool service_register (service_t* service);
 void service_get_object (service_t *service, DBusMessageIter *iter);
 
 #endif //BLE_SIM_SERVICE_H

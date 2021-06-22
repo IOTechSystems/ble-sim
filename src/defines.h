@@ -14,6 +14,7 @@
 #define EMPTY_STRING ""
 #define ROOT_PATH "/"
 #define DBUS_PROPERTY_NULL { NULL, NULL, NULL }
+#define DBUS_METHOD_NULL { NULL, NULL, NULL }
 
 #define DEVICE_OBJECT_NAME "dev"
 #define SERVICE_OBJECT_NAME "serv"
@@ -27,6 +28,23 @@
 #define BLE_PROPERTY_CHARACTERISTIC "Characteristic"
 #define BLE_PROPERTY_VALUE "Value"
 #define BLE_PROPERTY_FLAGS "Flags"
+#define BLE_PROPERTY_TYPE "Type"
+#define BLE_PROPERTY_SERVICE_UUIDS "ServiceUUIDs"
+#define BLE_PROPERTY_MANUFACTURER_DATA "ManufacturerData"
+#define BLE_PROPERTY_SOLICIT_UUIDS "SolicitUUIDs"
+#define BLE_PROPERTY_SERVICE_DATA "ServiceData"
+#define BLE_PROPERTY_DATA "Data"
+#define BLE_PROPERTY_DISCOVERABLE "Discoverable"
+#define BLE_PROPERTY_DISCOVERABLE_TIMEOUT "DiscoverableTimeout"
+#define BLE_PROPERTY_INCLUDES "Includes"
+#define BLE_PROPERTY_LOCAL_NAME "LocalName"
+#define BLE_PROPERTY_APPEARANCE "Appearance"
+#define BLE_PROPERTY_DURATION "Duration"
+#define BLE_PROPERTY_TIMEOUT "Timeout"
+#define BLE_PROPERTY_SECONDARY_CHANNEL "SecondaryChannel"
+#define BLE_PROPERTY_MIN_INTERVAL "MinInterval"
+#define BLE_PROPERTY_MAX_INTERVAL "MaxInterval"
+#define BLE_PROPERTY_TX_POWER "TxPower"
 
 #define BLUEZ_BUS_NAME "org.bluez"
 #define BLE_SIM_SERVICE_NAME "org.blesim"

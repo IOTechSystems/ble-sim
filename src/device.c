@@ -15,10 +15,6 @@
 
 static void add_device_to_device_list (device_t *device);
 
-static void device_handle_unregister_device (DBusConnection *connection, void *data);
-
-static DBusHandlerResult device_handle_dbus_message (DBusConnection *connection, DBusMessage *message, void *data);
-
 static bool device_get_managed_objects (device_t *device, DBusConnection *connection, DBusMessage *message);
 
 static service_t *device_get_service (device_t *device, const char *service_uuid);
@@ -26,10 +22,11 @@ static service_t *device_get_service (device_t *device, const char *service_uuid
 static device_t *device_list_head = NULL;
 static unsigned int device_count = 0;
 
-static DBusObjectPathVTable device_dbus_callbacks = {
-  .unregister_function = device_handle_unregister_device,
-  .message_function = device_handle_dbus_message,
-};
+static dbus_method_t device_methods[] = 
+  {
+    {DBUS_INTERFACE_OBJECT_MANAGER, DBUS_METHOD_GET_MANAGED_OBJECTS, device_get_managed_objects},
+    DBUS_METHOD_NULL
+  };
 
 //device list
 void device_cleanup_devices (void)
@@ -102,30 +99,6 @@ void device_free (device_t *device)
   }
 
   free (device);
-}
-
-//device object dbus functions
-static void device_handle_unregister_device (DBusConnection *connection, void *data)
-{
-
-}
-
-static DBusHandlerResult device_handle_dbus_message (DBusConnection *connection, DBusMessage *message, void *data)
-{
-  device_t *device = (device_t *) data;
-  printf ("DEVICE MESSAGE: got dbus message sent to %s %s %s (device: %s) \n",
-          dbus_message_get_destination (message),
-          dbus_message_get_interface (message),
-          dbus_message_get_path (message),
-          device->device_name
-  );
-
-  if (dbus_message_is_method_call (message, DBUS_INTERFACE_OBJECT_MANAGER, DBUS_METHOD_GET_MANAGED_OBJECTS))
-  {
-    device_get_managed_objects (device, connection, message);
-  }
-
-  return DBUS_HANDLER_RESULT_HANDLED;
 }
 
 static bool device_get_managed_objects (device_t *device, DBusConnection *connection, DBusMessage *message)
@@ -291,7 +264,7 @@ bool device_add (device_t *device)
     return false;
   }
 
-  success = dbusutils_register_object (global_dbus_connection, device->object_path, &device_dbus_callbacks, device);
+  success = dbusutils_register_object (global_dbus_connection, device->object_path, NULL, device_methods, device);
   if (!success)
   {
     return false;
@@ -406,13 +379,12 @@ bool device_add_service (device_t *device, service_t *service)
     return false;
   }
 
-  char *service_object_path = dbusutils_create_object_path (device->object_path, SERVICE_OBJECT_NAME, device->service_count);
-  if (!dbusutils_register_object (global_dbus_connection, service_object_path, &service_dbus_callbacks, service))
+  service->object_path = dbusutils_create_object_path (device->object_path, SERVICE_OBJECT_NAME, device->service_count);
+  if (!service_register(service))
   {
-    free (service_object_path);
+    free (service->object_path);
     return false;
   }
-  service->object_path = service_object_path;
   service->device_path = strdup (device->object_path);
 
   service->next = device->services;

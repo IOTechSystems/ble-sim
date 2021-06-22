@@ -8,10 +8,61 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 
 #include "dbusutils.h"
 
+static void dbusutils_object_handle_unregister (DBusConnection *connection, void *data);
+static DBusHandlerResult dbusutils_object_handle_message (DBusConnection *connection, DBusMessage *message, void *data);
+
 bool dbusutils_mainloop_running = false;
+
+static void append_variant(DBusMessageIter *iter, int type, const void *val)
+{
+	DBusMessageIter value;
+	char signature[2] = { type, '\0' };
+
+	dbus_message_iter_open_container(iter, DBUS_TYPE_VARIANT, signature, &value);
+	dbus_message_iter_append_basic(&value, type, val);
+	dbus_message_iter_close_container(iter, &value);
+}
+
+static void append_fixed_array_variant(DBusMessageIter *iter, int type, void *val, int elements)
+{
+  assert(dbus_type_is_fixed(type) == TRUE);
+
+  DBusMessageIter variant, array;
+	char array_signature[3] = { DBUS_TYPE_ARRAY, type, '\0' };
+	char type_signature[2] = { type, '\0' };
+
+	dbus_message_iter_open_container(iter, DBUS_TYPE_VARIANT,	array_signature, &variant);
+	dbus_message_iter_open_container(&variant, DBUS_TYPE_ARRAY, type_signature, &array);
+
+	dbus_message_iter_append_fixed_array(&array, type, val,	elements);
+	
+	dbus_message_iter_close_container(&variant, &array);
+	dbus_message_iter_close_container(iter, &variant);
+}
+
+
+void dbusutils_iter_append_dict_entry_fixed_array (
+  DBusMessageIter *iter, 
+  int key_type, 
+  const void *key, 
+  int val_type, 
+  const void *val, 
+  unsigned int elements
+)
+{
+  DBusMessageIter entry;
+
+  dbus_message_iter_open_container (iter, DBUS_TYPE_DICT_ENTRY, NULL, &entry);
+
+  dbus_message_iter_append_basic (iter, key_type, key);
+  append_fixed_array_variant (iter, val_type, val, elements);
+
+  dbus_message_iter_close_container (iter, &entry);
+}
 
 void dbusutils_iter_append_string (DBusMessageIter *iter, int type, const char *string)
 {
@@ -167,14 +218,63 @@ bool dbusutils_request_application_bus_name (DBusConnection *connection)
   return true;
 }
 
+const DBusObjectPathVTable object_vtable = 
+{
+  .message_function = dbusutils_object_handle_message,
+  .unregister_function = dbusutils_object_handle_unregister
+};
+
+typedef struct object_data_t {
+  dbus_property_t *properties;
+  dbus_method_t *methods;
+  void* object_ptr;
+}object_data_t;
+
+static void dbusutils_object_handle_unregister (DBusConnection *connection, void *data)
+{
+  object_data_t *object_data = (object_data_t*) data;
+
+  free(data);
+}
+
+static DBusHandlerResult dbusutils_object_handle_message (DBusConnection *connection, DBusMessage *message, void *data)
+{
+  object_data_t *object_data = (object_data_t*) data;
+
+  printf ("MESSAGE: got dbus message sent to destination:%s interface:%s path:%s\n",
+          dbus_message_get_destination (message),
+          dbus_message_get_interface (message),
+          dbus_message_get_path (message)
+  );
+
+  //check to see if we have a matching method
+  dbus_method_t *method = NULL;
+  for (method = object_data->methods; method && method->interface; method++)
+  {
+    if (dbus_message_is_method_call (message, method->interface, method->method))
+    {
+      method->object_method_function(object_data->object_ptr, connection, message);
+      return DBUS_HANDLER_RESULT_HANDLED;
+    }
+  }
+
+  return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
+}
+
 bool dbusutils_register_object (DBusConnection *connection,
                                 const char *object_path,
-                                const DBusObjectPathVTable *vtable,
-                                void *user_data)
+                                dbus_property_t *properties_table,
+                                dbus_method_t *method_table,
+                                void *object_ptr)
 {
+  object_data_t *object_data = calloc(1, sizeof(*object_data));
+  object_data->methods = method_table;
+  object_data->properties = properties_table;
+  object_data->object_ptr = object_ptr;
+
   DBusError err;
   dbus_error_init (&err);
-  dbus_connection_try_register_object_path (connection, object_path, vtable, user_data, &err);
+  dbus_connection_try_register_object_path (connection, object_path, &object_vtable, object_data, &err);
   if (dbus_error_is_set (&err))
   {
     printf ("Error registering object path (%s): (%s)\n", object_path, err.message);
@@ -208,16 +308,6 @@ DBusMessage *dbusutils_do_method_call (DBusConnection *connection, const char *b
 
   dbus_error_free (&err);
   return dbus_reply;
-}
-
-static void append_variant(DBusMessageIter *iter, int type, const void *val)
-{
-	DBusMessageIter value;
-	char signature[2] = { type, '\0' };
-
-	dbus_message_iter_open_container(iter, DBUS_TYPE_VARIANT, signature, &value);
-	dbus_message_iter_append_basic(&value, type, val);
-	dbus_message_iter_close_container(iter, &value);
 }
 
 DBusMessage *dbusutils_set_property_basic (

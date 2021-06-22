@@ -9,6 +9,8 @@
 #define BLE_SIM_DESCRIPTOR_H
 
 #include <stdint.h>
+#include <stdbool.h>
+
 #include <dbus/dbus.h>
 
 typedef struct descriptor_t
@@ -39,6 +41,8 @@ descriptor_t *descriptor_new (const char *uuid);
  * @param descriptor descriptor to free 
  **/
 void descriptor_free (descriptor_t *descriptor);
+
+bool descriptor_register (descriptor_t *descriptor);
 
 // //DBus methods
 // void descriptor_get_all (descriptor_t *descriptor);

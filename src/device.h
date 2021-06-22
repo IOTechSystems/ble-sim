@@ -119,7 +119,6 @@ bool device_set_advertising (device_t *device, bool advertising);
  **/
 bool device_set_powered(device_t *device, bool powered);
 
-
 /**
  * Removes and frees all devices in the internal device list
  **/

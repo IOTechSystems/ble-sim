@@ -15,20 +15,46 @@
 
 extern DBusConnection *global_dbus_connection;
 
-typedef void(*dbus_get_property_function) (void *user_data, DBusMessageIter *iter);
+typedef void(*dbus_get_object_property_function) (void *user_data, DBusMessageIter *iter);
+typedef void(*dbus_call_object_method_function) (void *user_data, DBusConnection *connection, DBusMessage *message);
 
 typedef struct dbus_property_t
 {
   const char *name;
   const char *signature;
-  dbus_get_property_function get_function;
+  dbus_get_object_property_function get_function;
 } dbus_property_t;
+
+typedef struct dbus_method_t
+{
+  const char *interface;
+  const char *method;
+  dbus_call_object_method_function object_method_function; 
+} dbus_method_t;
 
 typedef struct object_flag_t
 {
   const char *flag_value;
   unsigned int enabled_bit;
 } object_flag_t;
+
+/**
+ * Appends a dict entry which contains an array to a dbus message iter
+ * @param iter dbus message iter to append to 
+ * @param key_type the key type
+ * @param key ptr to the key's value
+ * @param val_type the arrays element type
+ * @param val ptr to the array
+ * @param elements number of elements in the array 
+ **/
+void dbusutils_iter_append_dict_entry_fixed_array (
+  DBusMessageIter *iter, 
+  int key_type, 
+  const void *key, 
+  int val_type, 
+  const void *val, 
+  unsigned int elements
+);
 
 /**
  * Appends a string to a dbus iter - trying to append a string literal causes a segfault
@@ -99,11 +125,12 @@ bool dbusutils_request_application_bus_name (DBusConnection *connection);
  *  Registers a handler for a given path in the object hierarchy. 
  *  @param DBusConnection the dbus connection 
  *  @param path the object path
- *  @param vtable the callback table
- *  @param user_data data to pass to functions in the callback table
+ *  @param property_table the object's property table
+ *  @param method_table the object's method table
+ *  @param object_ptr the pointer to the object
  *  @return successful true/false
  **/
-bool dbusutils_register_object (DBusConnection *connection, const char *path, const DBusObjectPathVTable *vtable, void *user_data);
+bool dbusutils_register_object (DBusConnection *connection, const char *path, dbus_property_t *property_table, dbus_method_t *method_table, void *object_ptr);
 
 /**
  * Performs a dbus method call
