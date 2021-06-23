@@ -13,11 +13,12 @@
 
 #include "defines.h"
 
+extern bool dbusutils_mainloop_running;
 extern DBusConnection *global_dbus_connection;
 
 typedef void(*dbus_get_object_property_function) (void *user_data, DBusMessageIter *iter);
 
-typedef bool(*dbus_call_object_method_function) (void *user_data, DBusConnection *connection, DBusMessage *message);
+typedef DBusMessage *(*dbus_call_object_method_function) (void *user_data, DBusConnection *connection, DBusMessage *message);
 
 typedef struct dbus_property_t
 {
@@ -166,9 +167,6 @@ DBusMessage *dbusutils_set_property_basic (
   int data_type,
   void *data
 );
-
-
-extern bool dbusutils_mainloop_running;
 
 /**
  * Starts the main DBus read/write/dispatch loop

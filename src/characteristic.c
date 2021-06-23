@@ -23,7 +23,7 @@ static void characteristic_get_flags (void *user_data, DBusMessageIter *iter);
 
 static void characteristic_get_value (void *user_data, DBusMessageIter *iter);
 
-static void characteristic_read_value (characteristic_t *characteristic, DBusMessageIter *iter);
+static DBusMessage *characteristic_read_value (void *user_data, DBusConnection *connection, DBusMessage *message);
 
 
 static dbus_property_t characteristic_properties[] =
@@ -37,6 +37,7 @@ static dbus_property_t characteristic_properties[] =
 
 static dbus_method_t characteristic_methods[] =
   {
+    {BLUEZ_GATT_CHARACTERISTIC_INTERFACE, BLUEZ_METHOD_READ_VALUE, characteristic_read_value },
     DBUS_METHOD_NULL
   };
 
@@ -193,7 +194,11 @@ static void characteristic_get_flags (void *user_data, DBusMessageIter *iter)
 static void characteristic_get_value (void *user_data, DBusMessageIter *iter)
 {
   characteristic_t *characteristic = (characteristic_t *) user_data;
-  characteristic_read_value (characteristic, iter);
+  DBusMessageIter array;
+
+  dbus_message_iter_open_container (iter, DBUS_TYPE_ARRAY, DBUS_TYPE_BYTE_AS_STRING, &array);
+  dbus_message_iter_append_fixed_array (&array, DBUS_TYPE_BYTE, &characteristic->value, characteristic->value_size);
+  dbus_message_iter_close_container (iter, &array);
 }
 
 // void characteristic_get_all (characteristic_t *characteristic)
@@ -207,13 +212,19 @@ static void characteristic_get_value (void *user_data, DBusMessageIter *iter)
 // }
 
 // //Bluez methods
-static void characteristic_read_value (characteristic_t *characteristic, DBusMessageIter *iter)
+static DBusMessage *characteristic_read_value (void *user_data, DBusConnection *connection, DBusMessage *message)
 {
-  DBusMessageIter array;
+  //TODO: parse message options  
+  DBusMessage *reply = dbus_message_new_method_return (message);
+  if (NULL == reply)
+  {
+    return NULL;
+  }
 
-  dbus_message_iter_open_container (iter, DBUS_TYPE_ARRAY, DBUS_TYPE_BYTE_AS_STRING, &array);
-  dbus_message_iter_append_fixed_array (&array, DBUS_TYPE_BYTE, &characteristic->value, characteristic->value_size);
-  dbus_message_iter_close_container (iter, &array);
+  DBusMessageIter iter;
+  dbus_message_iter_init_append (reply, &iter);
+  characteristic_get_value (user_data, &iter);
+  return reply;
 }
 
 // TODO

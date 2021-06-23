@@ -201,7 +201,6 @@ int main (int argc, char *argv[])
   dbus_cleanup ();
   device_cleanup_devices ();
 
-  //free (default_adapter);
   printf ("Exiting\n");
 
   return 0;

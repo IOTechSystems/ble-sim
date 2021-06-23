@@ -14,16 +14,16 @@
 
 typedef struct object_data_t
 {
-  dbus_property_t *properties;
-  dbus_method_t *methods;
-  void *object_ptr;
+  dbus_property_t *properties; //object's properties table
+  dbus_method_t *methods; //object's methods table 
+  void *object_ptr; //pointer to the objects struct
 } object_data_t;
 
 static void dbusutils_object_handle_unregister (DBusConnection *connection, void *data);
 
 static DBusHandlerResult dbusutils_object_handle_message (DBusConnection *connection, DBusMessage *message, void *data);
 
-static bool dbusutils_object_get_all (DBusConnection *connection, DBusMessage *message, object_data_t *object_data);
+static DBusMessage *dbusutils_object_get_all (DBusConnection *connection, DBusMessage *message, object_data_t *object_data);
 
 const DBusObjectPathVTable object_vtable =
   {
@@ -239,7 +239,7 @@ static void dbusutils_object_handle_unregister (DBusConnection *connection, void
   free (data);
 }
 
-static bool dbusutils_object_get_all (DBusConnection *connection, DBusMessage *message, object_data_t *object_data)
+static DBusMessage *dbusutils_object_get_all (DBusConnection *connection, DBusMessage *message, object_data_t *object_data)
 {
   DBusMessage *reply = dbus_message_new_method_return (message);
   if (reply == NULL)
@@ -248,33 +248,120 @@ static bool dbusutils_object_get_all (DBusConnection *connection, DBusMessage *m
     return false;
   }
 
-  DBusMessageIter iter, array;
+  DBusMessageIter iter;
   dbus_message_iter_init_append (reply, &iter);
-  dbus_message_iter_open_container (
-    &iter,
-    DBUS_TYPE_ARRAY,
-    DBUS_DICT_ENTRY_BEGIN_CHAR_AS_STRING
-    DBUS_TYPE_STRING_AS_STRING
-    DBUS_TYPE_VARIANT_AS_STRING
-    DBUS_DICT_ENTRY_END_CHAR_AS_STRING,
-    &array
-  );
+  
+  dbusutils_get_object_property_data(&iter, object_data->properties, object_data->object_ptr);
 
-  for (dbus_property_t *property = object_data->properties; property && property->name; property++)
+  return reply;
+}
+
+static const char* get_property_name_from_properties_get_message(DBusMessage *message)
+{
+  if( !dbus_message_has_signature(message, DBUS_TYPE_STRING_AS_STRING DBUS_TYPE_STRING_AS_STRING))
   {
-    DBusMessageIter entry, variant;
-    dbus_message_iter_open_container (&array, DBUS_TYPE_DICT_ENTRY, NULL, &entry);
-
-    dbusutils_iter_append_string (&entry, DBUS_TYPE_STRING, property->name);
-    dbus_message_iter_open_container (&entry, DBUS_TYPE_VARIANT, property->signature, &variant);
-    property->get_function (object_data->object_ptr, &variant);
-    dbus_message_iter_close_container (&entry, &variant);
-
-    dbus_message_iter_close_container (&array, &entry);
+    return NULL;
   }
-  dbus_message_iter_close_container (&iter, &array);
+
+  DBusMessageIter iter;
+  dbus_message_iter_init (message, &iter);
+  dbus_message_iter_next (&iter);
+
+  char *property_name = NULL;
+  dbus_message_iter_get_basic (&iter, &property_name);
+  
+  return property_name;
+}
+
+static DBusMessage *dbusutils_object_get (DBusConnection *connection, DBusMessage *message, object_data_t *object_data)
+{
+  const char* property_name = get_property_name_from_properties_get_message(message);
+  if (NULL == property_name)
+  {
+    printf ("Could not get a property name from get property request\n");
+    return NULL;
+  }
+
+  DBusMessage *reply = dbus_message_new_method_return (message);
+  if (reply == NULL)
+  {
+    printf ("%s: Could not create a dbus method return message", __FUNCTION__);
+    return NULL;
+  }
+
+  DBusMessageIter iter;
+  dbus_message_iter_init_append (message, &iter);
+  for(dbus_property_t *property = object_data->properties; property && property->name; property++)
+  {
+    if (strcmp (property->name, property_name) == 0)
+    {
+      DBusMessageIter variant;
+      dbus_message_iter_open_container (&iter, DBUS_TYPE_VARIANT, property->signature, &variant);
+      property->get_function (object_data->object_ptr, &variant);
+      dbus_message_iter_close_container (&iter, &variant);
+      return reply; //found and created the message so can return now
+    }
+  }
+  
+  // TODO: append error message to reply
+  return reply;
+}
+
+static DBusMessage *dbusutils_object_set (DBusConnection *connection, DBusMessage *message, object_data_t *object_data)
+{
+  return NULL;
+}
+
+static DBusHandlerResult handle_properties_interface(DBusConnection *connection, DBusMessage *message, object_data_t *object_data)
+{
+  DBusMessage *reply = NULL;
+  if (dbus_message_is_method_call (message, DBUS_INTERFACE_PROPERTIES, DBUS_METHOD_GET)) //Get
+  {
+    reply = dbusutils_object_get (connection, message, object_data);
+  }
+  else if (dbus_message_is_method_call (message, DBUS_INTERFACE_PROPERTIES, DBUS_METHOD_SET)) //Set
+  {
+    reply = dbusutils_object_set (connection, message, object_data);
+  }
+  else if (dbus_message_is_method_call (message, DBUS_INTERFACE_PROPERTIES, DBUS_METHOD_GET_ALL)) //GetAll
+  {
+    reply = dbusutils_object_get_all (connection, message, object_data);
+  }
+  else
+  {
+    return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
+  }
+
+  if (NULL != reply)
+  {
+    dbus_connection_send (connection, reply, NULL);
+    dbus_message_unref (reply);
+  }
+
+  return DBUS_HANDLER_RESULT_HANDLED;
+}
+
+static DBusHandlerResult handle_method_call(DBusConnection *connection, DBusMessage *message, object_data_t *object_data)
+{
+  DBusMessage *reply = NULL;
+  dbus_method_t *method = NULL;
+  for (method = object_data->methods; method && method->interface; method++)
+  {
+    if (dbus_message_is_method_call (message, method->interface, method->method))
+    {
+      reply = method->object_method_function (object_data->object_ptr, connection, message);
+      break;
+    }
+  }
+
+  if (reply == NULL)
+  {
+    return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
+  }
+
   dbus_connection_send (connection, reply, NULL);
-  return true;
+  dbus_message_unref (reply);
+  return DBUS_HANDLER_RESULT_HANDLED;
 }
 
 static DBusHandlerResult dbusutils_object_handle_message (DBusConnection *connection, DBusMessage *message, void *data)
@@ -282,25 +369,15 @@ static DBusHandlerResult dbusutils_object_handle_message (DBusConnection *connec
   object_data_t *object_data = (object_data_t *) data;
 
   //dbus properties interface
-  if (dbus_message_is_method_call (message, DBUS_INTERFACE_PROPERTIES, DBUS_METHOD_GET_ALL))
+  if (strcmp (dbus_message_get_interface (message), DBUS_INTERFACE_PROPERTIES) == 0)
   {
-    dbusutils_object_get_all (connection, message, data);
-    return DBUS_HANDLER_RESULT_HANDLED;
+    return handle_properties_interface (connection, message, object_data);
   }
-  //TODO: add get and set methods
 
+  //TODO: check if message is a signal and handle appropriately
+  
   //check to see if we have a matching method
-  dbus_method_t *method = NULL;
-  for (method = object_data->methods; method && method->interface; method++)
-  {
-    if (dbus_message_is_method_call (message, method->interface, method->method))
-    {
-      method->object_method_function (object_data->object_ptr, connection, message);
-      return DBUS_HANDLER_RESULT_HANDLED;
-    }
-  }
-
-  return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
+  return handle_method_call(connection, message, object_data);
 }
 
 bool dbusutils_register_object (DBusConnection *connection,

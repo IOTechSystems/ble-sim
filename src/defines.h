@@ -87,6 +87,7 @@
 #define BLUEZ_METHOD_RELEASE "Release"
 #define BLUEZ_METHOD_REGISTER_APPLICATION "RegisterApplication"
 #define BLUEZ_METHOD_REGISTER_ADVERTISEMENT "RegisterAdvertisement"
+#define BLUEZ_METHOD_READ_VALUE "ReadValue"
 
 #define DEFAULT_TIMEOUT 1000
 
