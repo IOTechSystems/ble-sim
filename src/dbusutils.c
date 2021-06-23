@@ -33,6 +33,30 @@ const DBusObjectPathVTable object_vtable =
 
 bool dbusutils_mainloop_running = false;
 
+
+void dbusutils_send_object_properties_changed_signal(
+  DBusConnection *connection,
+  const char *path,
+  const char *iface,
+  dbus_property_t *properties,
+  void* object_pointer
+)
+{
+  DBusMessage *signal = dbus_message_new_signal (path, iface, DBUS_SIGNAL_PROPERTIES_CHANGED);
+  if (NULL == signal)
+  {
+    return;
+  }
+
+  DBusMessageIter iter, dict; 
+  dbus_message_iter_init_append (signal, &iter);
+  dbusutils_iter_append_string (&iter, DBUS_TYPE_STRING, &iface);
+  dbusutils_get_object_property_data (&iter, properties, object_pointer); //appends dict of string -> variant
+  //TODO: append invalidated properties
+
+  dbus_connection_send (connection, signal, NULL);
+}
+
 static void append_variant (DBusMessageIter *iter, int type, const void *val)
 {
   DBusMessageIter value;

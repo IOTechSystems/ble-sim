@@ -41,6 +41,22 @@ typedef struct object_flag_t
 } object_flag_t;
 
 /**
+ * Creates and sends a properties changed signal
+ * 
+ * @param path	the path to the object emitting the signal
+ * @param iface	the interface the signal is emitted from
+ * @param dbus_properties pointer to NULL terminated array of properties that have been changed
+ * @param object_pointer pointer to the object we have created the signal for
+ **/
+void dbusutils_send_object_properties_changed_signal(
+  DBusConnection *connection,
+  const char *path,
+  const char *iface,
+  dbus_property_t *properties,
+  void* object_pointer
+);
+
+/**
  * Appends a dict entry which contains an array to a dbus message iter
  * @param iter dbus message iter to append to 
  * @param key_type the key type

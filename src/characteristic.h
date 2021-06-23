@@ -39,7 +39,6 @@ characteristic_t *characteristic_new (const char *uuid);
 
 /**
  * Frees a characteristic_t and it's values
- * 
  * @param characteristic characteristic to free 
  **/
 void characteristic_free (characteristic_t *characteristic);
@@ -62,6 +61,20 @@ descriptor_t *characteristic_get_descriptor (characteristic_t *characteristic, c
  **/
 bool characteristic_add_descriptor (characteristic_t *characteristic, descriptor_t *descriptor);
 
+/**
+ * Updates a characteristics value. If the characterisitc is notifying it will produce a PropertiesChanged signal 
+ * 
+ * @param characteristic the characteristic to update
+ * @param new_value pointer to the new value 
+ * @param value_size size of the new value
+ * @param connection dbus connection to send the properties changed signal on
+ **/
+void characteristic_update_value (characteristic_t *characteristic, uint8_t *new_value, uint32_t value_size, DBusConnection *connection);
+
+/**
+ * Registers a characteristic as a dbus object
+ * @param characteristic characteristic to register
+ **/
 bool characteristic_register (characteristic_t *characteristic);
 
 //DBus Methods TODO
