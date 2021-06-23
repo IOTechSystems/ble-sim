@@ -34,7 +34,7 @@ static dbus_property_t descriptor_properties[] =
     DBUS_PROPERTY_NULL
   };
 
-static dbus_method_t descriptor_methods[] = 
+static dbus_method_t descriptor_methods[] =
   {
     DBUS_METHOD_NULL
   };
@@ -64,10 +64,10 @@ descriptor_t *descriptor_new (const char *uuid)
   new_descriptor->characteristic_path = NULL;
   new_descriptor->object_path = NULL;
 
-  new_descriptor->value = malloc(sizeof(int));
+  new_descriptor->value = malloc (sizeof (int));
   int a = 555;
-  memcpy(new_descriptor->value, &a, sizeof(int));
-  new_descriptor->value_size = sizeof(int);
+  memcpy (new_descriptor->value, &a, sizeof (int));
+  new_descriptor->value_size = sizeof (int);
 
   // new_descriptor->value = NULL;
   // new_descriptor->value_size = 0;

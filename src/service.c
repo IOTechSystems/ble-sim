@@ -26,7 +26,7 @@ static dbus_property_t service_properties[] =
     DBUS_PROPERTY_NULL
   };
 
-static dbus_method_t service_methods[] = 
+static dbus_method_t service_methods[] =
   {
     DBUS_METHOD_NULL
   };
@@ -96,7 +96,7 @@ bool service_add_characteristic (service_t *service, characteristic_t *character
   }
 
   characteristic->object_path = dbusutils_create_object_path (service->object_path, CHARACTERISTIC_OBJECT_NAME, service->characteristic_count);
-  if (!characteristic_register(characteristic))
+  if (!characteristic_register (characteristic))
   {
     free (characteristic->object_path);
     return false;
@@ -110,10 +110,11 @@ bool service_add_characteristic (service_t *service, characteristic_t *character
   return true;
 }
 
-bool service_register (service_t* service)
+bool service_register (service_t *service)
 {
   return dbusutils_register_object (global_dbus_connection, service->object_path, service_properties, service_methods, service);
 }
+
 //DBUS
 static void service_get_uuid (void *user_data, DBusMessageIter *iter)
 {

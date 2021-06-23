@@ -12,57 +12,60 @@
 
 #include "dbusutils.h"
 
-typedef struct object_data_t {
+typedef struct object_data_t
+{
   dbus_property_t *properties;
   dbus_method_t *methods;
-  void* object_ptr;
-}object_data_t;
+  void *object_ptr;
+} object_data_t;
 
 static void dbusutils_object_handle_unregister (DBusConnection *connection, void *data);
-static DBusHandlerResult dbusutils_object_handle_message (DBusConnection *connection, DBusMessage *message, void *data);
-static bool dbusutils_object_get_all (DBusConnection *connection, DBusMessage* message, object_data_t *object_data);
 
-const DBusObjectPathVTable object_vtable = 
-{
-  .message_function = dbusutils_object_handle_message,
-  .unregister_function = dbusutils_object_handle_unregister
-};
+static DBusHandlerResult dbusutils_object_handle_message (DBusConnection *connection, DBusMessage *message, void *data);
+
+static bool dbusutils_object_get_all (DBusConnection *connection, DBusMessage *message, object_data_t *object_data);
+
+const DBusObjectPathVTable object_vtable =
+  {
+    .message_function = dbusutils_object_handle_message,
+    .unregister_function = dbusutils_object_handle_unregister
+  };
 
 bool dbusutils_mainloop_running = false;
 
-static void append_variant(DBusMessageIter *iter, int type, const void *val)
+static void append_variant (DBusMessageIter *iter, int type, const void *val)
 {
-	DBusMessageIter value;
-	char signature[2] = { type, '\0' };
+  DBusMessageIter value;
+  char signature[2] = {type, '\0'};
 
-	dbus_message_iter_open_container(iter, DBUS_TYPE_VARIANT, signature, &value);
-	dbus_message_iter_append_basic(&value, type, val);
-	dbus_message_iter_close_container(iter, &value);
+  dbus_message_iter_open_container (iter, DBUS_TYPE_VARIANT, signature, &value);
+  dbus_message_iter_append_basic (&value, type, val);
+  dbus_message_iter_close_container (iter, &value);
 }
 
-static void append_fixed_array_variant(DBusMessageIter *iter, int type, const void *val, int elements)
+static void append_fixed_array_variant (DBusMessageIter *iter, int type, const void *val, int elements)
 {
-  assert(dbus_type_is_fixed(type) == TRUE);
+  assert(dbus_type_is_fixed (type) == TRUE);
 
   DBusMessageIter variant, array;
-	char array_signature[3] = { DBUS_TYPE_ARRAY, type, '\0' };
-	char type_signature[2] = { type, '\0' };
+  char array_signature[3] = {DBUS_TYPE_ARRAY, type, '\0'};
+  char type_signature[2] = {type, '\0'};
 
-	dbus_message_iter_open_container(iter, DBUS_TYPE_VARIANT,	array_signature, &variant);
-	dbus_message_iter_open_container(&variant, DBUS_TYPE_ARRAY, type_signature, &array);
+  dbus_message_iter_open_container (iter, DBUS_TYPE_VARIANT, array_signature, &variant);
+  dbus_message_iter_open_container (&variant, DBUS_TYPE_ARRAY, type_signature, &array);
 
-	dbus_message_iter_append_fixed_array(&array, type, val,	elements);
-	
-	dbus_message_iter_close_container(&variant, &array);
-	dbus_message_iter_close_container(iter, &variant);
+  dbus_message_iter_append_fixed_array (&array, type, val, elements);
+
+  dbus_message_iter_close_container (&variant, &array);
+  dbus_message_iter_close_container (iter, &variant);
 }
 
 void dbusutils_iter_append_dict_entry_fixed_array (
-  DBusMessageIter *iter, 
-  int key_type, 
-  const void *key, 
-  int val_type, 
-  const void *val, 
+  DBusMessageIter *iter,
+  int key_type,
+  const void *key,
+  int val_type,
+  const void *val,
   unsigned int elements
 )
 {
@@ -233,10 +236,10 @@ static void dbusutils_object_handle_unregister (DBusConnection *connection, void
 {
   //object_data_t *object_data = (object_data_t*) data;
 
-  free(data);
+  free (data);
 }
 
-static bool dbusutils_object_get_all (DBusConnection *connection, DBusMessage* message, object_data_t *object_data)
+static bool dbusutils_object_get_all (DBusConnection *connection, DBusMessage *message, object_data_t *object_data)
 {
   DBusMessage *reply = dbus_message_new_method_return (message);
   if (reply == NULL)
@@ -248,7 +251,7 @@ static bool dbusutils_object_get_all (DBusConnection *connection, DBusMessage* m
   DBusMessageIter iter, array;
   dbus_message_iter_init_append (reply, &iter);
   dbus_message_iter_open_container (
-    &iter, 
+    &iter,
     DBUS_TYPE_ARRAY,
     DBUS_DICT_ENTRY_BEGIN_CHAR_AS_STRING
     DBUS_TYPE_STRING_AS_STRING
@@ -257,15 +260,15 @@ static bool dbusutils_object_get_all (DBusConnection *connection, DBusMessage* m
     &array
   );
 
-  for (dbus_property_t* property = object_data->properties; property && property->name; property++)
+  for (dbus_property_t *property = object_data->properties; property && property->name; property++)
   {
     DBusMessageIter entry, variant;
     dbus_message_iter_open_container (&array, DBUS_TYPE_DICT_ENTRY, NULL, &entry);
 
     dbusutils_iter_append_string (&entry, DBUS_TYPE_STRING, property->name);
-    dbus_message_iter_open_container(&entry, DBUS_TYPE_VARIANT, property->signature, &variant);
-    property->get_function(object_data->object_ptr, &variant);
-    dbus_message_iter_close_container(&entry, &variant);
+    dbus_message_iter_open_container (&entry, DBUS_TYPE_VARIANT, property->signature, &variant);
+    property->get_function (object_data->object_ptr, &variant);
+    dbus_message_iter_close_container (&entry, &variant);
 
     dbus_message_iter_close_container (&array, &entry);
   }
@@ -276,7 +279,7 @@ static bool dbusutils_object_get_all (DBusConnection *connection, DBusMessage* m
 
 static DBusHandlerResult dbusutils_object_handle_message (DBusConnection *connection, DBusMessage *message, void *data)
 {
-  object_data_t *object_data = (object_data_t*) data;
+  object_data_t *object_data = (object_data_t *) data;
 
   //dbus properties interface
   if (dbus_message_is_method_call (message, DBUS_INTERFACE_PROPERTIES, DBUS_METHOD_GET_ALL))
@@ -292,7 +295,7 @@ static DBusHandlerResult dbusutils_object_handle_message (DBusConnection *connec
   {
     if (dbus_message_is_method_call (message, method->interface, method->method))
     {
-      method->object_method_function(object_data->object_ptr, connection, message);
+      method->object_method_function (object_data->object_ptr, connection, message);
       return DBUS_HANDLER_RESULT_HANDLED;
     }
   }
@@ -306,7 +309,7 @@ bool dbusutils_register_object (DBusConnection *connection,
                                 dbus_method_t *method_table,
                                 void *object_ptr)
 {
-  object_data_t *object_data = calloc(1, sizeof(*object_data));
+  object_data_t *object_data = calloc (1, sizeof (*object_data));
   object_data->methods = method_table;
   object_data->properties = properties_table;
   object_data->object_ptr = object_ptr;
@@ -349,9 +352,9 @@ DBusMessage *dbusutils_do_method_call (DBusConnection *connection, const char *b
 }
 
 DBusMessage *dbusutils_set_property_basic (
-  DBusConnection *connection, 
-  const char *bus_name, 
-  const char *path, 
+  DBusConnection *connection,
+  const char *bus_name,
+  const char *path,
   const char *iface,
   const char *property,
   int data_type,
@@ -368,11 +371,11 @@ DBusMessage *dbusutils_set_property_basic (
   }
 
   DBusMessageIter args;
-  dbus_message_iter_init_append(dbus_msg, &args);
-  dbus_message_iter_append_basic(&args, DBUS_TYPE_STRING,	&iface);
-	dbus_message_iter_append_basic(&args, DBUS_TYPE_STRING, &property);
+  dbus_message_iter_init_append (dbus_msg, &args);
+  dbus_message_iter_append_basic (&args, DBUS_TYPE_STRING, &iface);
+  dbus_message_iter_append_basic (&args, DBUS_TYPE_STRING, &property);
 
-	append_variant(&args, data_type, data);
+  append_variant (&args, data_type, data);
 
   DBusMessage *dbus_reply = dbus_connection_send_with_reply_and_block (connection, dbus_msg, DEFAULT_TIMEOUT, &err);
   dbus_message_unref (dbus_msg);

@@ -111,7 +111,7 @@ bool device_set_discoverable (device_t *device, bool discoverable);
  * @param powered true/false
  * @return success true/false 
  **/
-bool device_set_powered(device_t *device, bool powered);
+bool device_set_powered (device_t *device, bool powered);
 
 /**
  * Removes and frees all devices in the internal device list

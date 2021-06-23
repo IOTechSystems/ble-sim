@@ -16,6 +16,7 @@
 extern DBusConnection *global_dbus_connection;
 
 typedef void(*dbus_get_object_property_function) (void *user_data, DBusMessageIter *iter);
+
 typedef bool(*dbus_call_object_method_function) (void *user_data, DBusConnection *connection, DBusMessage *message);
 
 typedef struct dbus_property_t
@@ -29,7 +30,7 @@ typedef struct dbus_method_t
 {
   const char *interface;
   const char *method;
-  dbus_call_object_method_function object_method_function; 
+  dbus_call_object_method_function object_method_function;
 } dbus_method_t;
 
 typedef struct object_flag_t
@@ -48,11 +49,11 @@ typedef struct object_flag_t
  * @param elements number of elements in the array 
  **/
 void dbusutils_iter_append_dict_entry_fixed_array (
-  DBusMessageIter *iter, 
-  int key_type, 
-  const void *key, 
-  int val_type, 
-  const void *val, 
+  DBusMessageIter *iter,
+  int key_type,
+  const void *key,
+  int val_type,
+  const void *val,
   unsigned int elements
 );
 
@@ -157,9 +158,9 @@ DBusMessage *dbusutils_do_method_call (DBusConnection *dbus_conn, const char *bu
  * @return the method call reply 
  */
 DBusMessage *dbusutils_set_property_basic (
-  DBusConnection *connection, 
-  const char *bus_name, 
-  const char *path, 
+  DBusConnection *connection,
+  const char *bus_name,
+  const char *path,
   const char *iface,
   const char *property,
   int data_type,

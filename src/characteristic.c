@@ -35,7 +35,7 @@ static dbus_property_t characteristic_properties[] =
     DBUS_PROPERTY_NULL
   };
 
-static dbus_method_t characteristic_methods[] = 
+static dbus_method_t characteristic_methods[] =
   {
     DBUS_METHOD_NULL
   };
@@ -76,10 +76,10 @@ characteristic_t *characteristic_new (const char *uuid)
   //TODO: revert back 
   // new_characteristic->value = NULL;
   // new_characteristic->value_size = 0;
-  new_characteristic->value = malloc(sizeof(int));
+  new_characteristic->value = malloc (sizeof (int));
   int a = 42;
-  memcpy(new_characteristic->value, &a, sizeof(int));
-  new_characteristic->value_size = sizeof(int);
+  memcpy (new_characteristic->value, &a, sizeof (int));
+  new_characteristic->value_size = sizeof (int);
 
   new_characteristic->flags = CHARACTERISTIC_FLAGS_ALL_ENABLED; //all enabled for now
   new_characteristic->descriptors = NULL;
@@ -135,7 +135,7 @@ bool characteristic_add_descriptor (characteristic_t *characteristic, descriptor
   }
 
   descriptor->object_path = dbusutils_create_object_path (characteristic->object_path, DESCRIPTOR_OBJECT_NAME, characteristic->descriptor_count);
-  if (!descriptor_register(descriptor))
+  if (!descriptor_register (descriptor))
   {
     free (descriptor->object_path);
     return false;

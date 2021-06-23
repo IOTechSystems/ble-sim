@@ -110,14 +110,15 @@ static void update (void *user_data)
 
 }
 
-static char *get_default_adapter(void)
+static char *get_default_adapter (void)
 {
   int count = 0;
 
-  DBusMessage *reply = dbusutils_do_method_call(global_dbus_connection, BLUEZ_BUS_NAME, ROOT_PATH, DBUS_INTERFACE_OBJECT_MANAGER, DBUS_METHOD_GET_MANAGED_OBJECTS);
+  DBusMessage *reply = dbusutils_do_method_call (global_dbus_connection, BLUEZ_BUS_NAME, ROOT_PATH, DBUS_INTERFACE_OBJECT_MANAGER,
+                                                 DBUS_METHOD_GET_MANAGED_OBJECTS);
   if (NULL == reply)
   {
-    printf("List adapters message reply was null\n");
+    printf ("List adapters message reply was null\n");
     return NULL;
   }
   DBusMessageIter iter, array;
@@ -129,23 +130,23 @@ static char *get_default_adapter(void)
   {
     DBusMessageIter dict_entry;
 
-    dbus_message_iter_recurse(&array, &dict_entry);
+    dbus_message_iter_recurse (&array, &dict_entry);
     char *object_path;
     dbus_message_iter_get_basic (&dict_entry, &object_path);
 
 
     DBusMessageIter properties;
-    dbus_message_iter_next(&dict_entry);
-    dbus_message_iter_recurse(&dict_entry, &properties);
+    dbus_message_iter_next (&dict_entry);
+    dbus_message_iter_recurse (&dict_entry, &properties);
 
-    while ( dbus_message_iter_has_next (&properties) ) //loop through properties
+    while (dbus_message_iter_has_next (&properties)) //loop through properties
     {
       DBusMessageIter property_entry;
       char *interface_name;
       dbus_message_iter_recurse (&properties, &property_entry);
       dbus_message_iter_get_basic (&property_entry, &interface_name);
-      
-      if (strcmp(BLUEZ_GATT_MANAGER_INTERFACE, interface_name) == 0 )
+
+      if (strcmp (BLUEZ_GATT_MANAGER_INTERFACE, interface_name) == 0)
       {
         //we are trying to return the second adapter, as the first will be used by the device service
         //once we dynamically create adapters, we can change this behaviour by creating a new adapter each time we create a "device"
@@ -155,53 +156,53 @@ static char *get_default_adapter(void)
         }
         else
         {
-          dbus_message_unref(reply);
+          dbus_message_unref (reply);
           return object_path;
         }
       }
 
-      dbus_message_iter_next(&properties);
+      dbus_message_iter_next (&properties);
     }
 
-    dbus_message_iter_next(&array);
+    dbus_message_iter_next (&array);
   }
 
-  dbus_message_unref(reply);
+  dbus_message_unref (reply);
   return NULL;
 }
-  
-static void sigint(int a)
+
+static void sigint (int a)
 {
   dbusutils_mainloop_running = false;
 }
 
-int main (int argc, char *argv[]) 
+int main (int argc, char *argv[])
 {
-  signal(SIGINT, sigint);
+  signal (SIGINT, sigint);
 
   if (dbus_init () == false)
   {
     return 1;
   }
 
-  default_adapter = get_default_adapter();
+  default_adapter = get_default_adapter ();
   if (NULL == default_adapter)
   {
-    printf("Could not find an adapter\n");
+    printf ("Could not find an adapter\n");
     return 0;
   }
-  printf("Found default adapter: %s\n", default_adapter);
+  printf ("Found default adapter: %s\n", default_adapter);
 
   init_dev ();
 
   update (NULL);
-  dbusutils_mainloop_run (global_dbus_connection, &update);  
-  
+  dbusutils_mainloop_run (global_dbus_connection, &update);
+
   dbus_cleanup ();
   device_cleanup_devices ();
 
   //free (default_adapter);
-  printf("Exiting\n");
+  printf ("Exiting\n");
 
   return 0;
 }

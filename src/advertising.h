@@ -57,7 +57,7 @@ typedef struct advertisement_t
   uint16_t appearance;
   uint16_t duration; //duration of the advertisement in seconds
   uint16_t timeout;
-  char* secondary_channel; //TODO: turn this into a enum
+  char *secondary_channel; //TODO: turn this into a enum
   uint32_t min_interval;
   uint32_t max_interval;
   int16_t tx_power; //TODO: add this in
@@ -68,17 +68,20 @@ typedef struct advertisement_t
  * @param advertisement pointer to the advertisement
  * @param object_path object path of the advertisement
  * @param services pointer to a pointer for list of services
- * @param device_name pointer to the device name pointer 
+ * @param device_name pointer to the device name pointer
+ * @param manufacturer_key the manufacturer key
+ * @param manufacturer_data manufacturer advertisement data
+ * @param manufacturer_data_size size of manufacturer_data
  **/
-void advertisement_init(
+void advertisement_init (
   advertisement_t *advertisement,
-  char* object_path,
+  char *object_path,
   service_t **services,
-  char** device_name,
+  char **device_name,
   uint16_t manufacturer_key,
   const uint8_t *manufacturer_data,
   unsigned int manufacturer_data_size
-  );
+);
 
 /**
  * Registers the advertisement object with dbus

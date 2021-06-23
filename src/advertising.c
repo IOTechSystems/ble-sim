@@ -12,31 +12,41 @@
 #include "advertising.h"
 #include "dbusutils.h"
 
-static bool advertisement_release(void *advertisement_ptr, DBusConnection *connection,DBusMessage *message);
+static bool advertisement_release (void *advertisement_ptr, DBusConnection *connection, DBusMessage *message);
 
 //TODO: enable commented out properties and their respective functions/entries in the property table
-static void advertisement_get_type(void *advertisement_ptr, DBusMessageIter *iter);
+static void advertisement_get_type (void *advertisement_ptr, DBusMessageIter *iter);
+
 //static void advertisement_get_service_uuids(void *advertisement_ptr, DBusMessageIter *iter);
-static void advertisement_get_manufacturer_data(void *advertisement_ptr, DBusMessageIter *iter);
+static void advertisement_get_manufacturer_data (void *advertisement_ptr, DBusMessageIter *iter);
+
 //static void advertisement_get_service_data(void *advertisement_ptr, DBusMessageIter *iter);
 //static void advertisement_get_data(void *advertisement_ptr, DBusMessageIter *iter);
-static void advertisement_get_discoverable(void *advertisement_ptr, DBusMessageIter *iter);
-static void advertisement_get_discoverable_timeout(void *advertisement_ptr, DBusMessageIter *iter);
-static void advertisement_get_includes(void *advertisement_ptr, DBusMessageIter *iter);
+static void advertisement_get_discoverable (void *advertisement_ptr, DBusMessageIter *iter);
+
+static void advertisement_get_discoverable_timeout (void *advertisement_ptr, DBusMessageIter *iter);
+
+static void advertisement_get_includes (void *advertisement_ptr, DBusMessageIter *iter);
+
 //static void advertisement_get_local_name(void *advertisement_ptr, DBusMessageIter *iter);
 //static void advertisement_get_appearance(void *advertisement_ptr, DBusMessageIter *iter);
-static void advertisement_get_duration(void *advertisement_ptr, DBusMessageIter *iter);
-static void advertisement_get_timeout(void *advertisement_ptr, DBusMessageIter *iter);
+static void advertisement_get_duration (void *advertisement_ptr, DBusMessageIter *iter);
+
+static void advertisement_get_timeout (void *advertisement_ptr, DBusMessageIter *iter);
+
 //static void advertisement_get_secondary_channel(void *advertisement_ptr, DBusMessageIter *iter);
-static void advertisement_get_min_interval(void *advertisement_ptr, DBusMessageIter *iter);
-static void advertisement_get_max_interval(void *advertisement_ptr, DBusMessageIter *iter);
+static void advertisement_get_min_interval (void *advertisement_ptr, DBusMessageIter *iter);
+
+static void advertisement_get_max_interval (void *advertisement_ptr, DBusMessageIter *iter);
 //static void advertisement_get_tx_power(void *advertisement_ptr, DBusMessageIter *iter);
 
 static dbus_property_t advertisement_properties[] =
   {
     {BLE_PROPERTY_TYPE, DBUS_TYPE_STRING_AS_STRING, advertisement_get_type},
     //{BLE_PROPERTY_SERVICE_UUIDS,  DBUS_TYPE_ARRAY_AS_STRING DBUS_TYPE_STRING_AS_STRING, advertisement_get_service_uuids},
-    {BLE_PROPERTY_MANUFACTURER_DATA, DBUS_TYPE_ARRAY_AS_STRING DBUS_DICT_ENTRY_BEGIN_CHAR_AS_STRING DBUS_TYPE_UINT16_AS_STRING DBUS_TYPE_VARIANT_AS_STRING DBUS_DICT_ENTRY_END_CHAR_AS_STRING, advertisement_get_manufacturer_data},
+    {BLE_PROPERTY_MANUFACTURER_DATA,
+     DBUS_TYPE_ARRAY_AS_STRING DBUS_DICT_ENTRY_BEGIN_CHAR_AS_STRING DBUS_TYPE_UINT16_AS_STRING DBUS_TYPE_VARIANT_AS_STRING DBUS_DICT_ENTRY_END_CHAR_AS_STRING,
+     advertisement_get_manufacturer_data},
     //{BLE_PROPERTY_SOLICIT_UUIDS, , },
     //{BLE_PROPERTY_SERVICE_DATA, DBUS_TYPE_ARRAY_AS_STRING DBUS_DICT_ENTRY_BEGIN_CHAR_AS_STRING DBUS_TYPE_STRING_AS_STRING DBUS_TYPE_VARIANT_AS_STRING DBUS_DICT_ENTRY_END_CHAR_AS_STRING, advertisement_get_service_data},
     //{BLE_PROPERTY_DATA, DBUS_TYPE_ARRAY_AS_STRING DBUS_DICT_ENTRY_BEGIN_CHAR_AS_STRING DBUS_TYPE_BYTE_AS_STRING DBUS_TYPE_VARIANT_AS_STRING DBUS_DICT_ENTRY_END_CHAR_AS_STRING, advertisement_get_data},
@@ -54,32 +64,32 @@ static dbus_property_t advertisement_properties[] =
     DBUS_PROPERTY_NULL
   };
 
-static dbus_method_t advertisement_methods[] = 
+static dbus_method_t advertisement_methods[] =
   {
     {BLUEZ_LE_ADVERTISEMENT_INTERFACE, BLUEZ_METHOD_RELEASE, advertisement_release},
     DBUS_METHOD_NULL
   };
 
-void advertisement_init(
+void advertisement_init (
   advertisement_t *advertisement,
-  char* object_path,
+  char *object_path,
   service_t **services,
-  char** device_name,
+  char **device_name,
   uint16_t manufacturer_key,
   const uint8_t *manufacturer_data,
   unsigned int manufacturer_data_size
-  )
+)
 {
   advertisement->registered = false;
   advertisement->object_path = object_path;
   advertisement->services = services;
   advertisement->local_name = device_name;
- 
-  advertisement->type = strdup(ADVERTISEMENT_TYPE_DEFAULT);
+
+  advertisement->type = strdup (ADVERTISEMENT_TYPE_DEFAULT);
 
   advertisement->manufacturer_data.id = manufacturer_key;
   advertisement->manufacturer_data.data.length = min(manufacturer_data_size, ADVERTISEMENT_DATA_MAX_SIZE);
-  memcpy(&advertisement->manufacturer_data.data.data, manufacturer_data, min(manufacturer_data_size, ADVERTISEMENT_DATA_MAX_SIZE) );
+  memcpy (&advertisement->manufacturer_data.data.data, manufacturer_data, min(manufacturer_data_size, ADVERTISEMENT_DATA_MAX_SIZE));
 
   //TODO: init service_data and data once we have implemented
 /*  advertisement->data.data.length = 0;
@@ -91,19 +101,19 @@ void advertisement_init(
   advertisement->appearance = UINT16_MAX;
   advertisement->duration = ADVERTISEMENT_DURATION_DEFAULT;
   advertisement->timeout = ADVERTISEMENT_TIMEOUT_DEFAULT;
-  advertisement->secondary_channel = strdup(ADVERTISEMENT_SECONDARY_CHANNEL_DEFAULT);
+  advertisement->secondary_channel = strdup (ADVERTISEMENT_SECONDARY_CHANNEL_DEFAULT);
   advertisement->min_interval = ADVERTISEMENT_MIN_INTERVAL_DEFAULT;
   advertisement->max_interval = ADVERTISEMENT_MAX_INTERVAL_DEFAULT;
-  advertisement->tx_power =  ADVERTISEMENT_TX_POWER_DEFAULT;
+  advertisement->tx_power = ADVERTISEMENT_TX_POWER_DEFAULT;
 }
 
 bool advertisement_register (advertisement_t *advertisement)
 {
   return dbusutils_register_object (
-    global_dbus_connection, 
-    advertisement->object_path, 
-    advertisement_properties, 
-    advertisement_methods, 
+    global_dbus_connection,
+    advertisement->object_path,
+    advertisement_properties,
+    advertisement_methods,
     advertisement
   );
 }
@@ -119,7 +129,8 @@ static void on_register_advert_reply (DBusPendingCall *pending_call, void *user_
 
   if (dbus_message_get_type (reply) == DBUS_MESSAGE_TYPE_ERROR)
   {
-    printf ("Unable to Register advert for device (%s) with bluez: (%s : %s)\n", *advertisement->local_name, dbus_message_get_error_name (reply), dbusutils_get_error_message_from_reply (reply));
+    printf ("Unable to Register advert for device (%s) with bluez: (%s : %s)\n", *advertisement->local_name, dbus_message_get_error_name (reply),
+            dbusutils_get_error_message_from_reply (reply));
     //TODO : do something more with the error
   }
   else
@@ -133,15 +144,15 @@ static void on_register_advert_reply (DBusPendingCall *pending_call, void *user_
 }
 
 bool advertisement_register_with_bluez (
-  advertisement_t *advertisement, 
+  advertisement_t *advertisement,
   const char *controller_path,
   DBusConnection *connection
 )
 {
   DBusMessage *message = dbus_message_new_method_call (
-    BLUEZ_BUS_NAME, 
-    controller_path, 
-    BLUEZ_LE_ADVERTISING_MANAGER_INTERFACE, 
+    BLUEZ_BUS_NAME,
+    controller_path,
+    BLUEZ_LE_ADVERTISING_MANAGER_INTERFACE,
     BLUEZ_METHOD_REGISTER_ADVERTISEMENT
   );
 
@@ -179,18 +190,18 @@ bool advertisement_register_with_bluez (
   }
 
   if (message)
-  { 
-    dbus_message_unref (message); 
+  {
+    dbus_message_unref (message);
   }
   if (pending_call)
-  { 
-    dbus_pending_call_unref (pending_call); 
+  {
+    dbus_pending_call_unref (pending_call);
   }
 
   return true;
 }
 
-static bool advertisement_release(
+static bool advertisement_release (
   void *advertisement_ptr,
   DBusConnection *connection,
   DBusMessage *message
@@ -199,9 +210,9 @@ static bool advertisement_release(
   return true;
 }
 
-static void advertisement_get_type(void *advertisement_ptr, DBusMessageIter *iter)
+static void advertisement_get_type (void *advertisement_ptr, DBusMessageIter *iter)
 {
-  advertisement_t *advertisement = (advertisement_t*) advertisement_ptr;  
+  advertisement_t *advertisement = (advertisement_t *) advertisement_ptr;
   dbus_message_iter_append_basic (iter, DBUS_TYPE_STRING, &advertisement->type);
 }
 
@@ -221,28 +232,28 @@ static void advertisement_get_type(void *advertisement_ptr, DBusMessageIter *ite
 //   dbus_message_iter_close_container (iter, &array);
 // }
 
-static void advertisement_get_manufacturer_data(void *advertisement_ptr, DBusMessageIter *iter)
+static void advertisement_get_manufacturer_data (void *advertisement_ptr, DBusMessageIter *iter)
 {
-  advertisement_t *advertisement = (advertisement_t*) advertisement_ptr;  
+  advertisement_t *advertisement = (advertisement_t *) advertisement_ptr;
 
   DBusMessageIter dict;
   dbus_message_iter_open_container (
-    iter, 
-    DBUS_TYPE_ARRAY, 
-    DBUS_DICT_ENTRY_BEGIN_CHAR_AS_STRING 
-    DBUS_TYPE_UINT16_AS_STRING 
-    DBUS_TYPE_VARIANT_AS_STRING 
-    DBUS_DICT_ENTRY_END_CHAR_AS_STRING, 
+    iter,
+    DBUS_TYPE_ARRAY,
+    DBUS_DICT_ENTRY_BEGIN_CHAR_AS_STRING
+    DBUS_TYPE_UINT16_AS_STRING
+    DBUS_TYPE_VARIANT_AS_STRING
+    DBUS_DICT_ENTRY_END_CHAR_AS_STRING,
     &dict
   );
 
   uint8_t *data_ptr = advertisement->manufacturer_data.data.data;
 
-  dbusutils_iter_append_dict_entry_fixed_array(
-    &dict, 
-    DBUS_TYPE_UINT16, 
-    &advertisement->manufacturer_data.id, 
-    DBUS_TYPE_BYTE, 
+  dbusutils_iter_append_dict_entry_fixed_array (
+    &dict,
+    DBUS_TYPE_UINT16,
+    &advertisement->manufacturer_data.id,
+    DBUS_TYPE_BYTE,
     &data_ptr,
     (unsigned int) advertisement->manufacturer_data.data.length
   );
@@ -307,19 +318,19 @@ static void advertisement_get_manufacturer_data(void *advertisement_ptr, DBusMes
 //   dbus_message_iter_close_container (iter, &dict);
 // }
 
-static void advertisement_get_discoverable(void *advertisement_ptr, DBusMessageIter *iter)
+static void advertisement_get_discoverable (void *advertisement_ptr, DBusMessageIter *iter)
 {
-  advertisement_t *advertisement = (advertisement_t*) advertisement_ptr;
+  advertisement_t *advertisement = (advertisement_t *) advertisement_ptr;
   dbus_message_iter_append_basic (iter, DBUS_TYPE_BOOLEAN, &advertisement->discoverable);
 }
 
-static void advertisement_get_discoverable_timeout(void *advertisement_ptr, DBusMessageIter *iter)
+static void advertisement_get_discoverable_timeout (void *advertisement_ptr, DBusMessageIter *iter)
 {
-  advertisement_t *advertisement = (advertisement_t*) advertisement_ptr;  
+  advertisement_t *advertisement = (advertisement_t *) advertisement_ptr;
   dbus_message_iter_append_basic (iter, DBUS_TYPE_UINT16, &advertisement->discoverable_timeout);
 }
 
-static void advertisement_get_includes(void *advertisement_ptr, DBusMessageIter *iter)
+static void advertisement_get_includes (void *advertisement_ptr, DBusMessageIter *iter)
 {
   //advertisement_t *advertisement = (advertisement_t*) advertisement_ptr;  
   DBusMessageIter array;
@@ -351,15 +362,15 @@ static void advertisement_get_includes(void *advertisement_ptr, DBusMessageIter 
 //   dbus_message_iter_append_basic (iter, DBUS_TYPE_UINT16, &advertisement->appearance);
 //}
 
-static void advertisement_get_duration(void *advertisement_ptr, DBusMessageIter *iter)
+static void advertisement_get_duration (void *advertisement_ptr, DBusMessageIter *iter)
 {
-  advertisement_t *advertisement = (advertisement_t*) advertisement_ptr; 
+  advertisement_t *advertisement = (advertisement_t *) advertisement_ptr;
   dbus_message_iter_append_basic (iter, DBUS_TYPE_UINT16, &advertisement->duration);
 }
 
-static void advertisement_get_timeout(void *advertisement_ptr, DBusMessageIter *iter)
+static void advertisement_get_timeout (void *advertisement_ptr, DBusMessageIter *iter)
 {
-  advertisement_t *advertisement = (advertisement_t*) advertisement_ptr;  
+  advertisement_t *advertisement = (advertisement_t *) advertisement_ptr;
   dbus_message_iter_append_basic (iter, DBUS_TYPE_UINT16, &advertisement->timeout);
 }
 
@@ -369,15 +380,15 @@ static void advertisement_get_timeout(void *advertisement_ptr, DBusMessageIter *
 //   dbus_message_iter_append_basic (iter, DBUS_TYPE_STRING, &advertisement->secondary_channel);
 // }
 
-static void advertisement_get_min_interval(void *advertisement_ptr, DBusMessageIter *iter)
+static void advertisement_get_min_interval (void *advertisement_ptr, DBusMessageIter *iter)
 {
-  advertisement_t *advertisement = (advertisement_t*) advertisement_ptr;  
+  advertisement_t *advertisement = (advertisement_t *) advertisement_ptr;
   dbus_message_iter_append_basic (iter, DBUS_TYPE_UINT32, &advertisement->min_interval);
 }
 
-static void advertisement_get_max_interval(void *advertisement_ptr, DBusMessageIter *iter)
+static void advertisement_get_max_interval (void *advertisement_ptr, DBusMessageIter *iter)
 {
-  advertisement_t *advertisement = (advertisement_t*) advertisement_ptr;  
+  advertisement_t *advertisement = (advertisement_t *) advertisement_ptr;
   dbus_message_iter_append_basic (iter, DBUS_TYPE_UINT32, &advertisement->max_interval);
 }
 

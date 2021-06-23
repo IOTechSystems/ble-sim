@@ -22,7 +22,7 @@ static service_t *device_get_service (device_t *device, const char *service_uuid
 static device_t *device_list_head = NULL;
 static unsigned int device_count = 0;
 
-static dbus_method_t device_methods[] = 
+static dbus_method_t device_methods[] =
   {
     {DBUS_INTERFACE_OBJECT_MANAGER, DBUS_METHOD_GET_MANAGED_OBJECTS, device_get_managed_objects},
     DBUS_METHOD_NULL
@@ -103,7 +103,7 @@ void device_free (device_t *device)
 
 static bool device_get_managed_objects (void *device_ptr, DBusConnection *connection, DBusMessage *message)
 {
-  device_t *device = (device_t*) device_ptr;
+  device_t *device = (device_t *) device_ptr;
   printf ("Device (%s) GetManagedObjects \n", device->device_name);
 
   if (NULL == device || NULL == connection || NULL == message)
@@ -233,12 +233,12 @@ static bool device_register_with_bluez (device_t *device, DBusConnection *connec
   }
 
   if (message)
-  { 
-    dbus_message_unref (message); 
+  {
+    dbus_message_unref (message);
   }
   if (pending_call)
-  { 
-    dbus_pending_call_unref (pending_call); 
+  {
+    dbus_pending_call_unref (pending_call);
   }
 
   return true;
@@ -267,21 +267,21 @@ bool device_add (device_t *device)
   }
 
   //TODO: let the user set the manufacturer data and the key
-  const uint8_t manufacturer_data[] = {0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5};
+  const uint8_t manufacturer_data[] = {0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5};
   const unsigned int size = 24;
   const uint16_t key = 0xBEEF;
 
   //setup advertisement
   advertisement_init (
-    &device->advertisement, 
-    dbusutils_create_object_path(device->object_path, ADVERTISEMENT_OBJECT_NAME, 0),
+    &device->advertisement,
+    dbusutils_create_object_path (device->object_path, ADVERTISEMENT_OBJECT_NAME, 0),
     &device->services,
     &device->device_name,
     key,
     manufacturer_data,
     size
   );
-  
+
   success = advertisement_register (&device->advertisement);
   if (!success)
   {
@@ -305,46 +305,46 @@ bool device_set_discoverable (device_t *device, bool discoverable)
   dbus_bool_t value;
   value = discoverable ? TRUE : FALSE;
 
-  DBusMessage *reply = dbusutils_set_property_basic(
-      global_dbus_connection,
-      BLUEZ_BUS_NAME,
-      device->controller,
-      BLUEZ_ADAPTER_INTERFACE,
-      BLUEZ_ADAPTER_PROPERTY_DISCOVERABLE,
-      DBUS_TYPE_BOOLEAN,
-      &value
-    );
+  DBusMessage *reply = dbusutils_set_property_basic (
+    global_dbus_connection,
+    BLUEZ_BUS_NAME,
+    device->controller,
+    BLUEZ_ADAPTER_INTERFACE,
+    BLUEZ_ADAPTER_PROPERTY_DISCOVERABLE,
+    DBUS_TYPE_BOOLEAN,
+    &value
+  );
 
-  if(NULL == reply)
+  if (NULL == reply)
   {
     return false;
   }
 
-  printf("Device (%s) discoverable %s\n", device->device_name, discoverable ? "on" : "off");
+  printf ("Device (%s) discoverable %s\n", device->device_name, discoverable ? "on" : "off");
   return true;
 }
 
-bool device_set_powered(device_t *device, bool powered)
+bool device_set_powered (device_t *device, bool powered)
 {
   dbus_bool_t value;
   value = powered ? TRUE : FALSE;
 
-  DBusMessage *reply = dbusutils_set_property_basic(
-      global_dbus_connection,
-      BLUEZ_BUS_NAME,
-      device->controller,
-      BLUEZ_ADAPTER_INTERFACE,
-      BLUEZ_ADAPTER_PROPERTY_POWERED,
-      DBUS_TYPE_BOOLEAN,
-      &value
-    );
+  DBusMessage *reply = dbusutils_set_property_basic (
+    global_dbus_connection,
+    BLUEZ_BUS_NAME,
+    device->controller,
+    BLUEZ_ADAPTER_INTERFACE,
+    BLUEZ_ADAPTER_PROPERTY_POWERED,
+    DBUS_TYPE_BOOLEAN,
+    &value
+  );
 
-  if(NULL == reply)
+  if (NULL == reply)
   {
     return false;
   }
 
-  printf("Device (%s) controller (%s) powered %s\n", device->device_name, device->controller, powered ? "on" : "off");
+  printf ("Device (%s) controller (%s) powered %s\n", device->device_name, device->controller, powered ? "on" : "off");
   return true;
 }
 
@@ -392,7 +392,7 @@ bool device_add_service (device_t *device, service_t *service)
   }
 
   service->object_path = dbusutils_create_object_path (device->object_path, SERVICE_OBJECT_NAME, device->service_count);
-  if (!service_register(service))
+  if (!service_register (service))
   {
     free (service->object_path);
     return false;
