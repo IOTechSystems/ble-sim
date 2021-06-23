@@ -106,14 +106,6 @@ bool device_add_descriptor (device_t *device, const char *service_uuid, const ch
 bool device_set_discoverable (device_t *device, bool discoverable);
 
 /**
- * Sets devices adverising state 
- * @param device the device
- * @param advertising true/false
- * @return success true/false 
- **/
-bool device_set_advertising (device_t *device, bool advertising);
-
-/**
  * Powers on/off a device 
  * @param device the device
  * @param powered true/false

@@ -76,7 +76,6 @@ device_t *device_new (const char *device_name, const char *controller)
   device->object_path = dbusutils_create_object_path (EMPTY_STRING, DEVICE_OBJECT_NAME, device_count);
   device->next = NULL;
 
-
   return device;
 }
 
@@ -106,27 +105,17 @@ static bool device_get_managed_objects (void *device_ptr, DBusConnection *connec
 {
   device_t *device = (device_t*) device_ptr;
   printf ("Device (%s) GetManagedObjects \n", device->device_name);
-  // TODO: Implement get managed objects
-  if (NULL == device)
+
+  if (NULL == device || NULL == connection || NULL == message)
   {
-    printf ("%s: Device was null", __FUNCTION__);
-    return false;
-  }
-  if (NULL == connection)
-  {
-    printf ("%s: Connection was null", __FUNCTION__);
-    return false;
-  }
-  if (NULL == message)
-  {
-    printf ("%s: Message was null", __FUNCTION__);
+    printf ("%s: Parameter was null", __FUNCTION__);
     return false;
   }
 
   DBusMessage *reply = dbus_message_new_method_return (message);
   if (reply == NULL)
   {
-    printf ("%s: Could not create a method return message", __FUNCTION__);
+    printf ("%s: Could not create a dbus method return message", __FUNCTION__);
     return false;
   }
 
@@ -277,12 +266,20 @@ bool device_add (device_t *device)
     return false;
   }
 
+  //TODO: let the user set the manufacturer data and the key
+  const uint8_t manufacturer_data[] = {0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5};
+  const unsigned int size = 24;
+  const uint16_t key = 0xBEEF;
+
   //setup advertisement
   advertisement_init (
     &device->advertisement, 
     dbusutils_create_object_path(device->object_path, ADVERTISEMENT_OBJECT_NAME, 0),
     &device->services,
-    &device->device_name
+    &device->device_name,
+    key,
+    manufacturer_data,
+    size
   );
   
   success = advertisement_register (&device->advertisement);
@@ -297,8 +294,7 @@ bool device_add (device_t *device)
     return false;
   }
 
-  //init/create controller for device
-  //TODO
+  //TODO: init/create controller for device
   add_device_to_device_list (device);
 
   return true;
@@ -326,11 +322,6 @@ bool device_set_discoverable (device_t *device, bool discoverable)
 
   printf("Device (%s) discoverable %s\n", device->device_name, discoverable ? "on" : "off");
   return true;
-}
-
-bool device_set_advertising (device_t *device, bool advertising)
-{
-  return false;
 }
 
 bool device_set_powered(device_t *device, bool powered)

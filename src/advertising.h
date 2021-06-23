@@ -18,7 +18,7 @@ extern DBusConnection *global_dbus_connection;
 
 typedef struct advertisement_data_t
 {
-  uint8_t data[64];
+  uint8_t data[ADVERTISEMENT_DATA_MAX_SIZE];
   uint16_t length;
 } advertisement_data_t;
 
@@ -60,7 +60,7 @@ typedef struct advertisement_t
   char* secondary_channel; //TODO: turn this into a enum
   uint32_t min_interval;
   uint32_t max_interval;
-  //int16_t tx_power; //TODO: add this in
+  int16_t tx_power; //TODO: add this in
 } advertisement_t;
 
 /**
@@ -74,7 +74,10 @@ void advertisement_init(
   advertisement_t *advertisement,
   char* object_path,
   service_t **services,
-  char** device_name
+  char** device_name,
+  uint16_t manufacturer_key,
+  const uint8_t *manufacturer_data,
+  unsigned int manufacturer_data_size
   );
 
 /**

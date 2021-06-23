@@ -11,6 +11,7 @@
 #include <stdbool.h>
 
 #define BLE_SIM_SERVICE_NAME "org.blesim"
+#define DEFAULT_ADAPTER "/org/bluez/hci1"
 
 #define UUID_LENGTH 32
 #define DEVICE_PATH_LENGTH 22
@@ -35,6 +36,8 @@
 #define ADVERTISEMENT_MIN_INTERVAL_DEFAULT 1000
 #define ADVERTISEMENT_MAX_INTERVAL_DEFAULT 5000
 #define ADVERTISEMENT_TX_POWER_DEFAULT -127
+
+#define ADVERTISEMENT_DATA_MAX_SIZE 24
 
 #define BLE_PROPERTY_UUID "UUID"
 #define BLE_PROPERTY_PRIMARY "Primary"
@@ -63,6 +66,8 @@
 
 #define DBUS_INTERFACE_PROPERTIES "org.freedesktop.DBus.Properties"
 #define DBUS_METHOD_SET "Set"
+#define DBUS_METHOD_GET "Get"
+#define DBUS_METHOD_GET_ALL "GetAll"
 
 #define DBUS_INTERFACE_OBJECT_MANAGER "org.freedesktop.DBus.ObjectManager"
 #define DBUS_METHOD_GET_MANAGED_OBJECTS "GetManagedObjects"
@@ -141,5 +146,10 @@
 #define DESCRIPTOR_FLAG_SECURE_WRITE_ENABLED_BIT (1 << 7)
 #define DESCRIPTOR_FLAG_AUTHORIZE "authorize"
 #define DESCRIPTOR_FLAG_AUTHORIZE_ENABLED_BIT (1 << 8)
+
+#define min(a,b) \
+   ({ __typeof__ (a) _a = (a); \
+       __typeof__ (b) _b = (b); \
+     _a < _b ? _a : _b; })
 
 #endif //BLE_SIM_DEFINES_H

@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
+#include <signal.h>
 
 #include <dbus/dbus.h>
 
@@ -111,6 +112,8 @@ static void update (void *user_data)
 
 static char *get_default_adapter(void)
 {
+  int count = 0;
+
   DBusMessage *reply = dbusutils_do_method_call(global_dbus_connection, BLUEZ_BUS_NAME, ROOT_PATH, DBUS_INTERFACE_OBJECT_MANAGER, DBUS_METHOD_GET_MANAGED_OBJECTS);
   if (NULL == reply)
   {
@@ -130,12 +133,12 @@ static char *get_default_adapter(void)
     char *object_path;
     dbus_message_iter_get_basic (&dict_entry, &object_path);
 
-    //loop through properties
+
     DBusMessageIter properties;
     dbus_message_iter_next(&dict_entry);
     dbus_message_iter_recurse(&dict_entry, &properties);
 
-    while ( dbus_message_iter_has_next (&properties) )
+    while ( dbus_message_iter_has_next (&properties) ) //loop through properties
     {
       DBusMessageIter property_entry;
       char *interface_name;
@@ -144,8 +147,17 @@ static char *get_default_adapter(void)
       
       if (strcmp(BLUEZ_GATT_MANAGER_INTERFACE, interface_name) == 0 )
       {
-        dbus_message_unref(reply);
-        return object_path;
+        //we are trying to return the second adapter, as the first will be used by the device service
+        //once we dynamically create adapters, we can change this behaviour by creating a new adapter each time we create a "device"
+        if (count == 0)
+        {
+          count++;
+        }
+        else
+        {
+          dbus_message_unref(reply);
+          return object_path;
+        }
       }
 
       dbus_message_iter_next(&properties);
@@ -158,8 +170,15 @@ static char *get_default_adapter(void)
   return NULL;
 }
   
+static void sigint(int a)
+{
+  dbusutils_mainloop_running = false;
+}
+
 int main (int argc, char *argv[]) 
 {
+  signal(SIGINT, sigint);
+
   if (dbus_init () == false)
   {
     return 1;
@@ -182,6 +201,7 @@ int main (int argc, char *argv[])
   device_cleanup_devices ();
 
   //free (default_adapter);
+  printf("Exiting\n");
 
   return 0;
 }
