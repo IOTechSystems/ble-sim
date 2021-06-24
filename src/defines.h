@@ -90,6 +90,8 @@
 #define BLUEZ_METHOD_REGISTER_ADVERTISEMENT "RegisterAdvertisement"
 #define BLUEZ_METHOD_READ_VALUE "ReadValue"
 #define BLUEZ_METHOD_WRITE_VALUE "WriteValue"
+#define BLUEZ_METHOD_START_NOTIFY "StartNotify"
+#define BLUEZ_METHOD_STOP_NOTIFY "StopNotify"
 
 #define DEFAULT_TIMEOUT 1000
 

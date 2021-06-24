@@ -5,6 +5,7 @@
  *
  **********************************************************************/
 
+#include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -25,6 +26,12 @@ static DBusHandlerResult dbusutils_object_handle_message (DBusConnection *connec
 
 static DBusMessage *dbusutils_object_get_all (DBusConnection *connection, DBusMessage *message, object_data_t *object_data);
 
+static void dbusutils_get_object_property_data (
+  DBusMessageIter *iter,
+  dbus_property_t *properties_table,
+  void *object_ptr
+);
+
 const DBusObjectPathVTable object_vtable =
   {
     .message_function = dbusutils_object_handle_message,
@@ -34,12 +41,12 @@ const DBusObjectPathVTable object_vtable =
 bool dbusutils_mainloop_running = false;
 
 
-void dbusutils_send_object_properties_changed_signal(
+void dbusutils_send_object_properties_changed_signal (
   DBusConnection *connection,
   const char *path,
   const char *iface,
-  dbus_property_t *properties,
-  void* object_pointer
+  dbus_property_t *changed_properties,
+  void *object_pointer
 )
 {
   DBusMessage *signal = dbus_message_new_signal (path, iface, DBUS_SIGNAL_PROPERTIES_CHANGED);
@@ -48,11 +55,15 @@ void dbusutils_send_object_properties_changed_signal(
     return;
   }
 
-  DBusMessageIter iter, dict; 
+  DBusMessageIter iter, array;
   dbus_message_iter_init_append (signal, &iter);
-  dbusutils_iter_append_string (&iter, DBUS_TYPE_STRING, &iface);
-  dbusutils_get_object_property_data (&iter, properties, object_pointer); //appends dict of string -> variant
-  //TODO: append invalidated properties
+  dbusutils_iter_append_string (&iter, DBUS_TYPE_STRING, iface);
+  //append changed properties
+  dbusutils_get_object_property_data (&iter, changed_properties, object_pointer); //appends dict of string -> variant
+  //append invalidated properties
+  dbus_message_iter_open_container (&iter, DBUS_TYPE_ARRAY, DBUS_TYPE_STRING_AS_STRING, &array);
+  // TODO: append invalidated properties
+  dbus_message_iter_close_container (&iter, &array);
 
   dbus_connection_send (connection, signal, NULL);
 }
@@ -274,15 +285,15 @@ static DBusMessage *dbusutils_object_get_all (DBusConnection *connection, DBusMe
 
   DBusMessageIter iter;
   dbus_message_iter_init_append (reply, &iter);
-  
-  dbusutils_get_object_property_data(&iter, object_data->properties, object_data->object_ptr);
+
+  dbusutils_get_object_property_data (&iter, object_data->properties, object_data->object_ptr);
 
   return reply;
 }
 
-static const char* get_property_name_from_properties_get_message(DBusMessage *message)
+static const char *get_property_name_from_properties_get_message (DBusMessage *message)
 {
-  if( !dbus_message_has_signature(message, DBUS_TYPE_STRING_AS_STRING DBUS_TYPE_STRING_AS_STRING))
+  if (!dbus_message_has_signature (message, DBUS_TYPE_STRING_AS_STRING DBUS_TYPE_STRING_AS_STRING))
   {
     return NULL;
   }
@@ -293,13 +304,13 @@ static const char* get_property_name_from_properties_get_message(DBusMessage *me
 
   char *property_name = NULL;
   dbus_message_iter_get_basic (&iter, &property_name);
-  
+
   return property_name;
 }
 
 static DBusMessage *dbusutils_object_get (DBusConnection *connection, DBusMessage *message, object_data_t *object_data)
 {
-  const char* property_name = get_property_name_from_properties_get_message(message);
+  const char *property_name = get_property_name_from_properties_get_message (message);
   if (NULL == property_name)
   {
     printf ("Could not get a property name from get property request\n");
@@ -315,7 +326,7 @@ static DBusMessage *dbusutils_object_get (DBusConnection *connection, DBusMessag
 
   DBusMessageIter iter;
   dbus_message_iter_init_append (message, &iter);
-  for(dbus_property_t *property = object_data->properties; property && property->name; property++)
+  for (dbus_property_t *property = object_data->properties; property && property->name; property++)
   {
     if (strcmp (property->name, property_name) == 0)
     {
@@ -326,7 +337,7 @@ static DBusMessage *dbusutils_object_get (DBusConnection *connection, DBusMessag
       return reply; //found and created the message so can return now
     }
   }
-  
+
   // TODO: append error message to reply
   return reply;
 }
@@ -336,7 +347,7 @@ static DBusMessage *dbusutils_object_set (DBusConnection *connection, DBusMessag
   return NULL;
 }
 
-static DBusHandlerResult handle_properties_interface(DBusConnection *connection, DBusMessage *message, object_data_t *object_data)
+static DBusHandlerResult handle_properties_interface (DBusConnection *connection, DBusMessage *message, object_data_t *object_data)
 {
   DBusMessage *reply = NULL;
   if (dbus_message_is_method_call (message, DBUS_INTERFACE_PROPERTIES, DBUS_METHOD_GET)) //Get
@@ -365,7 +376,7 @@ static DBusHandlerResult handle_properties_interface(DBusConnection *connection,
   return DBUS_HANDLER_RESULT_HANDLED;
 }
 
-static DBusHandlerResult handle_method_call(DBusConnection *connection, DBusMessage *message, object_data_t *object_data)
+static DBusHandlerResult handle_method_call (DBusConnection *connection, DBusMessage *message, object_data_t *object_data)
 {
   DBusMessage *reply = NULL;
   dbus_method_t *method = NULL;
@@ -384,6 +395,7 @@ static DBusHandlerResult handle_method_call(DBusConnection *connection, DBusMess
   }
 
   dbus_connection_send (connection, reply, NULL);
+  dbus_connection_flush (connection);
   dbus_message_unref (reply);
   return DBUS_HANDLER_RESULT_HANDLED;
 }
@@ -399,9 +411,9 @@ static DBusHandlerResult dbusutils_object_handle_message (DBusConnection *connec
   }
 
   //TODO: check if message is a signal and handle appropriately
-  
+
   //check to see if we have a matching method
-  return handle_method_call(connection, message, object_data);
+  return handle_method_call (connection, message, object_data);
 }
 
 bool dbusutils_register_object (DBusConnection *connection,
@@ -508,6 +520,14 @@ static void dispatch (DBusConnection *connection)
   }
 }
 
+static void msleep (unsigned int milliseconds) //sleep for x milliseconds
+{
+  struct timespec ts;
+  ts.tv_sec = milliseconds / 1000;
+  ts.tv_nsec = (milliseconds % 1000) * 1000000;
+  nanosleep (&ts, &ts);
+}
+
 void dbusutils_mainloop_run (DBusConnection *connection, void (*sim_update_function_ptr) (void *))
 {
   dbusutils_mainloop_running = true;
@@ -515,5 +535,8 @@ void dbusutils_mainloop_run (DBusConnection *connection, void (*sim_update_funct
   {
     sim_update_function_ptr (connection);
     dispatch (connection);
+
+    msleep (
+      100); //TODO: investigate why removing this sleep interferes with dbus sending messages (when updating characteristic values in sim_update_function_ptr)
   }
 }

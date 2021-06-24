@@ -15,7 +15,7 @@
 
 static void add_device_to_device_list (device_t *device);
 
-static DBusMessage* device_get_managed_objects (void *device_ptr, DBusConnection *connection, DBusMessage *message);
+static DBusMessage *device_get_managed_objects (void *device_ptr, DBusConnection *connection, DBusMessage *message);
 
 static service_t *device_get_service (device_t *device, const char *service_uuid);
 

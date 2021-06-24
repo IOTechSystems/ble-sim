@@ -29,6 +29,11 @@
 DBusConnection *global_dbus_connection;
 char *default_adapter = NULL;
 
+device_t *dev0 = NULL;
+service_t *dev0_srvc0 = NULL;
+characteristic_t *dev0_srvc0_char0 = NULL;
+descriptor_t *dev0_srvc0_char0_desc0 = NULL;
+
 static DBusHandlerResult filter_message (DBusConnection *connection, DBusMessage *message, void *data)
 {
   printf ("Incomming DBus Message %d %s : %s %s/%s/%s %s\n",
@@ -82,32 +87,35 @@ static void init_dev (void)
 {
   const char *devname = "test-dev";
 
-  device_t *new_device = device_new (devname, default_adapter);
+  dev0 = device_new (devname, default_adapter);;
+  dev0_srvc0 = service_new (TST_SRVC1, true);
+  dev0_srvc0_char0 = characteristic_new (TST_CHR1);
+  dev0_srvc0_char0_desc0 = descriptor_new (TST_DESC1);
 
-  device_add_service (new_device, service_new (TST_SRVC1, true));
-  // device_add_service (new_device, service_new (TST_SRVC2, true, NULL));
-  // device_add_service (new_device, service_new (TST_SRVC3, true, NULL));
-  // device_add_service (new_device, service_new (TST_SRVC4, true, NULL));
+  device_add_service (dev0, dev0_srvc0);
+  device_add_characteristic (dev0, TST_SRVC1, dev0_srvc0_char0);
+  device_add_descriptor (dev0, TST_SRVC1, TST_CHR1, dev0_srvc0_char0_desc0);
 
-  device_add_characteristic (new_device, TST_SRVC1, characteristic_new (TST_CHR1));
-  //device_add_characteristic (new_device, TST_SRVC1, characteristic_new (TST_CHR2, NULL));
-
-  device_add_descriptor (new_device, TST_SRVC1, TST_CHR1, descriptor_new (TST_DESC1));
-
-  if (!device_add (new_device))
+  if (!device_add (dev0))
   {
     printf ("Failed to add test device\n");
-    device_free (new_device);
+    device_free (dev0);
   }
 
-  device_set_powered (new_device, true);
-  device_set_discoverable (new_device, true);
+  characteristic_set_notifying (dev0_srvc0_char0, true);
 
+  device_set_powered (dev0, true);
+  device_set_discoverable (dev0, true);
 }
+
+
+static int count = 0;
 
 static void update (void *user_data)
 {
-
+  DBusConnection *connection = (DBusConnection *) user_data;
+  characteristic_update_value (dev0_srvc0_char0, &count, sizeof (int), connection);
+  count++;
 }
 
 static char *get_default_adapter (void)
@@ -160,10 +168,8 @@ static char *get_default_adapter (void)
           return object_path;
         }
       }
-
       dbus_message_iter_next (&properties);
     }
-
     dbus_message_iter_next (&array);
   }
 
@@ -195,7 +201,6 @@ int main (int argc, char *argv[])
 
   init_dev ();
 
-  update (NULL);
   dbusutils_mainloop_run (global_dbus_connection, &update);
 
   dbus_cleanup ();
