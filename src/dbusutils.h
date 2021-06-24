@@ -13,11 +13,12 @@
 
 #include "defines.h"
 
+extern bool dbusutils_mainloop_running;
 extern DBusConnection *global_dbus_connection;
 
 typedef void(*dbus_get_object_property_function) (void *user_data, DBusMessageIter *iter);
 
-typedef bool(*dbus_call_object_method_function) (void *user_data, DBusConnection *connection, DBusMessage *message);
+typedef DBusMessage *(*dbus_call_object_method_function) (void *user_data, DBusConnection *connection, DBusMessage *message);
 
 typedef struct dbus_property_t
 {
@@ -38,6 +39,23 @@ typedef struct object_flag_t
   const char *flag_value;
   unsigned int enabled_bit;
 } object_flag_t;
+
+/**
+ * Creates and sends a properties changed signal
+ * 
+ * @param connection the dbus connection to send the signal on
+ * @param path	the path to the object emitting the signal
+ * @param iface	the interface the signal is emitted from
+ * @param dbus_properties pointer to NULL terminated array of properties that have been changed
+ * @param object_pointer pointer to the object we have created the signal for
+ **/
+void dbusutils_send_object_properties_changed_signal (
+  DBusConnection *connection,
+  const char *path,
+  const char *iface,
+  dbus_property_t *changed_properties,
+  void *object_pointer
+);
 
 /**
  * Appends a dict entry which contains an array to a dbus message iter
@@ -166,9 +184,6 @@ DBusMessage *dbusutils_set_property_basic (
   int data_type,
   void *data
 );
-
-
-extern bool dbusutils_mainloop_running;
 
 /**
  * Starts the main DBus read/write/dispatch loop

@@ -65,6 +65,7 @@
 #define BLE_PROPERTY_TX_POWER "TxPower"
 
 #define DBUS_INTERFACE_PROPERTIES "org.freedesktop.DBus.Properties"
+#define DBUS_SIGNAL_PROPERTIES_CHANGED "PropertiesChanged"
 #define DBUS_METHOD_SET "Set"
 #define DBUS_METHOD_GET "Get"
 #define DBUS_METHOD_GET_ALL "GetAll"
@@ -87,6 +88,10 @@
 #define BLUEZ_METHOD_RELEASE "Release"
 #define BLUEZ_METHOD_REGISTER_APPLICATION "RegisterApplication"
 #define BLUEZ_METHOD_REGISTER_ADVERTISEMENT "RegisterAdvertisement"
+#define BLUEZ_METHOD_READ_VALUE "ReadValue"
+#define BLUEZ_METHOD_WRITE_VALUE "WriteValue"
+#define BLUEZ_METHOD_START_NOTIFY "StartNotify"
+#define BLUEZ_METHOD_STOP_NOTIFY "StopNotify"
 
 #define DEFAULT_TIMEOUT 1000
 

@@ -15,6 +15,8 @@
 #include "defines.h"
 #include "utils.h"
 
+static void characteristic_set_value (characteristic_t *characteristic, void *new_value, uint32_t value_size);
+
 static void characteristic_get_uuid (void *user_data, DBusMessageIter *iter);
 
 static void characteristic_get_service (void *user_data, DBusMessageIter *iter);
@@ -23,8 +25,13 @@ static void characteristic_get_flags (void *user_data, DBusMessageIter *iter);
 
 static void characteristic_get_value (void *user_data, DBusMessageIter *iter);
 
-static void characteristic_read_value (characteristic_t *characteristic, DBusMessageIter *iter);
+static DBusMessage *characteristic_read_value (void *user_data, DBusConnection *connection, DBusMessage *message);
 
+static DBusMessage *characteristic_write_value (void *user_data, DBusConnection *connection, DBusMessage *message);
+
+static DBusMessage *characteristic_start_notify (void *user_data, DBusConnection *connection, DBusMessage *message);
+
+static DBusMessage *characteristic_stop_notify (void *user_data, DBusConnection *connection, DBusMessage *message);
 
 static dbus_property_t characteristic_properties[] =
   {
@@ -37,6 +44,10 @@ static dbus_property_t characteristic_properties[] =
 
 static dbus_method_t characteristic_methods[] =
   {
+    {BLUEZ_GATT_CHARACTERISTIC_INTERFACE, BLUEZ_METHOD_READ_VALUE, characteristic_read_value},
+    {BLUEZ_GATT_CHARACTERISTIC_INTERFACE, BLUEZ_METHOD_WRITE_VALUE, characteristic_write_value},
+    {BLUEZ_GATT_CHARACTERISTIC_INTERFACE, BLUEZ_METHOD_START_NOTIFY, characteristic_start_notify},
+    {BLUEZ_GATT_CHARACTERISTIC_INTERFACE, BLUEZ_METHOD_STOP_NOTIFY, characteristic_stop_notify},
     DBUS_METHOD_NULL
   };
 
@@ -73,14 +84,10 @@ characteristic_t *characteristic_new (const char *uuid)
   new_characteristic->service_path = NULL;
   new_characteristic->object_path = NULL;
 
-  //TODO: revert back 
-  // new_characteristic->value = NULL;
-  // new_characteristic->value_size = 0;
-  new_characteristic->value = malloc (sizeof (int));
-  int a = 42;
-  memcpy (new_characteristic->value, &a, sizeof (int));
-  new_characteristic->value_size = sizeof (int);
+  new_characteristic->value = NULL;
+  new_characteristic->value_size = 0;
 
+  new_characteristic->notifying = false;
   new_characteristic->flags = CHARACTERISTIC_FLAGS_ALL_ENABLED; //all enabled for now
   new_characteristic->descriptors = NULL;
   new_characteristic->descriptor_count = 0;
@@ -153,6 +160,26 @@ bool characteristic_register (characteristic_t *characteristic)
   return dbusutils_register_object (global_dbus_connection, characteristic->object_path, characteristic_properties, characteristic_methods, characteristic);
 }
 
+void characteristic_update_value (characteristic_t *characteristic, void *new_value, uint32_t value_size, DBusConnection *connection)
+{
+  characteristic_set_value (characteristic, new_value, value_size);
+
+  if (characteristic->notifying)
+  {
+    dbus_property_t changed_property[] = {
+      {BLE_PROPERTY_VALUE, DBUS_TYPE_ARRAY_AS_STRING DBUS_TYPE_BYTE_AS_STRING, characteristic_get_value},
+      DBUS_PROPERTY_NULL
+    };
+    dbusutils_send_object_properties_changed_signal (connection, characteristic->object_path, BLUEZ_GATT_CHARACTERISTIC_INTERFACE, changed_property,
+                                                     characteristic);
+  }
+}
+
+void characteristic_set_notifying (characteristic_t *characteristic, bool notifying)
+{
+  characteristic->notifying = notifying;
+}
+
 //DBus Methods
 void characteristic_get_object (characteristic_t *characteristic, DBusMessageIter *iter)
 {
@@ -193,22 +220,6 @@ static void characteristic_get_flags (void *user_data, DBusMessageIter *iter)
 static void characteristic_get_value (void *user_data, DBusMessageIter *iter)
 {
   characteristic_t *characteristic = (characteristic_t *) user_data;
-  characteristic_read_value (characteristic, iter);
-}
-
-// void characteristic_get_all (characteristic_t *characteristic)
-// {
-
-// }
-
-// void characteristic_properties_changed (characteristic_t *characteristic)
-// {
-
-// }
-
-// //Bluez methods
-static void characteristic_read_value (characteristic_t *characteristic, DBusMessageIter *iter)
-{
   DBusMessageIter array;
 
   dbus_message_iter_open_container (iter, DBUS_TYPE_ARRAY, DBUS_TYPE_BYTE_AS_STRING, &array);
@@ -216,28 +227,80 @@ static void characteristic_read_value (characteristic_t *characteristic, DBusMes
   dbus_message_iter_close_container (iter, &array);
 }
 
-// TODO
-// void characteristic_write_value (characteristic_t *characteristic)
-// {
+static void characteristic_set_value (characteristic_t *characteristic, void *new_value, uint32_t value_size)
+{
+  if (NULL == characteristic || new_value == NULL)
+  {
+    return;
+  }
 
-// }
+  free (characteristic->value);
+  characteristic->value = NULL;
+  characteristic->value_size = 0;
 
-// void characteristic_aquire_write (characteristic_t *characteristic)
-// {
+  characteristic->value = malloc (value_size);
+  if (NULL == characteristic->value)
+  {
+    return;
+  }
+  memcpy (characteristic->value, new_value, value_size);
+  characteristic->value_size = value_size;
+}
 
-// }
+// //Bluez methods
+static DBusMessage *characteristic_read_value (void *user_data, DBusConnection *connection, DBusMessage *message)
+{
+  //TODO: parse message options  
+  DBusMessage *reply = dbus_message_new_method_return (message);
+  if (NULL == reply)
+  {
+    return NULL;
+  }
 
-// void characteristic_aquire_notify (characteristic_t *characteristic)
-// {
+  DBusMessageIter iter;
+  dbus_message_iter_init_append (reply, &iter);
+  characteristic_get_value (user_data, &iter);
+  return reply;
+}
 
-// }
+static DBusMessage *characteristic_write_value (void *user_data, DBusConnection *connection, DBusMessage *message)
+{
+  DBusMessageIter args, array;
+  dbus_message_iter_init (message, &args);
 
-// void characteristic_start_notify (characteristic_t *characteristic)
-// {
+  int element_count = 0;
+  uint8_t *new_value = NULL;
 
-// }
+  dbus_message_iter_recurse (&args, &array);
+  dbus_message_iter_get_fixed_array (&array, &new_value, &element_count);
 
-// void characteristic_stop_notify (characteristic_t *characteristic)
-// {
+  if (new_value == NULL || element_count < 0)
+  {
+    return NULL;
+  }
+  //TODO: parse message options 
 
-// }
+  //set the value
+  characteristic_set_value ((characteristic_t *) user_data, new_value, (uint32_t) element_count);
+
+  DBusMessage *reply = dbus_message_new_method_return (message); //might need to return some sort of success, or maybe a lack of error is a success? ;) 
+  return reply;
+}
+
+static DBusMessage *characteristic_start_notify (void *user_data, DBusConnection *connection, DBusMessage *message)
+{
+  characteristic_t *characteristic = (characteristic_t *) user_data;
+  characteristic_set_notifying (characteristic, true);
+
+  DBusMessage *reply = dbus_message_new_method_return (message);
+  return reply;
+}
+
+static DBusMessage *characteristic_stop_notify (void *user_data, DBusConnection *connection, DBusMessage *message)
+{
+  characteristic_t *characteristic = (characteristic_t *) user_data;
+  characteristic_set_notifying (characteristic, false);
+
+  DBusMessage *reply = dbus_message_new_method_return (message);
+  return reply;
+}

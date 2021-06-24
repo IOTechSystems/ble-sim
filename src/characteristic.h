@@ -19,7 +19,7 @@ typedef struct characteristic_t
   char *uuid; //128-bit characteristic UUID.
   char *service_path; //Object path of the GATT service the characteristic belongs to.
   char *object_path; //Object path of the characteristic object
-  uint8_t *value; //The characteristic's value
+  void *value; //The characteristic's value
   uint32_t value_size;
   bool notifying; //if notifications or indications on this	characteristic are currently enabled
   uint32_t flags; //Flags to define how the characteristic value can be used
@@ -39,7 +39,6 @@ characteristic_t *characteristic_new (const char *uuid);
 
 /**
  * Frees a characteristic_t and it's values
- * 
  * @param characteristic characteristic to free 
  **/
 void characteristic_free (characteristic_t *characteristic);
@@ -61,6 +60,23 @@ descriptor_t *characteristic_get_descriptor (characteristic_t *characteristic, c
  * @return success true/false
  **/
 bool characteristic_add_descriptor (characteristic_t *characteristic, descriptor_t *descriptor);
+
+/**
+ * Updates a characteristics value. If the characterisitc is notifying it will produce a PropertiesChanged signal 
+ * 
+ * @param characteristic the characteristic to update
+ * @param new_value pointer to the new value 
+ * @param value_size size of the new value
+ * @param connection dbus connection to send the properties changed signal on
+ **/
+void characteristic_update_value (characteristic_t *characteristic, void *new_value, uint32_t value_size, DBusConnection *connection);
+
+/**
+ * Sets a characteristics notifying state 
+ * @param characteristic the characteristic to update
+ * @param notifying value to set notifying to
+ */
+void characteristic_set_notifying (characteristic_t *characteristic, bool notifying);
 
 /**
  * Registers the characteristic object with dbus

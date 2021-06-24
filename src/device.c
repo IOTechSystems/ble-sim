@@ -15,7 +15,7 @@
 
 static void add_device_to_device_list (device_t *device);
 
-static bool device_get_managed_objects (void *device_ptr, DBusConnection *connection, DBusMessage *message);
+static DBusMessage *device_get_managed_objects (void *device_ptr, DBusConnection *connection, DBusMessage *message);
 
 static service_t *device_get_service (device_t *device, const char *service_uuid);
 
@@ -101,7 +101,7 @@ void device_free (device_t *device)
   free (device);
 }
 
-static bool device_get_managed_objects (void *device_ptr, DBusConnection *connection, DBusMessage *message)
+static DBusMessage *device_get_managed_objects (void *device_ptr, DBusConnection *connection, DBusMessage *message)
 {
   device_t *device = (device_t *) device_ptr;
   printf ("Device (%s) GetManagedObjects \n", device->device_name);
@@ -109,14 +109,14 @@ static bool device_get_managed_objects (void *device_ptr, DBusConnection *connec
   if (NULL == device || NULL == connection || NULL == message)
   {
     printf ("%s: Parameter was null", __FUNCTION__);
-    return false;
+    return NULL;
   }
 
   DBusMessage *reply = dbus_message_new_method_return (message);
   if (reply == NULL)
   {
     printf ("%s: Could not create a dbus method return message", __FUNCTION__);
-    return false;
+    return NULL;
   }
 
   //create the response - signature a{oa{sa{sv}}}
@@ -166,10 +166,7 @@ static bool device_get_managed_objects (void *device_ptr, DBusConnection *connec
 
   dbus_message_iter_close_container (&iter, &array);
 
-  //send reply
-  dbus_connection_send (connection, reply, NULL);
-
-  return true;
+  return reply;
 }
 
 static void on_register_application_reply (DBusPendingCall *pending_call, void *user_data)

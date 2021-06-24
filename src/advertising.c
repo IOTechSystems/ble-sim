@@ -12,7 +12,7 @@
 #include "advertising.h"
 #include "dbusutils.h"
 
-static bool advertisement_release (void *advertisement_ptr, DBusConnection *connection, DBusMessage *message);
+static DBusMessage *advertisement_release (void *advertisement_ptr, DBusConnection *connection, DBusMessage *message);
 
 //TODO: enable commented out properties and their respective functions/entries in the property table
 static void advertisement_get_type (void *advertisement_ptr, DBusMessageIter *iter);
@@ -201,13 +201,13 @@ bool advertisement_register_with_bluez (
   return true;
 }
 
-static bool advertisement_release (
+static DBusMessage *advertisement_release (
   void *advertisement_ptr,
   DBusConnection *connection,
   DBusMessage *message
 )
 {
-  return true;
+  return NULL;
 }
 
 static void advertisement_get_type (void *advertisement_ptr, DBusMessageIter *iter)
