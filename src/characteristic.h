@@ -74,7 +74,6 @@ bool characteristic_register (characteristic_t *characteristic);
  * Populates a dbus message iter with a characteristic's object data
  * @param characteristic pointer to the characteristic
  * @param iter dbus message iter to populate
- * @return 
  **/
 void characteristic_get_object (characteristic_t *characteristic, DBusMessageIter *iter);
 // void characteristic_get_all (characteristic_t *characteristic);

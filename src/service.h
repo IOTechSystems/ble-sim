@@ -77,7 +77,6 @@ bool service_register (service_t *service);
  * Populates a dbus message iter with a service's object data
  * @param service pointer to the service
  * @param iter dbus message iter to populate
- * @return 
  **/
 void service_get_object (service_t *service, DBusMessageIter *iter);
 

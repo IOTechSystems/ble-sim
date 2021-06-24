@@ -54,7 +54,6 @@ bool descriptor_register (descriptor_t *descriptor);
  * Populates a dbus message iter with a descriptor's object data
  * @param descriptor pointer to the descriptor
  * @param iter dbus message iter to populate
- * @return 
  **/
 void descriptor_get_object (descriptor_t *descriptor, DBusMessageIter *iter);
 
