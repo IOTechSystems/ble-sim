@@ -5,7 +5,7 @@
  *
  **********************************************************************/
 
-#include <time.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -520,14 +520,6 @@ static void dispatch (DBusConnection *connection)
   }
 }
 
-static void msleep (unsigned int milliseconds) //sleep for x milliseconds
-{
-  struct timespec ts;
-  ts.tv_sec = milliseconds / 1000;
-  ts.tv_nsec = (milliseconds % 1000) * 1000000;
-  nanosleep (&ts, &ts);
-}
-
 void dbusutils_mainloop_run (DBusConnection *connection, void (*sim_update_function_ptr) (void *))
 {
   dbusutils_mainloop_running = true;
@@ -536,7 +528,7 @@ void dbusutils_mainloop_run (DBusConnection *connection, void (*sim_update_funct
     sim_update_function_ptr (connection);
     dispatch (connection);
 
-    msleep (
-      100); //TODO: investigate why removing this sleep interferes with dbus sending messages (when updating characteristic values in sim_update_function_ptr)
+    //TODO: investigate why removing this sleep interferes with dbus sending messages (when updating characteristic values in sim_update_function_ptr)
+    msleep (100);
   }
 }
