@@ -15,21 +15,18 @@
 
 static void add_device_to_device_list (device_t *device);
 
-static void device_handle_unregister_device (DBusConnection *connection, void *data);
-
-static DBusHandlerResult device_handle_dbus_message (DBusConnection *connection, DBusMessage *message, void *data);
-
-static bool device_get_managed_objects (device_t *device, DBusConnection *connection, DBusMessage *message);
+static bool device_get_managed_objects (void *device_ptr, DBusConnection *connection, DBusMessage *message);
 
 static service_t *device_get_service (device_t *device, const char *service_uuid);
 
 static device_t *device_list_head = NULL;
 static unsigned int device_count = 0;
 
-static DBusObjectPathVTable device_dbus_callbacks = {
-  .unregister_function = device_handle_unregister_device,
-  .message_function = device_handle_dbus_message,
-};
+static dbus_method_t device_methods[] =
+  {
+    {DBUS_INTERFACE_OBJECT_MANAGER, DBUS_METHOD_GET_MANAGED_OBJECTS, device_get_managed_objects},
+    DBUS_METHOD_NULL
+  };
 
 //device list
 void device_cleanup_devices (void)
@@ -63,7 +60,7 @@ static void add_device_to_device_list (device_t *device)
 }
 
 //device constructors destructors
-device_t *device_new (const char *device_name, const char *controller, service_t *services)
+device_t *device_new (const char *device_name, const char *controller)
 {
   device_t *device = calloc (1, sizeof (*device));
   if (NULL == device)
@@ -74,7 +71,7 @@ device_t *device_new (const char *device_name, const char *controller, service_t
   device->device_name = strdup (device_name);
   device->controller = strdup (controller);
   device->application_registered = false;
-  device->services = services;
+  device->services = NULL;
   device->service_count = 0;
   device->object_path = dbusutils_create_object_path (EMPTY_STRING, DEVICE_OBJECT_NAME, device_count);
   device->next = NULL;
@@ -104,54 +101,21 @@ void device_free (device_t *device)
   free (device);
 }
 
-//device object dbus functions
-static void device_handle_unregister_device (DBusConnection *connection, void *data)
+static bool device_get_managed_objects (void *device_ptr, DBusConnection *connection, DBusMessage *message)
 {
-
-}
-
-static DBusHandlerResult device_handle_dbus_message (DBusConnection *connection, DBusMessage *message, void *data)
-{
-  device_t *device = (device_t *) data;
-  printf ("DEVICE MESSAGE: got dbus message sent to %s %s %s (device: %s) \n",
-          dbus_message_get_destination (message),
-          dbus_message_get_interface (message),
-          dbus_message_get_path (message),
-          device->device_name
-  );
-
-  if (dbus_message_is_method_call (message, DBUS_INTERFACE_OBJECT_MANAGER, DBUS_METHOD_GET_MANAGED_OBJECTS))
-  {
-    device_get_managed_objects (device, connection, message);
-  }
-
-  return DBUS_HANDLER_RESULT_HANDLED;
-}
-
-static bool device_get_managed_objects (device_t *device, DBusConnection *connection, DBusMessage *message)
-{
+  device_t *device = (device_t *) device_ptr;
   printf ("Device (%s) GetManagedObjects \n", device->device_name);
-  // TODO: Implement get managed objects
-  if (NULL == device)
+
+  if (NULL == device || NULL == connection || NULL == message)
   {
-    printf ("%s: Device was null", __FUNCTION__);
-    return false;
-  }
-  if (NULL == connection)
-  {
-    printf ("%s: Connection was null", __FUNCTION__);
-    return false;
-  }
-  if (NULL == message)
-  {
-    printf ("%s: Message was null", __FUNCTION__);
+    printf ("%s: Parameter was null", __FUNCTION__);
     return false;
   }
 
   DBusMessage *reply = dbus_message_new_method_return (message);
   if (reply == NULL)
   {
-    printf ("%s: Could not create a method return message", __FUNCTION__);
+    printf ("%s: Could not create a dbus method return message", __FUNCTION__);
     return false;
   }
 
@@ -202,8 +166,6 @@ static bool device_get_managed_objects (device_t *device, DBusConnection *connec
 
   dbus_message_iter_close_container (&iter, &array);
 
-
-  printf ("Sending get_managed_objects\n");
   //send reply
   dbus_connection_send (connection, reply, NULL);
 
@@ -212,10 +174,8 @@ static bool device_get_managed_objects (device_t *device, DBusConnection *connec
 
 static void on_register_application_reply (DBusPendingCall *pending_call, void *user_data)
 {
-
   device_t *device = (device_t *) user_data;
-  DBusMessage *reply;
-  reply = dbus_pending_call_steal_reply (pending_call);
+  DBusMessage *reply = dbus_pending_call_steal_reply (pending_call);
   if (NULL == reply)
   {
     return;
@@ -224,7 +184,7 @@ static void on_register_application_reply (DBusPendingCall *pending_call, void *
   if (dbus_message_get_type (reply) == DBUS_MESSAGE_TYPE_ERROR)
   {
     printf ("Unable to Register device with bluez: (%s : %s)\n", dbus_message_get_error_name (reply), dbusutils_get_error_message_from_reply (reply));
-    //TODO : remove device from list and unregister
+    //TODO : remove device from list and unregister object
   }
   else
   {
@@ -238,16 +198,12 @@ static void on_register_application_reply (DBusPendingCall *pending_call, void *
 
 static bool device_register_with_bluez (device_t *device, DBusConnection *connection)
 {
-
-  //init message
   DBusMessage *message = dbus_message_new_method_call (BLUEZ_BUS_NAME, device->controller, BLUEZ_GATT_MANAGER_INTERFACE, BLUEZ_METHOD_REGISTER_APPLICATION);
   if (NULL == message)
   {
     printf ("Register Application: Could not set up message\n");
     return false;
   }
-
-  printf ("%s\n", device->object_path);
 
   //setup message "oa{sv}""
   DBusMessageIter args, dict;
@@ -262,7 +218,6 @@ static bool device_register_with_bluez (device_t *device, DBusConnection *connec
     DBUS_DICT_ENTRY_END_CHAR_AS_STRING,
     &dict
   );
-  // TODO: Could add options to dictionary
   dbus_message_iter_close_container (&args, &dict);
 
   //send message
@@ -278,9 +233,13 @@ static bool device_register_with_bluez (device_t *device, DBusConnection *connec
   }
 
   if (message)
-  { dbus_message_unref (message); }
+  {
+    dbus_message_unref (message);
+  }
   if (pending_call)
-  { dbus_pending_call_unref (pending_call); }
+  {
+    dbus_pending_call_unref (pending_call);
+  }
 
   return true;
 }
@@ -295,7 +254,7 @@ bool device_add (device_t *device)
     return false;
   }
 
-  success = dbusutils_register_object (global_dbus_connection, device->object_path, &device_dbus_callbacks, device);
+  success = dbusutils_register_object (global_dbus_connection, device->object_path, NULL, device_methods, device);
   if (!success)
   {
     return false;
@@ -307,10 +266,85 @@ bool device_add (device_t *device)
     return false;
   }
 
-  //init controller for device
-  //TODO
+  //TODO: let the user set the manufacturer data and the key
+  const uint8_t manufacturer_data[] = {0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5};
+  const unsigned int size = 24;
+  const uint16_t key = 0xBEEF;
+
+  //setup advertisement
+  advertisement_init (
+    &device->advertisement,
+    dbusutils_create_object_path (device->object_path, ADVERTISEMENT_OBJECT_NAME, 0),
+    &device->services,
+    &device->device_name,
+    key,
+    manufacturer_data,
+    size
+  );
+
+  success = advertisement_register (&device->advertisement);
+  if (!success)
+  {
+    return false;
+  }
+
+  success = advertisement_register_with_bluez (&device->advertisement, device->controller, global_dbus_connection);
+  if (!success)
+  {
+    return false;
+  }
+
+  //TODO: init/create controller for device
   add_device_to_device_list (device);
 
+  return true;
+}
+
+bool device_set_discoverable (device_t *device, bool discoverable)
+{
+  dbus_bool_t value;
+  value = discoverable ? TRUE : FALSE;
+
+  DBusMessage *reply = dbusutils_set_property_basic (
+    global_dbus_connection,
+    BLUEZ_BUS_NAME,
+    device->controller,
+    BLUEZ_ADAPTER_INTERFACE,
+    BLUEZ_ADAPTER_PROPERTY_DISCOVERABLE,
+    DBUS_TYPE_BOOLEAN,
+    &value
+  );
+
+  if (NULL == reply)
+  {
+    return false;
+  }
+
+  printf ("Device (%s) discoverable %s\n", device->device_name, discoverable ? "on" : "off");
+  return true;
+}
+
+bool device_set_powered (device_t *device, bool powered)
+{
+  dbus_bool_t value;
+  value = powered ? TRUE : FALSE;
+
+  DBusMessage *reply = dbusutils_set_property_basic (
+    global_dbus_connection,
+    BLUEZ_BUS_NAME,
+    device->controller,
+    BLUEZ_ADAPTER_INTERFACE,
+    BLUEZ_ADAPTER_PROPERTY_POWERED,
+    DBUS_TYPE_BOOLEAN,
+    &value
+  );
+
+  if (NULL == reply)
+  {
+    return false;
+  }
+
+  printf ("Device (%s) controller (%s) powered %s\n", device->device_name, device->controller, powered ? "on" : "off");
   return true;
 }
 
@@ -357,13 +391,12 @@ bool device_add_service (device_t *device, service_t *service)
     return false;
   }
 
-  char *service_object_path = dbusutils_create_object_path (device->object_path, SERVICE_OBJECT_NAME, device->service_count);
-  if (!dbusutils_register_object (global_dbus_connection, service_object_path, &service_dbus_callbacks, service))
+  service->object_path = dbusutils_create_object_path (device->object_path, SERVICE_OBJECT_NAME, device->service_count);
+  if (!service_register (service))
   {
-    free (service_object_path);
+    free (service->object_path);
     return false;
   }
-  service->object_path = service_object_path;
   service->device_path = strdup (device->object_path);
 
   service->next = device->services;

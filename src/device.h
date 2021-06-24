@@ -14,17 +14,19 @@
 
 #include "defines.h"
 #include "service.h"
+#include "advertising.h"
 
 extern DBusConnection *global_dbus_connection;
 
 typedef struct device_t
 {
-  service_t *services;
+  service_t *services; //list of services
   unsigned int service_count;
-  char *controller; //does nothing for now - in future this will be the controller this "device" is exposed on
-  char *device_name;
+  char *controller; //path to bluez controller
+  char *device_name; //name of the device
   char *object_path; //dbus object path to register to
   bool application_registered;
+  advertisement_t advertisement; //advertisement
   struct device_t *next;
 } device_t;
 
@@ -35,7 +37,7 @@ typedef struct device_t
  * @param controller name of the controller 
  * @return initialised device  
  **/
-device_t *device_new (const char *device_name, const char *controller, service_t *services);
+device_t *device_new (const char *device_name, const char *controller);
 
 /**
  * Frees a device and it's values
@@ -94,6 +96,22 @@ bool device_add_characteristic (device_t *device, const char *service_uuid, char
  * @return succesful true/false
  **/
 bool device_add_descriptor (device_t *device, const char *service_uuid, const char *characteristic_uuid, descriptor_t *descriptor);
+
+/**
+ * Sets a devices discoverabilty 
+ * @param device the device
+ * @param discoverable true/false
+ * @return success true/false 
+ **/
+bool device_set_discoverable (device_t *device, bool discoverable);
+
+/**
+ * Powers on/off a device 
+ * @param device the device
+ * @param powered true/false
+ * @return success true/false 
+ **/
+bool device_set_powered (device_t *device, bool powered);
 
 /**
  * Removes and frees all devices in the internal device list

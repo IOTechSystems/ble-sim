@@ -29,8 +29,6 @@ typedef struct service_t
   struct service_t *next;
 } service_t;
 
-extern DBusObjectPathVTable service_dbus_callbacks;
-
 /**
  * Allocates memory and initialises values for a new service_t 
  * 
@@ -40,7 +38,7 @@ extern DBusObjectPathVTable service_dbus_callbacks;
  * @param characteristics services characteristics 
  * @return initialised service  
  **/
-service_t *service_new (const char *uuid, bool primary, characteristic_t *characteristics);
+service_t *service_new (const char *uuid, bool primary);
 
 /**
  * Frees a service and it's values
@@ -67,8 +65,19 @@ characteristic_t *service_get_characteristic (service_t *service, const char *ch
  **/
 bool service_add_characteristic (service_t *service, characteristic_t *characteristic);
 
-// TODO
-// //DBus methods
+//DBus methods
+/**
+ * Registers the service object with dbus
+ * @param service pointer to the service
+ * @return success true/false
+ **/
+bool service_register (service_t *service);
+
+/**
+ * Populates a dbus message iter with a service's object data
+ * @param service pointer to the service
+ * @param iter dbus message iter to populate
+ **/
 void service_get_object (service_t *service, DBusMessageIter *iter);
 
 #endif //BLE_SIM_SERVICE_H

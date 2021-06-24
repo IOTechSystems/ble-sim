@@ -7,6 +7,8 @@
 
 #include <stdio.h>
 #include <unistd.h>
+#include <string.h>
+#include <signal.h>
 
 #include <dbus/dbus.h>
 
@@ -25,6 +27,7 @@
 #define TST_DESC1 "12345678-1234-5678-1234-56789abcdef2"
 
 DBusConnection *global_dbus_connection;
+char *default_adapter = NULL;
 
 static DBusHandlerResult filter_message (DBusConnection *connection, DBusMessage *message, void *data)
 {
@@ -79,15 +82,15 @@ static void init_dev (void)
 {
   const char *devname = "test-dev";
 
-  device_t *new_device = device_new (devname, DEFAULT_CONTROLLER, NULL);
+  device_t *new_device = device_new (devname, default_adapter);
 
-  device_add_service (new_device, service_new (TST_SRVC1, true, NULL));
-  device_add_service (new_device, service_new (TST_SRVC2, true, NULL));
-  device_add_service (new_device, service_new (TST_SRVC3, true, NULL));
-  device_add_service (new_device, service_new (TST_SRVC4, true, NULL));
+  device_add_service (new_device, service_new (TST_SRVC1, true));
+  // device_add_service (new_device, service_new (TST_SRVC2, true, NULL));
+  // device_add_service (new_device, service_new (TST_SRVC3, true, NULL));
+  // device_add_service (new_device, service_new (TST_SRVC4, true, NULL));
 
-  device_add_characteristic (new_device, TST_SRVC1, characteristic_new (TST_CHR1, NULL));
-  device_add_characteristic (new_device, TST_SRVC1, characteristic_new (TST_CHR2, NULL));
+  device_add_characteristic (new_device, TST_SRVC1, characteristic_new (TST_CHR1));
+  //device_add_characteristic (new_device, TST_SRVC1, characteristic_new (TST_CHR2, NULL));
 
   device_add_descriptor (new_device, TST_SRVC1, TST_CHR1, descriptor_new (TST_DESC1));
 
@@ -96,6 +99,10 @@ static void init_dev (void)
     printf ("Failed to add test device\n");
     device_free (new_device);
   }
+
+  device_set_powered (new_device, true);
+  device_set_discoverable (new_device, true);
+
 }
 
 static void update (void *user_data)
@@ -103,20 +110,99 @@ static void update (void *user_data)
 
 }
 
+static char *get_default_adapter (void)
+{
+  int count = 0;
+
+  DBusMessage *reply = dbusutils_do_method_call (global_dbus_connection, BLUEZ_BUS_NAME, ROOT_PATH, DBUS_INTERFACE_OBJECT_MANAGER,
+                                                 DBUS_METHOD_GET_MANAGED_OBJECTS);
+  if (NULL == reply)
+  {
+    printf ("List adapters message reply was null\n");
+    return NULL;
+  }
+  DBusMessageIter iter, array;
+
+  dbus_message_iter_init (reply, &iter);
+  dbus_message_iter_recurse (&iter, &array);
+
+  while (dbus_message_iter_has_next (&array)) //loop through array to get object paths
+  {
+    DBusMessageIter dict_entry;
+
+    dbus_message_iter_recurse (&array, &dict_entry);
+    char *object_path;
+    dbus_message_iter_get_basic (&dict_entry, &object_path);
+
+
+    DBusMessageIter properties;
+    dbus_message_iter_next (&dict_entry);
+    dbus_message_iter_recurse (&dict_entry, &properties);
+
+    while (dbus_message_iter_has_next (&properties)) //loop through properties
+    {
+      DBusMessageIter property_entry;
+      char *interface_name;
+      dbus_message_iter_recurse (&properties, &property_entry);
+      dbus_message_iter_get_basic (&property_entry, &interface_name);
+
+      if (strcmp (BLUEZ_GATT_MANAGER_INTERFACE, interface_name) == 0)
+      {
+        //we are trying to return the second adapter, as the first will be used by the device service
+        //once we dynamically create adapters, we can change this behaviour by creating a new adapter each time we create a "device"
+        if (count == 0)
+        {
+          count++;
+        }
+        else
+        {
+          dbus_message_unref (reply);
+          return object_path;
+        }
+      }
+
+      dbus_message_iter_next (&properties);
+    }
+
+    dbus_message_iter_next (&array);
+  }
+
+  dbus_message_unref (reply);
+  return NULL;
+}
+
+static void sigint (int a)
+{
+  dbusutils_mainloop_running = false;
+}
+
 int main (int argc, char *argv[])
 {
+  signal (SIGINT, sigint);
 
   if (dbus_init () == false)
   {
     return 1;
   }
 
+  default_adapter = get_default_adapter ();
+  if (NULL == default_adapter)
+  {
+    printf ("Could not find an adapter\n");
+    return 0;
+  }
+  printf ("Found default adapter: %s\n", default_adapter);
+
   init_dev ();
 
+  update (NULL);
   dbusutils_mainloop_run (global_dbus_connection, &update);
 
   dbus_cleanup ();
   device_cleanup_devices ();
+
+  //free (default_adapter);
+  printf ("Exiting\n");
 
   return 0;
 }

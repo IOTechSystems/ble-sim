@@ -15,10 +15,6 @@
 #include "defines.h"
 #include "utils.h"
 
-static void characteristic_handle_unregister_device (DBusConnection *connection, void *data);
-
-static DBusHandlerResult characteristic_handle_dbus_message (DBusConnection *connection, DBusMessage *message, void *data);
-
 static void characteristic_get_uuid (void *user_data, DBusMessageIter *iter);
 
 static void characteristic_get_service (void *user_data, DBusMessageIter *iter);
@@ -29,10 +25,6 @@ static void characteristic_get_value (void *user_data, DBusMessageIter *iter);
 
 static void characteristic_read_value (characteristic_t *characteristic, DBusMessageIter *iter);
 
-DBusObjectPathVTable characteristic_dbus_callbacks = {
-  .unregister_function = characteristic_handle_unregister_device,
-  .message_function = characteristic_handle_dbus_message,
-};
 
 static dbus_property_t characteristic_properties[] =
   {
@@ -41,6 +33,11 @@ static dbus_property_t characteristic_properties[] =
     {BLE_PROPERTY_FLAGS, DBUS_TYPE_ARRAY_AS_STRING DBUS_TYPE_STRING_AS_STRING, characteristic_get_flags},
     {BLE_PROPERTY_VALUE, DBUS_TYPE_ARRAY_AS_STRING DBUS_TYPE_BYTE_AS_STRING, characteristic_get_value},
     DBUS_PROPERTY_NULL
+  };
+
+static dbus_method_t characteristic_methods[] =
+  {
+    DBUS_METHOD_NULL
   };
 
 static object_flag_t characteristic_flags[] =
@@ -64,7 +61,7 @@ static object_flag_t characteristic_flags[] =
     {CHARACTERISTIC_FLAG_AUTHORIZE,                     CHARACTERISTIC_FLAG_AUTHORIZE_ENABLED_BIT}
   };
 
-characteristic_t *characteristic_new (const char *uuid, descriptor_t *descriptors)
+characteristic_t *characteristic_new (const char *uuid)
 {
   characteristic_t *new_characteristic = calloc (1, sizeof (*new_characteristic));
   if (NULL == new_characteristic)
@@ -75,10 +72,17 @@ characteristic_t *characteristic_new (const char *uuid, descriptor_t *descriptor
   new_characteristic->uuid = strdup (uuid);
   new_characteristic->service_path = NULL;
   new_characteristic->object_path = NULL;
-  new_characteristic->value = NULL;
-  new_characteristic->value_size = 0;
+
+  //TODO: revert back 
+  // new_characteristic->value = NULL;
+  // new_characteristic->value_size = 0;
+  new_characteristic->value = malloc (sizeof (int));
+  int a = 42;
+  memcpy (new_characteristic->value, &a, sizeof (int));
+  new_characteristic->value_size = sizeof (int);
+
   new_characteristic->flags = CHARACTERISTIC_FLAGS_ALL_ENABLED; //all enabled for now
-  new_characteristic->descriptors = descriptors;
+  new_characteristic->descriptors = NULL;
   new_characteristic->descriptor_count = 0;
   new_characteristic->next = NULL;
 
@@ -108,24 +112,6 @@ void characteristic_free (characteristic_t *characteristic)
   free (characteristic);
 }
 
-static void characteristic_handle_unregister_device (DBusConnection *connection, void *data)
-{
-
-}
-
-static DBusHandlerResult characteristic_handle_dbus_message (DBusConnection *connection, DBusMessage *message, void *data)
-{
-  characteristic_t *characterisitc = (characteristic_t *) data;
-  printf ("CHARACTERISTIC MESSAGE: got dbus message sent to %s %s %s (service: %s) \n",
-          dbus_message_get_destination (message),
-          dbus_message_get_interface (message),
-          dbus_message_get_path (message),
-          characterisitc->uuid
-  );
-
-  return DBUS_HANDLER_RESULT_HANDLED;
-}
-
 descriptor_t *characteristic_get_descriptor (characteristic_t *characteristic, const char *descriptor_uuid)
 {
   descriptor_t *descriptor = characteristic->descriptors;
@@ -148,13 +134,12 @@ bool characteristic_add_descriptor (characteristic_t *characteristic, descriptor
     return false;
   }
 
-  char *descriptor_object_path = dbusutils_create_object_path (characteristic->object_path, DESCRIPTOR_OBJECT_NAME, characteristic->descriptor_count);
-  if (!dbusutils_register_object (global_dbus_connection, descriptor_object_path, &descriptor_dbus_callbacks, characteristic))
+  descriptor->object_path = dbusutils_create_object_path (characteristic->object_path, DESCRIPTOR_OBJECT_NAME, characteristic->descriptor_count);
+  if (!descriptor_register (descriptor))
   {
-    free (descriptor_object_path);
+    free (descriptor->object_path);
     return false;
   }
-  descriptor->object_path = descriptor_object_path;
   descriptor->characteristic_path = characteristic->object_path;
 
   descriptor->next = characteristic->descriptors;
@@ -163,10 +148,15 @@ bool characteristic_add_descriptor (characteristic_t *characteristic, descriptor
   return true;
 }
 
+bool characteristic_register (characteristic_t *characteristic)
+{
+  return dbusutils_register_object (global_dbus_connection, characteristic->object_path, characteristic_properties, characteristic_methods, characteristic);
+}
+
 //DBus Methods
 void characteristic_get_object (characteristic_t *characteristic, DBusMessageIter *iter)
 {
-  dbusutils_get_object_data (iter, &characteristic_properties[0], characteristic->object_path, BLUEZ_GATT_CHARACTERISTIC_INTERFACE, characteristic);
+  dbusutils_get_object_data (iter, characteristic_properties, characteristic->object_path, BLUEZ_GATT_CHARACTERISTIC_INTERFACE, characteristic);
 }
 
 static void characteristic_get_uuid (void *user_data, DBusMessageIter *iter)

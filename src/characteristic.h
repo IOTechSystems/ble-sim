@@ -28,8 +28,6 @@ typedef struct characteristic_t
   struct characteristic_t *next;
 } characteristic_t;
 
-extern DBusObjectPathVTable characteristic_dbus_callbacks;
-
 /**
  * Allocates memory and initialises values for a new characteristic_t 
  * 
@@ -37,7 +35,7 @@ extern DBusObjectPathVTable characteristic_dbus_callbacks;
  * @param descriptors characteristic descriptors 
  * @return initialised characteristic  
  **/
-characteristic_t *characteristic_new (const char *uuid, descriptor_t *descriptors);
+characteristic_t *characteristic_new (const char *uuid);
 
 /**
  * Frees a characteristic_t and it's values
@@ -64,7 +62,19 @@ descriptor_t *characteristic_get_descriptor (characteristic_t *characteristic, c
  **/
 bool characteristic_add_descriptor (characteristic_t *characteristic, descriptor_t *descriptor);
 
-//DBus Methods TODO
+/**
+ * Registers the characteristic object with dbus
+ * @param characteristic pointer to the characteristic
+ * @return success true/false
+ **/
+bool characteristic_register (characteristic_t *characteristic);
+
+//DBus Methods
+/**
+ * Populates a dbus message iter with a characteristic's object data
+ * @param characteristic pointer to the characteristic
+ * @param iter dbus message iter to populate
+ **/
 void characteristic_get_object (characteristic_t *characteristic, DBusMessageIter *iter);
 // void characteristic_get_all (characteristic_t *characteristic);
 // void characteristic_properties_changed (characteristic_t *characteristic);
