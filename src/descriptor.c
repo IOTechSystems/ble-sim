@@ -64,13 +64,9 @@ descriptor_t *descriptor_new (const char *uuid)
   new_descriptor->characteristic_path = NULL;
   new_descriptor->object_path = NULL;
 
-  new_descriptor->value = malloc (sizeof (int));
-  int a = 555;
-  memcpy (new_descriptor->value, &a, sizeof (int));
-  new_descriptor->value_size = sizeof (int);
+  new_descriptor->value = NULL;
+  new_descriptor->value_size = 0;
 
-  // new_descriptor->value = NULL;
-  // new_descriptor->value_size = 0;
   new_descriptor->flags = DESCRIPTOR_FLAGS_ALL_ENABLED;
   new_descriptor->next = NULL;
 

@@ -11,6 +11,7 @@
 #include <string.h>
 #include <assert.h>
 
+#include "utils.h"
 #include "dbusutils.h"
 
 typedef struct object_data_t
