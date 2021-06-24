@@ -13,7 +13,7 @@ bool utils_is_flag_set (unsigned int x, unsigned int flag)
   return x & flag;
 }
 
-void msleep (unsigned int milliseconds) //sleep for x milliseconds
+void msleep (unsigned int milliseconds)
 {
   struct timespec ts;
   ts.tv_sec = milliseconds / 1000;
