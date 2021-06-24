@@ -42,10 +42,20 @@ descriptor_t *descriptor_new (const char *uuid);
  **/
 void descriptor_free (descriptor_t *descriptor);
 
+/**
+ * Registers the descriptor object with dbus
+ * @param descriptor pointer to the descriptor
+ * @return success true/false
+ **/
 bool descriptor_register (descriptor_t *descriptor);
 
-// //DBus methods
-// void descriptor_get_all (descriptor_t *descriptor);
+//DBus methods
+/**
+ * Populates a dbus message iter with a descriptor's object data
+ * @param descriptor pointer to the descriptor
+ * @param iter dbus message iter to populate
+ * @return 
+ **/
 void descriptor_get_object (descriptor_t *descriptor, DBusMessageIter *iter);
 
 // //Bluez methods
