@@ -26,17 +26,24 @@ typedef struct device_t
   char *device_name; //name of the device
   char *object_path; //dbus object path to register to
   bool application_registered;
+  bool initialised; //if device has been sucessfully registered and initialised and is operation
   advertisement_t advertisement; //advertisement
   struct device_t *next;
 } device_t;
 
 /**
- * Allocates memory and initialises values for a new device_t 
- * 
+ * Allocates memory for a new device
+ * @return device or NULL if out of memory
+ **/
+device_t *device_new (void);
+
+/**
+ * Initialises values for a new device_t 
+ * @param device device to initialise
  * @param device_name name of the device
  * @return initialised device  
  **/
-device_t *device_new (const char *device_name);
+device_t *device_init (device_t *device, const char *device_name);
 
 /**
  * Frees a device and it's values
@@ -54,13 +61,14 @@ void device_free (device_t *device);
 device_t *device_get_device (const char *device_name);
 
 /**
- * Adds a device to the internal device list, registers it as a dbus object 
+ * Initialises the device: registers it as a dbus object 
  * and attempts to register it with bluez
+ * initialises its controller and adds the device to the internal device list,
  * 
  * @param device the device to add
  * @return succesful true/false
  **/
-bool device_add (device_t *device);
+bool device_register (device_t *device);
 
 /**
  * Removes a device from the list

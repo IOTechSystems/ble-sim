@@ -52,7 +52,7 @@ static object_flag_t descriptor_flags[] =
     {DESCRIPTOR_FLAG_AUTHORIZE,                   DESCRIPTOR_FLAG_AUTHORIZE_ENABLED_BIT}
   };
 
-descriptor_t *descriptor_new (const char *uuid)
+descriptor_t *descriptor_new (void)
 {
   descriptor_t *new_descriptor = calloc (1, sizeof (*new_descriptor));
   if (NULL == new_descriptor)
@@ -60,17 +60,21 @@ descriptor_t *descriptor_new (const char *uuid)
     return NULL;
   }
 
-  new_descriptor->uuid = strdup (uuid);
-  new_descriptor->characteristic_path = NULL;
-  new_descriptor->object_path = NULL;
-
-  new_descriptor->value = NULL;
-  new_descriptor->value_size = 0;
-
-  new_descriptor->flags = DESCRIPTOR_FLAGS_ALL_ENABLED;
-  new_descriptor->next = NULL;
-
   return new_descriptor;
+}
+
+descriptor_t *descriptor_init (descriptor_t *descriptor, const char *uuid)
+{
+  descriptor->uuid = strdup (uuid);
+  descriptor->characteristic_path = NULL;
+  descriptor->object_path = NULL;
+
+  descriptor->value = NULL;
+  descriptor->value_size = 0;
+
+  descriptor->flags = DESCRIPTOR_FLAGS_ALL_ENABLED;
+  descriptor->next = NULL;
+  return descriptor;
 }
 
 void descriptor_free (descriptor_t *descriptor)

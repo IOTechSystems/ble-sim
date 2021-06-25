@@ -72,7 +72,7 @@ static object_flag_t characteristic_flags[] =
     {CHARACTERISTIC_FLAG_AUTHORIZE,                     CHARACTERISTIC_FLAG_AUTHORIZE_ENABLED_BIT}
   };
 
-characteristic_t *characteristic_new (const char *uuid)
+characteristic_t *characteristic_new (void)
 {
   characteristic_t *new_characteristic = calloc (1, sizeof (*new_characteristic));
   if (NULL == new_characteristic)
@@ -80,20 +80,24 @@ characteristic_t *characteristic_new (const char *uuid)
     return NULL;
   }
 
-  new_characteristic->uuid = strdup (uuid);
-  new_characteristic->service_path = NULL;
-  new_characteristic->object_path = NULL;
-
-  new_characteristic->value = NULL;
-  new_characteristic->value_size = 0;
-
-  new_characteristic->notifying = false;
-  new_characteristic->flags = CHARACTERISTIC_FLAGS_ALL_ENABLED; //all enabled for now
-  new_characteristic->descriptors = NULL;
-  new_characteristic->descriptor_count = 0;
-  new_characteristic->next = NULL;
-
   return new_characteristic;
+}
+
+characteristic_t *characteristic_init (characteristic_t *characteristic, const char *uuid)
+{
+  characteristic->uuid = strdup (uuid);
+  characteristic->service_path = NULL;
+  characteristic->object_path = NULL;
+
+  characteristic->value = NULL;
+  characteristic->value_size = 0;
+
+  characteristic->notifying = false;
+  characteristic->flags = CHARACTERISTIC_FLAGS_ALL_ENABLED; //all enabled for now
+  characteristic->descriptors = NULL;
+  characteristic->descriptor_count = 0;
+  characteristic->next = NULL;
+  return characteristic;
 }
 
 void characteristic_free (characteristic_t *characteristic)
@@ -136,6 +140,12 @@ descriptor_t *characteristic_get_descriptor (characteristic_t *characteristic, c
 
 bool characteristic_add_descriptor (characteristic_t *characteristic, descriptor_t *descriptor)
 {
+  if (NULL == characteristic->object_path)
+  {
+    printf("ERR: Characteristic must be added to a service first in order to add a descriptor to it\n");
+    return false;
+  }
+
   if (characteristic_get_descriptor (characteristic, descriptor->uuid))
   {
     return false;

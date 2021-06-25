@@ -10,6 +10,10 @@
 
 #include <stdbool.h>
 
+#define SIM_ARGS_OPTION_SCRIPT "--script"
+#define SIM_ARGS_OPTION_HELP "--help"
+
+
 #define BLE_SIM_SERVICE_NAME "org.blesim"
 #define DEFAULT_ADAPTER "/org/bluez/hci1"
 
@@ -159,11 +163,30 @@
        __typeof__ (b) _b = (b); \
      _a < _b ? _a : _b; })
 
-//lua callback names
-#define LUA_CALLBACK_CREATE_DEVICE "createDevice"
-#define LUA_CALLBACK_DEVICE_ADD_SERVICE "deviceAddService"
-#define LUA_CALLBACK_DEVICE_ADD_CHARACTERISTIC "deviceAddCharacteristic"
-#define LUA_CALLBACK_DEVICE_ADD_DESCRIPTOR "deviceAddDescriptor"
-#define LUA_CALLBACK_SIMULATOR_ADD_DEVICE "simulatorAddDevice"
+
+//lua userdata object names
+#define LUA_USERDATA_DEVICE "device"
+#define LUA_USERDATA_SERVICE "service"
+#define LUA_USERDATA_CHARACTERISTIC "characteristic"
+#define LUA_USERDATA_DESCRIPTOR "descriptor"
+
+#define LUA_INDEX_FIELD "__index"
+//lua api names
+#define LUA_API_CREATE_DEVICE "createDevice"
+#define LUA_API_CREATE_SERVICE "createService"
+#define LUA_API_CREATE_CHARACTERISTIC "createCharacteristic"
+#define LUA_API_CREATE_DESCRIPTOR "createDescriptor"
+#define LUA_API_REGISTER_DEVICE "registerDevice"
+
+//lua device methods
+#define LUA_DEVICE_ADD_SERVICE "addService"
+
+//lua service methods
+#define LUA_SERVICE_ADD_CHARACTERISTIC "addCharacteristic"
+
+//lua characteristic methods
+#define LUA_CHARACTERISTIC_ADD_DESCRIPTOR "addDescriptor"
+
+//lua descriptor methods
 
 #endif //BLE_SIM_DEFINES_H

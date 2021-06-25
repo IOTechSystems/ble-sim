@@ -147,7 +147,7 @@ static void on_register_advert_reply (DBusPendingCall *pending_call, void *user_
   }
   else
   {
-    printf ("Succesfully Registered advert for device (%s) with bluez\n", *advertisement->local_name);
+    printf ("Succesfully Registered %s's advertisement with bluez\n", *advertisement->local_name);
     advertisement->registered = true;
   }
 

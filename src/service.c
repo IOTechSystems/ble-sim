@@ -31,7 +31,7 @@ static dbus_method_t service_methods[] =
     DBUS_METHOD_NULL
   };
 
-service_t *service_new (const char *uuid, bool primary)
+service_t *service_new (void)
 {
   service_t *new_service = calloc (1, sizeof (*new_service));
   if (NULL == new_service)
@@ -39,15 +39,20 @@ service_t *service_new (const char *uuid, bool primary)
     return NULL;
   }
 
-  new_service->uuid = strdup (uuid);
-  new_service->device_path = NULL;
-  new_service->object_path = NULL;
-  new_service->primary = primary;
-  new_service->characteristics = NULL;
-  new_service->characteristic_count = 0;
-  new_service->next = NULL;
-
   return new_service;
+}
+
+service_t *service_init (service_t *service, const char *uuid, bool primary)
+{
+  service->uuid = strdup (uuid);
+  service->device_path = NULL;
+  service->object_path = NULL;
+  service->primary = primary;
+  service->characteristics = NULL;
+  service->characteristic_count = 0;
+  service->next = NULL;
+
+  return service;
 }
 
 void service_free (service_t *service)
@@ -90,6 +95,12 @@ characteristic_t *service_get_characteristic (service_t *service, const char *ch
 
 bool service_add_characteristic (service_t *service, characteristic_t *characteristic)
 {
+  if (NULL == service->object_path)
+  {
+    printf("ERR: Service must be added to a device first in order to add a characteristic to it!\n");
+    return false;
+  }
+
   if (service_get_characteristic (service, characteristic->uuid))
   {
     return false;
