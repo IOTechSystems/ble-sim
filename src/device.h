@@ -34,10 +34,9 @@ typedef struct device_t
  * Allocates memory and initialises values for a new device_t 
  * 
  * @param device_name name of the device
- * @param controller name of the controller 
  * @return initialised device  
  **/
-device_t *device_new (const char *device_name, const char *controller);
+device_t *device_new (const char *device_name);
 
 /**
  * Frees a device and it's values
@@ -85,7 +84,11 @@ bool device_add_service (device_t *device, service_t *service);
  * @param characteristic characteristic to add
  * @return succesful true/false
  **/
-bool device_add_characteristic (device_t *device, const char *service_uuid, characteristic_t *characteristic);
+bool device_add_characteristic (
+  device_t *device,
+  const char *service_uuid,
+  characteristic_t *characteristic
+);
 
 /**
  * Adds a characteristic descriptor to device
@@ -95,7 +98,12 @@ bool device_add_characteristic (device_t *device, const char *service_uuid, char
  * @param descriptor descriptor to add
  * @return succesful true/false
  **/
-bool device_add_descriptor (device_t *device, const char *service_uuid, const char *characteristic_uuid, descriptor_t *descriptor);
+bool device_add_descriptor (
+  device_t *device,
+  const char *service_uuid,
+  const char *characteristic_uuid,
+  descriptor_t *descriptor
+);
 
 /**
  * Sets a devices discoverabilty 

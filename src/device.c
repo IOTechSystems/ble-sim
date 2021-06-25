@@ -19,7 +19,10 @@ static DBusMessage *device_get_managed_objects (void *device_ptr, DBusConnection
 
 static service_t *device_get_service (device_t *device, const char *service_uuid);
 
+static bool device_init_controller (device_t *device);
+
 static device_t *device_list_head = NULL;
+
 static unsigned int device_count = 0;
 
 static dbus_method_t device_methods[] =
@@ -60,16 +63,16 @@ static void add_device_to_device_list (device_t *device)
 }
 
 //device constructors destructors
-device_t *device_new (const char *device_name, const char *controller)
+device_t *device_new (const char *device_name)
 {
   device_t *device = calloc (1, sizeof (*device));
-  if (NULL == device)
+  if (NULL == device || NULL == device_name)
   {
     return NULL;
   }
 
   device->device_name = strdup (device_name);
-  device->controller = strdup (controller);
+  device->controller = NULL;
   device->application_registered = false;
   device->services = NULL;
   device->service_count = 0;
@@ -97,6 +100,8 @@ void device_free (device_t *device)
     service_free (device->services);
     device->services = tmp;
   }
+
+  advertisement_terminate(&device->advertisement);
 
   free (device);
 }
@@ -190,11 +195,15 @@ static void on_register_application_reply (DBusPendingCall *pending_call, void *
   }
 
   dbus_message_unref (reply);
-  dbus_pending_call_unref (pending_call);
 }
 
 static bool device_register_with_bluez (device_t *device, DBusConnection *connection)
 {
+  if (NULL == device->controller)
+  {
+    printf ("%s Device->contoller was NULL\n", __FUNCTION__);
+    return false;
+  }
   DBusMessage *message = dbus_message_new_method_call (BLUEZ_BUS_NAME, device->controller, BLUEZ_GATT_MANAGER_INTERFACE, BLUEZ_METHOD_REGISTER_APPLICATION);
   if (NULL == message)
   {
@@ -241,13 +250,32 @@ static bool device_register_with_bluez (device_t *device, DBusConnection *connec
   return true;
 }
 
+static bool device_init_controller (device_t *device)
+{
+  device->controller = strdup(DEFAULT_ADAPTER);
+  //TODO: properly init/create controller for device
+  return true;
+}
+
 //device manipulators - functions to create device, add services, characterisitcs etc
 bool device_add (device_t *device)
 {
+  if (device_count >= MAX_DEVICE_COUNT)
+  {
+    printf ("MAX device count reached!");
+    return false;
+  }
+
   bool success = false;
   if (device_get_device (device->device_name))
   {
     printf ("Device with that name already exists\n");
+    return false;
+  }
+
+  success = device_init_controller(device);
+  if (!success)
+  {
     return false;
   }
 
@@ -291,9 +319,7 @@ bool device_add (device_t *device)
     return false;
   }
 
-  //TODO: init/create controller for device
   add_device_to_device_list (device);
-
   return true;
 }
 

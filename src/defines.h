@@ -16,6 +16,8 @@
 #define UUID_LENGTH 32
 #define DEVICE_PATH_LENGTH 22
 
+#define MAX_DEVICE_COUNT 1 //TODO: add functionality to support more than one device
+
 #define EMPTY_STRING ""
 #define ROOT_PATH "/"
 #define DBUS_PROPERTY_NULL { NULL, NULL, NULL }
@@ -156,5 +158,12 @@
    ({ __typeof__ (a) _a = (a); \
        __typeof__ (b) _b = (b); \
      _a < _b ? _a : _b; })
+
+//lua callback names
+#define LUA_CALLBACK_CREATE_DEVICE "createDevice"
+#define LUA_CALLBACK_DEVICE_ADD_SERVICE "deviceAddService"
+#define LUA_CALLBACK_DEVICE_ADD_CHARACTERISTIC "deviceAddCharacteristic"
+#define LUA_CALLBACK_DEVICE_ADD_DESCRIPTOR "deviceAddDescriptor"
+#define LUA_CALLBACK_SIMULATOR_ADD_DEVICE "simulatorAddDevice"
 
 #endif //BLE_SIM_DEFINES_H

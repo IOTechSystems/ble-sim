@@ -8,13 +8,18 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake)
 
 find_package(Libdbus REQUIRED)
 if (NOT LIBDBUS_FOUND)
-    message (WARNING "D-Bus library or header not found")
+  message (WARNING "D-Bus library or header not found")
 endif ()
 
+find_library(LUA_LIBRARIES NAMES lua5.3)
+
+set(LUA_INCLUDE_DIR /usr/include/lua5.3/)
+
 include_directories (
-        ${DBUS_INCLUDE_DIR}
-        ${DBUS_ARCH_INCLUDE_DIR}
-        src/
+  ${LUA_INCLUDE_DIR}
+  ${DBUS_INCLUDE_DIR}
+  ${DBUS_ARCH_INCLUDE_DIR}
+  src/
 )
 
 if (CMAKE_C_COMPILER_ID MATCHES GNU)
@@ -31,4 +36,4 @@ add_executable(ble-sim ${C_FILES})
 FILE(STRINGS "VERSION" VERSION_NUMBER)
 target_compile_definitions(ble-sim PRIVATE VERSION="${VERSION_NUMBER}")
 
-target_link_libraries(ble-sim PUBLIC ${DBUS_LIBRARIES})
+target_link_libraries(ble-sim PUBLIC ${DBUS_LIBRARIES} ${LUA_LIBRARIES})

@@ -107,6 +107,18 @@ void advertisement_init (
   advertisement->tx_power = ADVERTISEMENT_TX_POWER_DEFAULT;
 }
 
+void advertisement_terminate (advertisement_t *advertisement)
+{
+  if (NULL == advertisement)
+  {
+    return;
+  }
+
+  free (advertisement->object_path);
+  free (advertisement->type);
+  free (advertisement->secondary_channel);
+}
+
 bool advertisement_register (advertisement_t *advertisement)
 {
   return dbusutils_register_object (
@@ -140,7 +152,6 @@ static void on_register_advert_reply (DBusPendingCall *pending_call, void *user_
   }
 
   dbus_message_unref (reply);
-  dbus_pending_call_unref (pending_call);
 }
 
 bool advertisement_register_with_bluez (

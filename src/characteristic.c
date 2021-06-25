@@ -147,7 +147,7 @@ bool characteristic_add_descriptor (characteristic_t *characteristic, descriptor
     free (descriptor->object_path);
     return false;
   }
-  descriptor->characteristic_path = characteristic->object_path;
+  descriptor->characteristic_path = strdup(characteristic->object_path);
 
   descriptor->next = characteristic->descriptors;
   characteristic->descriptors = descriptor;

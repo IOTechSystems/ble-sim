@@ -80,6 +80,7 @@ void descriptor_free (descriptor_t *descriptor)
     return;
   }
 
+  free (descriptor->object_path);
   free (descriptor->uuid);
   free (descriptor->characteristic_path);
   free (descriptor->value);
