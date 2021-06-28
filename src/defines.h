@@ -13,6 +13,9 @@
 #define SIM_ARGS_OPTION_SCRIPT "--script"
 #define SIM_ARGS_OPTION_HELP "--help"
 
+#define ORIGIN_C 1
+#define ORIGIN_LUA 3
+
 #define BLE_SIM_TICK_RATE_MS 100//ms
 #define BLE_SIM_SERVICE_NAME "org.blesim"
 #define DEFAULT_ADAPTER "/org/bluez/hci1"
@@ -171,6 +174,7 @@
 #define LUA_USERDATA_DESCRIPTOR "descriptor"
 
 #define LUA_INDEX_FIELD "__index"
+#define LUA_GARBAGE_COLLECTOR_FIELD "__gc"
 //lua api names
 #define LUA_API_CREATE_DEVICE "createDevice"
 #define LUA_API_CREATE_SERVICE "createService"

@@ -26,7 +26,7 @@ typedef struct service_t
   char *object_path;
   characteristic_t *characteristics;
   unsigned int characteristic_count;
-  bool lua_owned; //if the service object was created by lua - if so we should not free the service itself
+  int origin; //where the object was created - influences how we free it
   struct service_t *next;
 } service_t;
 
@@ -46,7 +46,7 @@ service_t *service_new (void);
  * @param primary true/false if the service is a devices primary service
  * @return initialised service  
  **/
-service_t *service_init (service_t *service, const char *uuid, bool primary, bool lua_owned);
+service_t *service_init (service_t *service, const char *uuid, bool primary, int origin);
 
 /**
  * Frees a service and it's values

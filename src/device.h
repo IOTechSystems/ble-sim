@@ -27,7 +27,7 @@ typedef struct device_t
   char *object_path; //dbus object path to register to
   bool application_registered;
   bool initialised; //if device has been sucessfully registered and initialised and is operation
-  bool lua_owned;//if the device object was created by lua - if so we should not free the device itself
+  int origin;//where the object was created - influences how we free it
   advertisement_t advertisement; //advertisement
   struct device_t *next;
 } device_t;
@@ -44,10 +44,10 @@ device_t *device_new (void);
  * @param device_name name of the device
  * @return initialised device  
  **/
-device_t *device_init (device_t *device, const char *device_name, bool lua_owned);
+device_t *device_init (device_t *device, const char *device_name, int origin);
 
 /**
- * Frees a device and it's data - will only free the device if lua_owned is false
+ * Frees a device and it's data 
  * @param device device to free
  **/
 void device_free (device_t *device);
@@ -128,10 +128,5 @@ bool device_set_discoverable (device_t *device, bool discoverable);
  * @return success true/false 
  **/
 bool device_set_powered (device_t *device, bool powered);
-
-/**
- * Removes and frees all devices in the internal device list
- **/
-void device_cleanup_devices (void);
 
 #endif //BLE_SIM_DEVICE_H

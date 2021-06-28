@@ -150,7 +150,6 @@ static void print_help (const char *filename)
 
 static void cleanup_simulator (void)
 {
-  device_cleanup_devices (); //cleanup devices should be called before lua cleanup
   dbus_cleanup ();
   luai_cleanup ();
 }

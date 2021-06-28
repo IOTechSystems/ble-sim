@@ -83,9 +83,9 @@ characteristic_t *characteristic_new (void)
   return new_characteristic;
 }
 
-characteristic_t *characteristic_init (characteristic_t *characteristic, const char *uuid, bool lua_owned)
+characteristic_t *characteristic_init (characteristic_t *characteristic, const char *uuid, int origin)
 {
-  characteristic->lua_owned = lua_owned;
+  characteristic->origin = origin;
   characteristic->uuid = strdup (uuid);
   characteristic->service_path = NULL;
   characteristic->object_path = NULL;
@@ -113,16 +113,16 @@ void characteristic_free (characteristic_t *characteristic)
   free (characteristic->object_path);
   free (characteristic->value);
 
-  descriptor_t *tmp = NULL;
-  while (characteristic->descriptors)
+  if (characteristic->origin == ORIGIN_C)
   {
-    tmp = characteristic->descriptors->next;
-    descriptor_free (characteristic->descriptors);
-    characteristic->descriptors = tmp;
-  }
+    descriptor_t *tmp = NULL;
+    while (characteristic->descriptors)
+    {
+      tmp = characteristic->descriptors->next;
+      descriptor_free (characteristic->descriptors);
+      characteristic->descriptors = tmp;
+    }
 
-  if (!characteristic->lua_owned)
-  {
     free (characteristic);
   }
 }

@@ -42,9 +42,9 @@ service_t *service_new (void)
   return new_service;
 }
 
-service_t *service_init (service_t *service, const char *uuid, bool primary, bool lua_owned)
+service_t *service_init (service_t *service, const char *uuid, bool primary, int origin)
 {
-  service->lua_owned = lua_owned;
+  service->origin = origin;
   service->uuid = strdup (uuid);
   service->device_path = NULL;
   service->object_path = NULL;
@@ -67,17 +67,17 @@ void service_free (service_t *service)
   free (service->device_path);
   free (service->object_path);
 
-  characteristic_t *tmp = NULL;
-  while (service->characteristics)
+  if (service->origin == ORIGIN_C)
   {
-    tmp = service->characteristics->next;
-    characteristic_free (service->characteristics);
-    service->characteristics = tmp;
-  }
-  service->next = NULL;
+    characteristic_t *tmp = NULL;
+    while (service->characteristics)
+    {
+      tmp = service->characteristics->next;
+      characteristic_free (service->characteristics);
+      service->characteristics = tmp;
+    }
+    service->next = NULL;
 
-  if (!service->lua_owned)
-  {
     free (service);
   }
 }

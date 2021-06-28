@@ -25,7 +25,7 @@ typedef struct characteristic_t
   uint32_t flags; //Flags to define how the characteristic value can be used
   descriptor_t *descriptors;
   unsigned int descriptor_count;
-  bool lua_owned;
+  int origin; //where the object was created - influences how we free it
   struct characteristic_t *next;
 } characteristic_t;
 
@@ -41,7 +41,7 @@ characteristic_t *characteristic_new (void);
  * @param uuid the uuid of the characteristic 
  * @return initialised characteristic  
  **/
-characteristic_t *characteristic_init (characteristic_t *characteristic, const char *uuid, bool lua_owned);
+characteristic_t *characteristic_init (characteristic_t *characteristic, const char *uuid, int origin);
 
 /**
  * Frees a characteristic_t and it's values

@@ -31,19 +31,6 @@ static dbus_method_t device_methods[] =
     DBUS_METHOD_NULL
   };
 
-//device list
-void device_cleanup_devices (void)
-{
-  device_t *tmp = NULL;
-  while (device_list_head)
-  {
-    tmp = device_list_head->next;
-    device_free (device_list_head);
-    device_list_head = tmp;
-  }
-  device_count = 0;
-}
-
 static void add_device_to_device_list (device_t *device)
 {
   if (NULL == device)
@@ -74,9 +61,9 @@ device_t *device_new (void)
   return device;
 }
 
-device_t *device_init (device_t *device, const char *device_name, bool lua_owned)
+device_t *device_init (device_t *device, const char *device_name, int origin)
 {
-  device->lua_owned = lua_owned;
+  device->origin = origin;
   device->device_name = strdup (device_name);
   device->controller = NULL;
   device->application_registered = false;
@@ -100,18 +87,18 @@ void device_free (device_t *device)
   free (device->device_name);
   free (device->object_path);
 
-  service_t *tmp = NULL;
-  while (device->services)
-  {
-    tmp = device->services->next;
-    service_free (device->services);
-    device->services = tmp;
-  }
-
   advertisement_terminate (&device->advertisement);
 
-  if (!device->lua_owned)
+  if (device->origin == ORIGIN_C)
   {
+    service_t *tmp = NULL;
+    while (device->services)
+    {
+      tmp = device->services->next;
+      service_free (device->services);
+      device->services = tmp;
+    }
+
     free (device);
   }
 }
