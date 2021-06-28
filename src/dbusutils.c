@@ -67,6 +67,7 @@ void dbusutils_send_object_properties_changed_signal (
   dbus_message_iter_close_container (&iter, &array);
 
   dbus_connection_send (connection, signal, NULL);
+  dbus_message_unref (signal);
 }
 
 static void append_variant (DBusMessageIter *iter, int type, const void *val)
@@ -245,7 +246,6 @@ DBusConnection *dbusutils_get_connection (void)
     printf ("Connection Error (%s)\n", err.message);
     dbus_error_free (&err);
   }
-  dbus_error_free (&err);
   return conn;
 }
 
@@ -461,8 +461,6 @@ DBusMessage *dbusutils_do_method_call (DBusConnection *connection, const char *b
     dbus_error_free (&err);
     return NULL;
   }
-
-  dbus_error_free (&err);
   return dbus_reply;
 }
 
