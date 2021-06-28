@@ -132,13 +132,13 @@ static char *get_default_adapter (void)
   return NULL;
 }
 
-static void print_usage(const char *filename)
+static void print_usage (const char *filename)
 {
-  printf("Usage: %s [--script script_path]\n", filename);
-  printf("          [--help]\n");
+  printf ("Usage: %s [--script script_path]\n", filename);
+  printf ("          [--help]\n");
 }
 
-static void print_help(const char *filename)
+static void print_help (const char *filename)
 {
   printf ("Simulate a bluetooth low energy device\n"
           "--script/-s:\n"
@@ -148,7 +148,7 @@ static void print_help(const char *filename)
           filename);
 }
 
-static void cleanup_simulator(void)
+static void cleanup_simulator (void)
 {
   device_cleanup_devices (); //cleanup devices should be called before lua cleanup
   dbus_cleanup ();
@@ -157,23 +157,23 @@ static void cleanup_simulator(void)
 
 static void stop_simulator (int a)
 {
-  printf("\nStopping simulator...\n");
+  printf ("\nStopping simulator...\n");
   dbusutils_mainloop_running = false;
 }
 
-static bool parse_args(int argc, char *argv[])
+static bool parse_args (int argc, char *argv[])
 {
-  char *filename = argv[0]; 
+  char *filename = argv[0];
 
   if (argc == 1)
   {
     print_usage (filename);
     return false;
   }
-  
+
   for (int i = 1; i < argc; i++)
   {
-    if (strcmp(argv[i], SIM_ARGS_OPTION_SCRIPT) == 0)
+    if (strcmp (argv[i], SIM_ARGS_OPTION_SCRIPT) == 0)
     {
       if (i == argc - 1)
       {
@@ -183,14 +183,14 @@ static bool parse_args(int argc, char *argv[])
       i++;
       script_path = argv[i];
     }
-    else if (strcmp(argv[i], SIM_ARGS_OPTION_HELP) == 0)
+    else if (strcmp (argv[i], SIM_ARGS_OPTION_HELP) == 0)
     {
       print_help (filename);
       return false;
     }
     else
     {
-      print_usage(filename);
+      print_usage (filename);
       return false;
     }
   }
@@ -199,16 +199,16 @@ static bool parse_args(int argc, char *argv[])
 
 static void update (void *user_data)
 {
-  if (!luai_call_update())
+  if (!luai_call_update ())
   {
-    stop_simulator(0);
+    stop_simulator (0);
   }
 }
 
 int main (int argc, char *argv[])
 {
 
-  if(!parse_args(argc, argv))
+  if (!parse_args (argc, argv))
   {
     return 1;
   }
@@ -222,13 +222,13 @@ int main (int argc, char *argv[])
   if (NULL == default_adapter)
   {
     printf ("Could not find a bluetooth adapter\n");
-    cleanup_simulator();
+    cleanup_simulator ();
     return 1;
   }
   printf ("Found default adapter: %s\n", default_adapter);
 
 
-  if (NULL != script_path && !luai_init_state(script_path))
+  if (NULL != script_path && !luai_init_state (script_path))
   {
     return 1;
   }
@@ -238,7 +238,7 @@ int main (int argc, char *argv[])
 
   dbusutils_mainloop_run (global_dbus_connection, &update);
 
-  cleanup_simulator();
+  cleanup_simulator ();
 
   return 0;
 }

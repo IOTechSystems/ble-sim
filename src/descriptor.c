@@ -92,7 +92,7 @@ void descriptor_free (descriptor_t *descriptor)
   if (!descriptor->lua_owned)
   {
     free (descriptor);
-  } 
+  }
 }
 
 bool descriptor_register (descriptor_t *descriptor)

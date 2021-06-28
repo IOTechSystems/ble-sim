@@ -101,13 +101,13 @@ bool service_add_characteristic (service_t *service, characteristic_t *character
 {
   if (NULL == service->object_path)
   {
-    printf("ERR: Service must be added to a device first in order to add a characteristic to it!\n");
+    printf ("ERR: Service must be added to a device first in order to add a characteristic to it!\n");
     return false;
   }
 
   if (NULL != characteristic->service_path)
   {
-    printf("ERR: Characteristic already belongs to another service.\n");
+    printf ("ERR: Characteristic already belongs to another service.\n");
     return false;
   }
 

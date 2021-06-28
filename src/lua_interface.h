@@ -16,6 +16,7 @@
 
 
 bool luai_init_state (const char *script_path);
+
 void luai_cleanup (void);
 
 bool luai_call_update (void);

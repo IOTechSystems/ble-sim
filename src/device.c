@@ -108,7 +108,7 @@ void device_free (device_t *device)
     device->services = tmp;
   }
 
-  advertisement_terminate(&device->advertisement);
+  advertisement_terminate (&device->advertisement);
 
   if (!device->lua_owned)
   {
@@ -260,7 +260,7 @@ static bool device_register_with_bluez (device_t *device, DBusConnection *connec
 
 static bool device_init_controller (device_t *device)
 {
-  device->controller = strdup(DEFAULT_ADAPTER);
+  device->controller = strdup (DEFAULT_ADAPTER);
   //TODO: properly init/create controller for device
   return true;
 }
@@ -281,7 +281,7 @@ bool device_register (device_t *device)
     return false;
   }
 
-  success = device_init_controller(device);
+  success = device_init_controller (device);
   if (!success)
   {
     return false;
@@ -337,7 +337,7 @@ bool device_set_discoverable (device_t *device, bool discoverable)
 {
   if (!device->initialised)
   {
-    printf("Error: Device must be initialised to set its discoverability.\n");
+    printf ("Error: Device must be initialised to set its discoverability.\n");
     return false;
   }
 
@@ -368,7 +368,7 @@ bool device_set_powered (device_t *device, bool powered)
 {
   if (!device->initialised)
   {
-    printf("Error: Device must be initialised to change its powerd state.\n");
+    printf ("Error: Device must be initialised to change its powerd state.\n");
     return false;
   }
 
@@ -434,7 +434,7 @@ bool device_add_service (device_t *device, service_t *service)
 
   if (NULL != service->device_path)
   {
-    printf("ERR: Service already belongs to a device.\n");
+    printf ("ERR: Service already belongs to a device.\n");
     return false;
   }
 
