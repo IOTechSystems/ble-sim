@@ -35,8 +35,10 @@ extern DBusObjectPathVTable descriptor_dbus_callbacks;
 descriptor_t *descriptor_new (void);
 
 /**
- * Initialises values for a new descriptor 
+ * Initialises values for a new descriptor
+ * @param descriptor the descriptor
  * @param uuid the uuid of the descriptor
+ * @param the origin of the object used to distinguish if it was created in lua
  * @return initialised descriptor  
  **/
 descriptor_t *descriptor_init (descriptor_t *descriptor, const char *uuid, int origin);

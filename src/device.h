@@ -42,6 +42,7 @@ device_t *device_new (void);
  * Initialises values for a new device_t 
  * @param device device to initialise
  * @param device_name name of the device
+ * @param the origin of the object used to distinguish if it was created in lua
  * @return initialised device  
  **/
 device_t *device_init (device_t *device, const char *device_name, int origin);
@@ -84,34 +85,6 @@ bool device_remove (const char *device_name);
  * @return succesful true/false
  **/
 bool device_add_service (device_t *device, service_t *service);
-
-/**
- * Adds a service characteristic to device
- * @param device_name unique name of the device to add the characteristic to
- * @param service_uuid service to add the characteristic to
- * @param characteristic characteristic to add
- * @return succesful true/false
- **/
-bool device_add_characteristic (
-  device_t *device,
-  const char *service_uuid,
-  characteristic_t *characteristic
-);
-
-/**
- * Adds a characteristic descriptor to device
- * @param device_name unique name of the device to add the descriptor to
- * @param service_uuid service to add the descriptor to
- * @param characteristic_uuid characteristic to add the descriptor to
- * @param descriptor descriptor to add
- * @return succesful true/false
- **/
-bool device_add_descriptor (
-  device_t *device,
-  const char *service_uuid,
-  const char *characteristic_uuid,
-  descriptor_t *descriptor
-);
 
 /**
  * Sets a devices discoverabilty 

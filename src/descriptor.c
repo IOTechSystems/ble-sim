@@ -89,7 +89,7 @@ void descriptor_free (descriptor_t *descriptor)
   free (descriptor->uuid);
   free (descriptor->characteristic_path);
   free (descriptor->value);
-  
+
   if (descriptor->origin == ORIGIN_C)
   {
     free (descriptor);

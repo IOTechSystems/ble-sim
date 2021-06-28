@@ -32,10 +32,8 @@ typedef struct service_t
 
 /**
  * Allocates memory for a new service_t 
- * 
- * @param uuid the uuid of the service 
- * @param primary true/false if the service is the devices primary service
- * @return initialised service  
+ *
+ * @return allocated service
  **/
 service_t *service_new (void);
 
@@ -44,6 +42,7 @@ service_t *service_new (void);
  * @param service service to initialise
  * @param uuid the uuid of the service 
  * @param primary true/false if the service is a devices primary service
+ * @param the origin of the object used to distinguish if it was created in lua
  * @return initialised service  
  **/
 service_t *service_init (service_t *service, const char *uuid, bool primary, int origin);

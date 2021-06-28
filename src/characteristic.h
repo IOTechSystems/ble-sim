@@ -37,8 +37,10 @@ typedef struct characteristic_t
 characteristic_t *characteristic_new (void);
 
 /**
- * Initialises values for a new characteristic 
- * @param uuid the uuid of the characteristic 
+ * Initialises values for a new characteristic
+ * @param characteristic the characteristic
+ * @param uuid the uuid of the characteristic
+ * @param the origin of the object used to distinguish if it was created in lua
  * @return initialised characteristic  
  **/
 characteristic_t *characteristic_init (characteristic_t *characteristic, const char *uuid, int origin);
