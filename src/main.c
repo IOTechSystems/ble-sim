@@ -24,11 +24,6 @@ char *default_adapter = NULL;
 
 char *script_path = NULL;
 
-// device_t *dev0 = NULL;
-// service_t *dev0_srvc0 = NULL;
-// characteristic_t *dev0_srvc0_char0 = NULL;
-// descriptor_t *dev0_srvc0_char0_desc0 = NULL;
-
 static DBusHandlerResult filter_message (DBusConnection *connection, DBusMessage *message, void *data)
 {
   printf ("Incomming DBus Message %d %s : %s %s/%s/%s %s\n",
@@ -76,38 +71,6 @@ static void dbus_cleanup (void)
 
   dbus_connection_flush (global_dbus_connection);
   dbus_connection_unref (global_dbus_connection);
-}
-
-// static void init_dev (void)
-// {
-//   const char *devname = "test-dev";
-
-//   dev0 = device_new (devname, default_adapter);;
-//   dev0_srvc0 = service_new (TST_SRVC1, true);
-//   dev0_srvc0_char0 = characteristic_new (TST_CHR1);
-//   dev0_srvc0_char0_desc0 = descriptor_new (TST_DESC1);
-
-//   device_add_service (dev0, dev0_srvc0);
-//   device_add_characteristic (dev0, TST_SRVC1, dev0_srvc0_char0);
-//   device_add_descriptor (dev0, TST_SRVC1, TST_CHR1, dev0_srvc0_char0_desc0);
-
-//   if (!device_add (dev0))
-//   {
-//     printf ("Failed to add test device\n");
-//     device_free (dev0);
-//   }
-
-//   characteristic_set_notifying (dev0_srvc0_char0, true);
-
-//   device_set_powered (dev0, true);
-//   device_set_discoverable (dev0, true);
-// }
-
-static void update (void *user_data)
-{
-  // DBusConnection *connection = (DBusConnection *) user_data;
-  // characteristic_update_value (dev0_srvc0_char0, &count, sizeof (int), connection);
-  // count++;
 }
 
 static char *get_default_adapter (void)
@@ -187,8 +150,9 @@ static void print_help(const char *filename)
 
 static void cleanup_simulator(void)
 {
+  device_cleanup_devices (); //cleanup devices should be called before lua cleanup
   dbus_cleanup ();
-  luai_cleanup();
+  luai_cleanup ();
 }
 
 static void stop_simulator (int a)
@@ -233,6 +197,14 @@ static bool parse_args(int argc, char *argv[])
   return true;
 }
 
+static void update (void *user_data)
+{
+  if (!luai_call_update())
+  {
+    stop_simulator(0);
+  }
+}
+
 int main (int argc, char *argv[])
 {
 
@@ -249,7 +221,8 @@ int main (int argc, char *argv[])
   default_adapter = get_default_adapter ();
   if (NULL == default_adapter)
   {
-    printf ("Could not find an adapter\n");
+    printf ("Could not find a bluetooth adapter\n");
+    cleanup_simulator();
     return 1;
   }
   printf ("Found default adapter: %s\n", default_adapter);

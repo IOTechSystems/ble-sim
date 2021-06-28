@@ -245,6 +245,7 @@ DBusConnection *dbusutils_get_connection (void)
     printf ("Connection Error (%s)\n", err.message);
     dbus_error_free (&err);
   }
+  dbus_error_free (&err);
   return conn;
 }
 
@@ -530,6 +531,6 @@ void dbusutils_mainloop_run (DBusConnection *connection, void (*sim_update_funct
     dispatch (connection);
 
     //TODO: investigate why removing this sleep interferes with dbus sending messages (when updating characteristic values in sim_update_function_ptr)
-    msleep (100);
+    msleep (BLE_SIM_TICK_RATE_MS);
   }
 }

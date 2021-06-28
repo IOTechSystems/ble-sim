@@ -13,7 +13,7 @@
 #define SIM_ARGS_OPTION_SCRIPT "--script"
 #define SIM_ARGS_OPTION_HELP "--help"
 
-
+#define BLE_SIM_TICK_RATE_MS 100//ms
 #define BLE_SIM_SERVICE_NAME "org.blesim"
 #define DEFAULT_ADAPTER "/org/bluez/hci1"
 
@@ -178,15 +178,20 @@
 #define LUA_API_CREATE_DESCRIPTOR "createDescriptor"
 #define LUA_API_REGISTER_DEVICE "registerDevice"
 
+#define LUA_API_FUNCTION_UPDATE "Update"
+
 //lua device methods
 #define LUA_DEVICE_ADD_SERVICE "addService"
+#define LUA_DEVICE_SET_POWERED "powered"
+#define LUA_DEVICE_SET_DISCOVERABLE "discoverable"
 
 //lua service methods
 #define LUA_SERVICE_ADD_CHARACTERISTIC "addCharacteristic"
 
 //lua characteristic methods
 #define LUA_CHARACTERISTIC_ADD_DESCRIPTOR "addDescriptor"
-
+#define LUA_CHARACTERISTIC_SET_NOTIFYING "notifying"
+#define LUA_CHARACTERISTIC_SET_VALUE "setValue"
 //lua descriptor methods
 
 #endif //BLE_SIM_DEFINES_H

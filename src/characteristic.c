@@ -15,7 +15,7 @@
 #include "defines.h"
 #include "utils.h"
 
-static void characteristic_set_value (characteristic_t *characteristic, void *new_value, uint32_t value_size);
+static void characteristic_set_value (characteristic_t *characteristic, const void *new_value, const uint32_t value_size);
 
 static void characteristic_get_uuid (void *user_data, DBusMessageIter *iter);
 
@@ -83,8 +83,9 @@ characteristic_t *characteristic_new (void)
   return new_characteristic;
 }
 
-characteristic_t *characteristic_init (characteristic_t *characteristic, const char *uuid)
+characteristic_t *characteristic_init (characteristic_t *characteristic, const char *uuid, bool lua_owned)
 {
+  characteristic->lua_owned = lua_owned;
   characteristic->uuid = strdup (uuid);
   characteristic->service_path = NULL;
   characteristic->object_path = NULL;
@@ -120,8 +121,12 @@ void characteristic_free (characteristic_t *characteristic)
     characteristic->descriptors = tmp;
   }
 
-  free (characteristic);
+  if (!characteristic->lua_owned)
+  {
+    free (characteristic);
+  }
 }
+
 
 descriptor_t *characteristic_get_descriptor (characteristic_t *characteristic, const char *descriptor_uuid)
 {
@@ -142,7 +147,13 @@ bool characteristic_add_descriptor (characteristic_t *characteristic, descriptor
 {
   if (NULL == characteristic->object_path)
   {
-    printf("ERR: Characteristic must be added to a service first in order to add a descriptor to it\n");
+    printf("ERR: Characteristic must be added to a service first in order to add a descriptor to it.\n");
+    return false;
+  }
+
+  if (NULL != descriptor->characteristic_path)
+  {
+    printf("ERR: Descriptor already belongs to another characteristic.\n");
     return false;
   }
 
@@ -170,8 +181,28 @@ bool characteristic_register (characteristic_t *characteristic)
   return dbusutils_register_object (global_dbus_connection, characteristic->object_path, characteristic_properties, characteristic_methods, characteristic);
 }
 
-void characteristic_update_value (characteristic_t *characteristic, void *new_value, uint32_t value_size, DBusConnection *connection)
+static bool is_new_value(characteristic_t *characteristic, const void *new_value, const uint32_t value_size)
 {
+  if (characteristic->value_size != value_size)
+  {
+    return true;
+  }
+
+  if (memcmp (new_value, characteristic->value, value_size) != 0)
+  {
+    return true;
+  }
+
+  return false;
+}
+
+void characteristic_update_value (characteristic_t *characteristic, const void *new_value, const uint32_t value_size, DBusConnection *connection)
+{
+  if (!is_new_value (characteristic, new_value, value_size)) 
+  {
+    return; //no point in updating if the value is the same so return
+  }
+
   characteristic_set_value (characteristic, new_value, value_size);
 
   if (characteristic->notifying)
@@ -231,13 +262,13 @@ static void characteristic_get_value (void *user_data, DBusMessageIter *iter)
 {
   characteristic_t *characteristic = (characteristic_t *) user_data;
   DBusMessageIter array;
-
+  
   dbus_message_iter_open_container (iter, DBUS_TYPE_ARRAY, DBUS_TYPE_BYTE_AS_STRING, &array);
   dbus_message_iter_append_fixed_array (&array, DBUS_TYPE_BYTE, &characteristic->value, characteristic->value_size);
   dbus_message_iter_close_container (iter, &array);
 }
 
-static void characteristic_set_value (characteristic_t *characteristic, void *new_value, uint32_t value_size)
+static void characteristic_set_value (characteristic_t *characteristic, const void *new_value, const uint32_t value_size)
 {
   if (NULL == characteristic || new_value == NULL)
   {

@@ -25,6 +25,7 @@ typedef struct characteristic_t
   uint32_t flags; //Flags to define how the characteristic value can be used
   descriptor_t *descriptors;
   unsigned int descriptor_count;
+  bool lua_owned;
   struct characteristic_t *next;
 } characteristic_t;
 
@@ -40,7 +41,7 @@ characteristic_t *characteristic_new (void);
  * @param uuid the uuid of the characteristic 
  * @return initialised characteristic  
  **/
-characteristic_t *characteristic_init (characteristic_t *characteristic, const char *uuid);
+characteristic_t *characteristic_init (characteristic_t *characteristic, const char *uuid, bool lua_owned);
 
 /**
  * Frees a characteristic_t and it's values
@@ -74,7 +75,7 @@ bool characteristic_add_descriptor (characteristic_t *characteristic, descriptor
  * @param value_size size of the new value
  * @param connection dbus connection to send the properties changed signal on
  **/
-void characteristic_update_value (characteristic_t *characteristic, void *new_value, uint32_t value_size, DBusConnection *connection);
+void characteristic_update_value (characteristic_t *characteristic, const void *new_value, const uint32_t value_size, DBusConnection *connection);
 
 /**
  * Sets a characteristics notifying state 

@@ -27,6 +27,7 @@ typedef struct device_t
   char *object_path; //dbus object path to register to
   bool application_registered;
   bool initialised; //if device has been sucessfully registered and initialised and is operation
+  bool lua_owned;//if the device object was created by lua - if so we should not free the device itself
   advertisement_t advertisement; //advertisement
   struct device_t *next;
 } device_t;
@@ -43,12 +44,11 @@ device_t *device_new (void);
  * @param device_name name of the device
  * @return initialised device  
  **/
-device_t *device_init (device_t *device, const char *device_name);
+device_t *device_init (device_t *device, const char *device_name, bool lua_owned);
 
 /**
- * Frees a device and it's values
- * 
- * @param device device to free 
+ * Frees a device and it's data - will only free the device if lua_owned is false
+ * @param device device to free
  **/
 void device_free (device_t *device);
 

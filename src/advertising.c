@@ -332,7 +332,8 @@ static void advertisement_get_manufacturer_data (void *advertisement_ptr, DBusMe
 static void advertisement_get_discoverable (void *advertisement_ptr, DBusMessageIter *iter)
 {
   advertisement_t *advertisement = (advertisement_t *) advertisement_ptr;
-  dbus_message_iter_append_basic (iter, DBUS_TYPE_BOOLEAN, &advertisement->discoverable);
+  dbus_bool_t value = advertisement->discoverable ? TRUE : FALSE;
+  dbus_message_iter_append_basic (iter, DBUS_TYPE_BOOLEAN, &value);
 }
 
 static void advertisement_get_discoverable_timeout (void *advertisement_ptr, DBusMessageIter *iter)

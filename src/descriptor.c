@@ -63,8 +63,9 @@ descriptor_t *descriptor_new (void)
   return new_descriptor;
 }
 
-descriptor_t *descriptor_init (descriptor_t *descriptor, const char *uuid)
+descriptor_t *descriptor_init (descriptor_t *descriptor, const char *uuid, bool lua_owned)
 {
+  descriptor->lua_owned = lua_owned;
   descriptor->uuid = strdup (uuid);
   descriptor->characteristic_path = NULL;
   descriptor->object_path = NULL;
@@ -88,7 +89,10 @@ void descriptor_free (descriptor_t *descriptor)
   free (descriptor->uuid);
   free (descriptor->characteristic_path);
   free (descriptor->value);
-  free (descriptor);
+  if (!descriptor->lua_owned)
+  {
+    free (descriptor);
+  } 
 }
 
 bool descriptor_register (descriptor_t *descriptor)

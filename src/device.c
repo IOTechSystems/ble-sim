@@ -31,6 +31,19 @@ static dbus_method_t device_methods[] =
     DBUS_METHOD_NULL
   };
 
+//device list
+void device_cleanup_devices (void)
+{
+  device_t *tmp = NULL;
+  while (device_list_head)
+  {
+    tmp = device_list_head->next;
+    device_free (device_list_head);
+    device_list_head = tmp;
+  }
+  device_count = 0;
+}
+
 static void add_device_to_device_list (device_t *device)
 {
   if (NULL == device)
@@ -61,8 +74,9 @@ device_t *device_new (void)
   return device;
 }
 
-device_t *device_init (device_t *device, const char *device_name)
+device_t *device_init (device_t *device, const char *device_name, bool lua_owned)
 {
+  device->lua_owned = lua_owned;
   device->device_name = strdup (device_name);
   device->controller = NULL;
   device->application_registered = false;
@@ -96,7 +110,10 @@ void device_free (device_t *device)
 
   advertisement_terminate(&device->advertisement);
 
-  free (device);
+  if (!device->lua_owned)
+  {
+    free (device);
+  }
 }
 
 static DBusMessage *device_get_managed_objects (void *device_ptr, DBusConnection *connection, DBusMessage *message)
@@ -343,6 +360,7 @@ bool device_set_discoverable (device_t *device, bool discoverable)
   }
 
   printf ("Device (%s) discoverable %s\n", device->device_name, discoverable ? "on" : "off");
+  dbus_message_unref (reply);
   return true;
 }
 
@@ -373,6 +391,7 @@ bool device_set_powered (device_t *device, bool powered)
   }
 
   printf ("Device (%s) controller (%s) powered %s\n", device->device_name, device->controller, powered ? "on" : "off");
+  dbus_message_unref (reply);
   return true;
 }
 
@@ -410,6 +429,12 @@ bool device_add_service (device_t *device, service_t *service)
   if (NULL == device)
   {
     printf ("Device was null\n");
+    return false;
+  }
+
+  if (NULL != service->device_path)
+  {
+    printf("ERR: Service already belongs to a device.\n");
     return false;
   }
 

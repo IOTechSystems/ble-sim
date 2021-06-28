@@ -42,8 +42,9 @@ service_t *service_new (void)
   return new_service;
 }
 
-service_t *service_init (service_t *service, const char *uuid, bool primary)
+service_t *service_init (service_t *service, const char *uuid, bool primary, bool lua_owned)
 {
+  service->lua_owned = lua_owned;
   service->uuid = strdup (uuid);
   service->device_path = NULL;
   service->object_path = NULL;
@@ -75,7 +76,10 @@ void service_free (service_t *service)
   }
   service->next = NULL;
 
-  free (service);
+  if (!service->lua_owned)
+  {
+    free (service);
+  }
 }
 
 characteristic_t *service_get_characteristic (service_t *service, const char *characteristic_uuid)
@@ -98,6 +102,12 @@ bool service_add_characteristic (service_t *service, characteristic_t *character
   if (NULL == service->object_path)
   {
     printf("ERR: Service must be added to a device first in order to add a characteristic to it!\n");
+    return false;
+  }
+
+  if (NULL != characteristic->service_path)
+  {
+    printf("ERR: Characteristic already belongs to another service.\n");
     return false;
   }
 
@@ -142,7 +152,8 @@ static void service_get_device_path (void *user_data, DBusMessageIter *iter)
 static void service_get_primary (void *user_data, DBusMessageIter *iter)
 {
   service_t *service = (service_t *) user_data;
-  dbus_message_iter_append_basic (iter, DBUS_TYPE_BOOLEAN, &service->primary);
+  dbus_bool_t primary = service->primary ? TRUE : FALSE;
+  dbus_message_iter_append_basic (iter, DBUS_TYPE_BOOLEAN, &primary);
 }
 
 void service_get_object (service_t *service, DBusMessageIter *iter)

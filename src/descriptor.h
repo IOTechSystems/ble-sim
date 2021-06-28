@@ -21,6 +21,7 @@ typedef struct descriptor_t
   uint8_t *value; //Descriptors value
   uint32_t value_size;
   uint16_t flags; //Flags that define how the descriptor value can be used
+  bool lua_owned;
   struct descriptor_t *next;
 } descriptor_t;
 
@@ -38,7 +39,7 @@ descriptor_t *descriptor_new (void);
  * @param uuid the uuid of the descriptor
  * @return initialised descriptor  
  **/
-descriptor_t *descriptor_init (descriptor_t *descriptor, const char *uuid);
+descriptor_t *descriptor_init (descriptor_t *descriptor, const char *uuid, bool lua_owned);
 
 /**
  * Frees a descriptor_t and it's values
