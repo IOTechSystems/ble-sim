@@ -11,61 +11,58 @@
 #include "defines.h"
 #include "device.h"
 
+static lua_State *luai_state;
 
-static lua_State *lua_state;
+static void lua_fail (lua_State *lua_state);
 
-static void lua_fail (lua_State *L);
+static bool init_lua_state (lua_State **lua_state, const char *file_path);
 
-static bool init_lua_state (lua_State **L, const char *file_path);
+static void luai_setup_lua_sim_api (lua_State *lua_state);
 
-static void luai_setup_lua_sim_api (lua_State *L);
+static void luai_setup_object_metatables (lua_State *lua_state);
 
-static void luai_setup_object_metatables (lua_State *L);
+static bool luai_call_function (lua_State *lua_state, const char *function_name);
 
-static bool luai_call_function (lua_State *L, const char *function_name);
+static void luai_check_type (lua_State *lua_state, int index, int expected_parameter_type);
 
-static void luai_check_type (lua_State *L, int index, int expected_parameter_type);
-
-static void luai_check_argument_count (lua_State *L, int expected_argument_count);
+static void luai_check_argument_count (lua_State *lua_state, int expected_argument_count);
 
 //lua api
-static int luai_create_device (lua_State *L);
+static int luai_create_device (lua_State *lua_state);
 
-static int luai_create_service (lua_State *L);
+static int luai_create_service (lua_State *lua_state);
 
-static int luai_create_characteristic (lua_State *L);
+static int luai_create_characteristic (lua_State *lua_state);
 
-static int luai_create_descriptor (lua_State *L);
+static int luai_create_descriptor (lua_State *lua_state);
 
-static int luai_register_device (lua_State *L);
+static int luai_register_device (lua_State *lua_state);
 
 //lua device methods
-static int luai_device_add_service (lua_State *L);
+static int luai_device_add_service (lua_State *lua_state);
 
-static int luai_device_set_powered (lua_State *L);
+static int luai_device_set_powered (lua_State *lua_state);
 
-static int luai_device_set_discoverable (lua_State *L);
+static int luai_device_set_discoverable (lua_State *lua_state);
 
-static int luai_device_free (lua_State *L);
+static int luai_device_free (lua_State *lua_state);
 
 //lua service methods
-static int luai_service_add_characteristic (lua_State *L);
+static int luai_service_add_characteristic (lua_State *lua_state);
 
-static int luai_service_free (lua_State *L);
+static int luai_service_free (lua_State *lua_state);
 
 //lua characteristic methods
-static int luai_characteristic_add_descriptor (lua_State *L);
+static int luai_characteristic_add_descriptor (lua_State *lua_state);
 
-static int luai_characteristic_set_notifying (lua_State *L);
+static int luai_characteristic_set_notifying (lua_State *lua_state);
 
-static int luai_characteristic_set_value (lua_State *L);
+static int luai_characteristic_set_value (lua_State *lua_state);
 
-static int luai_characteristic_free (lua_State *L);
+static int luai_characteristic_free (lua_State *lua_state);
 
 //lua descriptor methods
-
-static int luai_descriptor_free (lua_State *L);
-
+static int luai_descriptor_free (lua_State *lua_state);
 
 static const struct luaL_Reg luai_ble_sim_api[] = {
   {LUA_API_CREATE_DEVICE,         luai_create_device},
@@ -101,306 +98,306 @@ static const struct luaL_Reg luai_descriptor_object_functions[] = {
 
 
 static void *luai_check_argument_userdata (
-  lua_State *L,
+  lua_State *lua_state,
   int index,
   const char *metadata_table_name,
   const char *error_message
 )
 {
-  void *userdata = luaL_checkudata (L, index, metadata_table_name);
-  luaL_argcheck(L, userdata != NULL, index, error_message);
+  void *userdata = luaL_checkudata (lua_state, index, metadata_table_name);
+  luaL_argcheck(lua_state, userdata != NULL, index, error_message);
   return userdata;
 }
 
-static device_t *luai_check_argument_device (lua_State *L, int index) //checks device is the first arguement
+static device_t *luai_check_argument_device (lua_State *lua_state, int index) //checks device is the first arguement
 {
-  return (device_t *) luai_check_argument_userdata (L, index, LUA_USERDATA_DEVICE, "' " LUA_USERDATA_DEVICE "' expected");
+  return (device_t *) luai_check_argument_userdata (lua_state, index, LUA_USERDATA_DEVICE, "' " LUA_USERDATA_DEVICE "' expected");
 }
 
-static service_t *luai_check_argument_service (lua_State *L, int index) //checks device is the first arguement
+static service_t *luai_check_argument_service (lua_State *lua_state, int index) //checks device is the first arguement
 {
-  return (service_t *) luai_check_argument_userdata (L, index, LUA_USERDATA_SERVICE, "' " LUA_USERDATA_SERVICE "' expected");
+  return (service_t *) luai_check_argument_userdata (lua_state, index, LUA_USERDATA_SERVICE, "' " LUA_USERDATA_SERVICE "' expected");
 }
 
-static characteristic_t *luai_check_argument_characteristic (lua_State *L, int index) //checks device is the first arguement
+static characteristic_t *luai_check_argument_characteristic (lua_State *lua_state, int index) //checks device is the first arguement
 {
-  return (characteristic_t *) luai_check_argument_userdata (L, index, LUA_USERDATA_CHARACTERISTIC, "' " LUA_USERDATA_CHARACTERISTIC "' expected");
+  return (characteristic_t *) luai_check_argument_userdata (lua_state, index, LUA_USERDATA_CHARACTERISTIC, "' " LUA_USERDATA_CHARACTERISTIC "' expected");
 }
 
-static descriptor_t *luai_check_argument_descriptor (lua_State *L, int index) //checks device is the first arguement
+static descriptor_t *luai_check_argument_descriptor (lua_State *lua_state, int index) //checks device is the first arguement
 {
-  return (descriptor_t *) luai_check_argument_userdata (L, index, LUA_USERDATA_DESCRIPTOR, "' " LUA_USERDATA_DESCRIPTOR "' expected");
+  return (descriptor_t *) luai_check_argument_userdata (lua_state, index, LUA_USERDATA_DESCRIPTOR, "' " LUA_USERDATA_DESCRIPTOR "' expected");
 }
 
-static bool luai_call_function (lua_State *L, const char *function_name)
+static bool luai_call_function (lua_State *lua_state, const char *function_name)
 {
-  lua_getglobal (L, function_name);
-  if (lua_pcall (L, 0, 0, 0))
+  lua_getglobal (lua_state, function_name);
+  if (lua_pcall (lua_state, 0, 0, 0))
   {
     printf ("No '%s' function found.\n", function_name);
-    lua_fail (L);
+    lua_fail (lua_state);
     return false;
   }
   return true;
 }
 
-static bool init_lua_state (lua_State **L, const char *file_path)
+static bool init_lua_state (lua_State **lua_state, const char *file_path)
 {
-  *L = luaL_newstate ();
-  luaL_openlibs (*L);
+  *lua_state = luaL_newstate ();
+  luaL_openlibs (*lua_state);
 
-  luai_setup_lua_sim_api (*L);
-  luai_setup_object_metatables (*L);
+  luai_setup_lua_sim_api (*lua_state);
+  luai_setup_object_metatables (*lua_state);
 
-  if (luaL_loadfile (*L, file_path) || lua_pcall (*L, 0, 0, 0))
+  if (luaL_loadfile (*lua_state, file_path) || lua_pcall (*lua_state, 0, 0, 0))
   {
-    lua_fail (*L);
+    lua_fail (*lua_state);
     return false;
   }
   return true;
 }
 
-static void luai_setup_object_metatables (lua_State *L)
+static void luai_setup_object_metatables (lua_State *lua_state)
 {
   //device
-  luaL_newmetatable (L, LUA_USERDATA_DEVICE);
-  lua_pushvalue (L, -1); // there are two 'copies' of the metatable on the stack
-  lua_setfield (L, -2, LUA_INDEX_FIELD); // pop one of those copies and assign it to  __index field of the 1st metatable
-  luaL_setfuncs (L, luai_device_object_functions, 0);
+  luaL_newmetatable (lua_state, LUA_USERDATA_DEVICE);
+  lua_pushvalue (lua_state, -1); // there are two 'copies' of the metatable on the stack
+  lua_setfield (lua_state, -2, LUA_INDEX_FIELD); // pop one of those copies and assign it to  __index field of the 1st metatable
+  luaL_setfuncs (lua_state, luai_device_object_functions, 0);
 
-  lua_pushcfunction (L, luai_device_free); //set garbage collector cleanup function
-  lua_setfield (L, -2, LUA_GARBAGE_COLLECTOR_FIELD);
+  lua_pushcfunction (lua_state, luai_device_free); //set garbage collector cleanup function
+  lua_setfield (lua_state, -2, LUA_GARBAGE_COLLECTOR_FIELD);
 
   //service
-  luaL_newmetatable (L, LUA_USERDATA_SERVICE);
-  lua_pushvalue (L, -1);
-  lua_setfield (L, -2, LUA_INDEX_FIELD);
-  luaL_setfuncs (L, luai_service_object_functions, 0);
+  luaL_newmetatable (lua_state, LUA_USERDATA_SERVICE);
+  lua_pushvalue (lua_state, -1);
+  lua_setfield (lua_state, -2, LUA_INDEX_FIELD);
+  luaL_setfuncs (lua_state, luai_service_object_functions, 0);
 
-  lua_pushcfunction (L, luai_service_free); //set garbage collector cleanup function
-  lua_setfield (L, -2, LUA_GARBAGE_COLLECTOR_FIELD);
+  lua_pushcfunction (lua_state, luai_service_free); //set garbage collector cleanup function
+  lua_setfield (lua_state, -2, LUA_GARBAGE_COLLECTOR_FIELD);
   //characterisitc
-  luaL_newmetatable (L, LUA_USERDATA_CHARACTERISTIC);
-  lua_pushvalue (L, -1);
-  lua_setfield (L, -2, LUA_INDEX_FIELD);
-  luaL_setfuncs (L, luai_characteristic_object_functions, 0);
+  luaL_newmetatable (lua_state, LUA_USERDATA_CHARACTERISTIC);
+  lua_pushvalue (lua_state, -1);
+  lua_setfield (lua_state, -2, LUA_INDEX_FIELD);
+  luaL_setfuncs (lua_state, luai_characteristic_object_functions, 0);
 
-  lua_pushcfunction (L, luai_characteristic_free); //set garbage collector cleanup function
-  lua_setfield (L, -2, LUA_GARBAGE_COLLECTOR_FIELD);
+  lua_pushcfunction (lua_state, luai_characteristic_free); //set garbage collector cleanup function
+  lua_setfield (lua_state, -2, LUA_GARBAGE_COLLECTOR_FIELD);
   //descriptor
-  luaL_newmetatable (L, LUA_USERDATA_DESCRIPTOR);
-  lua_pushvalue (L, -1);
-  lua_setfield (L, -2, LUA_INDEX_FIELD);
-  luaL_setfuncs (L, luai_descriptor_object_functions, 0);
+  luaL_newmetatable (lua_state, LUA_USERDATA_DESCRIPTOR);
+  lua_pushvalue (lua_state, -1);
+  lua_setfield (lua_state, -2, LUA_INDEX_FIELD);
+  luaL_setfuncs (lua_state, luai_descriptor_object_functions, 0);
 
-  lua_pushcfunction (L, luai_descriptor_free); //set garbage collector cleanup function
-  lua_setfield (L, -2, LUA_GARBAGE_COLLECTOR_FIELD);
+  lua_pushcfunction (lua_state, luai_descriptor_free); //set garbage collector cleanup function
+  lua_setfield (lua_state, -2, LUA_GARBAGE_COLLECTOR_FIELD);
 }
 
-static void luai_setup_lua_sim_api (lua_State *L)
+static void luai_setup_lua_sim_api (lua_State *lua_state)
 {
-  luaL_newlib(L, luai_ble_sim_api);
-  lua_setglobal (L, "ble");
+  luaL_newlib(lua_state, luai_ble_sim_api);
+  lua_setglobal (lua_state, "ble");
 }
 
-static void lua_fail (lua_State *L)
+static void lua_fail (lua_State *lua_state)
 {
-  printf ("LUA ERROR: %s\n", lua_tostring(L, -1));
+  printf ("LUA ERROR: %s\n", lua_tostring(lua_state, -1));
 }
 
-static void luai_check_type (lua_State *L, int index, int expected_parameter_type)
+static void luai_check_type (lua_State *lua_state, int index, int expected_parameter_type)
 {
-  int recieved_parameter_type = lua_type (L, index);
+  int recieved_parameter_type = lua_type (lua_state, index);
   assert (recieved_parameter_type == expected_parameter_type);
 }
 
-static void luai_check_argument_count (lua_State *L, int expected_argument_count)
+static void luai_check_argument_count (lua_State *lua_state, int expected_argument_count)
 {
-  int recieved_argument_count = lua_gettop (L);
+  int recieved_argument_count = lua_gettop (lua_state);
   assert (recieved_argument_count == expected_argument_count);
 }
 
-static int luai_create_device (lua_State *L)
+static int luai_create_device (lua_State *lua_state)
 {
-  luai_check_argument_count (L, 1);
-  luai_check_type (L, 1, LUA_TSTRING);
-  const char *device_name = lua_tostring(L, 1);
+  luai_check_argument_count (lua_state, 1);
+  luai_check_type (lua_state, 1, LUA_TSTRING);
+  const char *device_name = lua_tostring(lua_state, 1);
 
-  device_t *device = (device_t *) lua_newuserdata (L, sizeof (*device));
+  device_t *device = (device_t *) lua_newuserdata (lua_state, sizeof (*device));
   device_init (device, device_name, ORIGIN_LUA);
 
-  luaL_getmetatable (L, LUA_USERDATA_DEVICE); //add the userdata metatable to this object
-  lua_setmetatable (L, -2);
+  luaL_getmetatable (lua_state, LUA_USERDATA_DEVICE); //add the userdata metatable to this object
+  lua_setmetatable (lua_state, -2);
 
   return 1; //the device is already on the stack so return 
 }
 
-static int luai_create_service (lua_State *L)
+static int luai_create_service (lua_State *lua_state)
 {
-  luai_check_argument_count (L, 2);
-  luai_check_type (L, 1, LUA_TSTRING);
-  luai_check_type (L, 2, LUA_TBOOLEAN);
-  const char *uuid = lua_tostring(L, 1);
-  bool primary = lua_toboolean (L, 2);
+  luai_check_argument_count (lua_state, 2);
+  luai_check_type (lua_state, 1, LUA_TSTRING);
+  luai_check_type (lua_state, 2, LUA_TBOOLEAN);
+  const char *uuid = lua_tostring(lua_state, 1);
+  bool primary = lua_toboolean (lua_state, 2);
 
-  service_t *service = (service_t *) lua_newuserdata (L, sizeof (*service));
+  service_t *service = (service_t *) lua_newuserdata (lua_state, sizeof (*service));
   service_init (service, uuid, primary, ORIGIN_LUA);
 
-  luaL_getmetatable (L, LUA_USERDATA_SERVICE); //add the userdata metatable to this object
-  lua_setmetatable (L, -2);
+  luaL_getmetatable (lua_state, LUA_USERDATA_SERVICE); //add the userdata metatable to this object
+  lua_setmetatable (lua_state, -2);
 
   return 1; //the service is already on the stack so return 
 }
 
-static int luai_create_characteristic (lua_State *L)
+static int luai_create_characteristic (lua_State *lua_state)
 {
-  luai_check_argument_count (L, 1);
-  luai_check_type (L, 1, LUA_TSTRING);
-  const char *char_uuid = lua_tostring(L, 1);
+  luai_check_argument_count (lua_state, 1);
+  luai_check_type (lua_state, 1, LUA_TSTRING);
+  const char *char_uuid = lua_tostring(lua_state, 1);
 
-  characteristic_t *characteristic = (characteristic_t *) lua_newuserdata (L, sizeof (*characteristic));
+  characteristic_t *characteristic = (characteristic_t *) lua_newuserdata (lua_state, sizeof (*characteristic));
   characteristic_init (characteristic, char_uuid, ORIGIN_LUA);
 
-  luaL_getmetatable (L, LUA_USERDATA_CHARACTERISTIC); //add the userdata metatable to this object
-  lua_setmetatable (L, -2);
+  luaL_getmetatable (lua_state, LUA_USERDATA_CHARACTERISTIC); //add the userdata metatable to this object
+  lua_setmetatable (lua_state, -2);
 
   return 1; //the characteristic is already on the stack so return this
 }
 
-static int luai_create_descriptor (lua_State *L)
+static int luai_create_descriptor (lua_State *lua_state)
 {
-  luai_check_argument_count (L, 1);
-  luai_check_type (L, 1, LUA_TSTRING);
-  const char *desc_uuid = lua_tostring(L, 1);
+  luai_check_argument_count (lua_state, 1);
+  luai_check_type (lua_state, 1, LUA_TSTRING);
+  const char *desc_uuid = lua_tostring(lua_state, 1);
 
-  descriptor_t *descriptor = (descriptor_t *) lua_newuserdata (L, sizeof (*descriptor));
+  descriptor_t *descriptor = (descriptor_t *) lua_newuserdata (lua_state, sizeof (*descriptor));
   descriptor_init (descriptor, desc_uuid, ORIGIN_LUA);
 
-  luaL_getmetatable (L, LUA_USERDATA_DESCRIPTOR); //add the userdata metatable to this object
-  lua_setmetatable (L, -2);
+  luaL_getmetatable (lua_state, LUA_USERDATA_DESCRIPTOR); //add the userdata metatable to this object
+  lua_setmetatable (lua_state, -2);
 
   return 1; //the device is already on the stack so return this
 }
 
-static int luai_register_device (lua_State *L)
+static int luai_register_device (lua_State *lua_state)
 {
-  luai_check_argument_count (L, 1);
-  device_t *device = luai_check_argument_device (L, 1);
+  luai_check_argument_count (lua_state, 1);
+  device_t *device = luai_check_argument_device (lua_state, 1);
 
   bool success = device_register (device);
-  lua_pushboolean (L, success);
+  lua_pushboolean (lua_state, success);
   return 1;
 }
 
-static int luai_device_add_service (lua_State *L)
+static int luai_device_add_service (lua_State *lua_state)
 {
-  luai_check_argument_count (L, 2);
-  device_t *device = luai_check_argument_device (L, 1);
-  service_t *service = luai_check_argument_service (L, 2);
+  luai_check_argument_count (lua_state, 2);
+  device_t *device = luai_check_argument_device (lua_state, 1);
+  service_t *service = luai_check_argument_service (lua_state, 2);
 
   bool success = device_add_service (device, service);
-  lua_pushboolean (L, success);
+  lua_pushboolean (lua_state, success);
   return 1;
 }
 
-static int luai_device_set_powered (lua_State *L)
+static int luai_device_set_powered (lua_State *lua_state)
 {
-  luai_check_argument_count (L, 2);
-  device_t *device = luai_check_argument_device (L, 1);
-  bool powered = lua_toboolean (L, 2);
+  luai_check_argument_count (lua_state, 2);
+  device_t *device = luai_check_argument_device (lua_state, 1);
+  bool powered = lua_toboolean (lua_state, 2);
 
   bool success = device_set_powered (device, powered);
-  lua_pushboolean (L, success);
+  lua_pushboolean (lua_state, success);
   return 1;
 }
 
-static int luai_device_set_discoverable (lua_State *L)
+static int luai_device_set_discoverable (lua_State *lua_state)
 {
-  luai_check_argument_count (L, 2);
-  device_t *device = luai_check_argument_device (L, 1);
-  bool discoverable = lua_toboolean (L, 2);
+  luai_check_argument_count (lua_state, 2);
+  device_t *device = luai_check_argument_device (lua_state, 1);
+  bool discoverable = lua_toboolean (lua_state, 2);
 
   bool success = device_set_discoverable (device, discoverable);
-  lua_pushboolean (L, success);
+  lua_pushboolean (lua_state, success);
   return 1;
 }
 
-static int luai_device_free (lua_State *L)
+static int luai_device_free (lua_State *lua_state)
 {
-  device_t *device = luai_check_argument_device (L, 1);
+  device_t *device = luai_check_argument_device (lua_state, 1);
   device_free (device);
   return 0;
 }
 
-static int luai_service_add_characteristic (lua_State *L)
+static int luai_service_add_characteristic (lua_State *lua_state)
 {
-  luai_check_argument_count (L, 2);
-  service_t *service = luai_check_argument_service (L, 1);
-  characteristic_t *characteristic = luai_check_argument_characteristic (L, 2);
+  luai_check_argument_count (lua_state, 2);
+  service_t *service = luai_check_argument_service (lua_state, 1);
+  characteristic_t *characteristic = luai_check_argument_characteristic (lua_state, 2);
 
   bool success = service_add_characteristic (service, characteristic);
-  lua_pushboolean (L, success);
+  lua_pushboolean (lua_state, success);
   return 1;
 }
 
-static int luai_service_free (lua_State *L)
+static int luai_service_free (lua_State *lua_state)
 {
-  service_t *service = luai_check_argument_service (L, 1);
+  service_t *service = luai_check_argument_service (lua_state, 1);
   service_free (service);
   return 0;
 }
 
-static int luai_characteristic_add_descriptor (lua_State *L)
+static int luai_characteristic_add_descriptor (lua_State *lua_state)
 {
-  luai_check_argument_count (L, 2);
-  characteristic_t *characteristic = luai_check_argument_characteristic (L, 1);
-  descriptor_t *descriptor = luai_check_argument_descriptor (L, 2);
+  luai_check_argument_count (lua_state, 2);
+  characteristic_t *characteristic = luai_check_argument_characteristic (lua_state, 1);
+  descriptor_t *descriptor = luai_check_argument_descriptor (lua_state, 2);
 
   bool success = characteristic_add_descriptor (characteristic, descriptor);
-  lua_pushboolean (L, success);
+  lua_pushboolean (lua_state, success);
   return 1;
 }
 
-static int luai_characteristic_set_notifying (lua_State *L)
+static int luai_characteristic_set_notifying (lua_State *lua_state)
 {
-  luai_check_argument_count (L, 2);
-  characteristic_t *characteristic = luai_check_argument_characteristic (L, 1);
-  bool notifying = lua_toboolean (L, 2);
+  luai_check_argument_count (lua_state, 2);
+  characteristic_t *characteristic = luai_check_argument_characteristic (lua_state, 1);
+  bool notifying = lua_toboolean (lua_state, 2);
 
   characteristic_set_notifying (characteristic, notifying);
   return 0;
 }
 
-static int luai_characteristic_free (lua_State *L)
+static int luai_characteristic_free (lua_State *lua_state)
 {
-  characteristic_t *characteristic = luai_check_argument_characteristic (L, 1);
+  characteristic_t *characteristic = luai_check_argument_characteristic (lua_state, 1);
   characteristic_free (characteristic);
   return 0;
 }
 
-static int luai_get_array (lua_State *L, int idx, void **array, unsigned *array_size) //gets array at index idx
+static int luai_get_array (lua_State *lua_state, int idx, void **array, unsigned *array_size) //gets array at index idx
 {
-  unsigned size = lua_rawlen (L, idx);
+  unsigned size = lua_rawlen (lua_state, idx);
   uint8_t *buf = malloc (size);
 
   for (int i = 1; i <= size; i++)
   {
-    lua_pushinteger (L, i); //push index on to stack for gettable function
-    lua_gettable (L, idx);
+    lua_pushinteger (lua_state, i); //push index on to stack for gettable function
+    lua_gettable (lua_state, idx);
 
-    if (lua_isnil(L, -1)) //is value null then we need to fix the size of the array
+    if (lua_isnil(lua_state, -1)) //is value null then we need to fix the size of the array
     {
       size = i - 1;
       break;
     }
 
-    if (!lua_isnumber (L, -1))
+    if (!lua_isnumber (lua_state, -1))
     {
       printf ("Array value at index (%u) was not a number", i);
       free (buf);
       return false;
     }
-    lua_Integer b = lua_tointeger(L, -1);
+    lua_Integer b = lua_tointeger(lua_state, -1);
 
     if (b < 0 || b > UINT8_MAX)
     {
@@ -410,7 +407,7 @@ static int luai_get_array (lua_State *L, int idx, void **array, unsigned *array_
     }
 
     buf[i - 1] = b;
-    lua_pop(L, 1); //pops one value off the top
+    lua_pop(lua_state, 1); //pops one value off the top
   }
 
   *array = buf;
@@ -418,37 +415,37 @@ static int luai_get_array (lua_State *L, int idx, void **array, unsigned *array_
   return true;
 }
 
-static int luai_characteristic_set_value (lua_State *L)
+static int luai_characteristic_set_value (lua_State *lua_state)
 {
-  luai_check_argument_count (L, 2);
-  characteristic_t *characteristic = luai_check_argument_characteristic (L, 1);
+  luai_check_argument_count (lua_state, 2);
+  characteristic_t *characteristic = luai_check_argument_characteristic (lua_state, 1);
 
   void *data = NULL;
   unsigned data_size = 0;
   bool should_free = false;
   bool success = true;
 
-  int type = lua_type (L, 2);
+  int type = lua_type (lua_state, 2);
 
   switch (type)
   {
     case LUA_TBOOLEAN:
     {
-      bool val = lua_toboolean (L, 2);
+      bool val = lua_toboolean (lua_state, 2);
       data = &val;
       data_size = sizeof (val);
     }
       break;
     case LUA_TNUMBER:
     {
-      unsigned val = lua_tonumber (L, 2);
+      unsigned val = lua_tonumber (lua_state, 2);
       data = &val;
       data_size = sizeof (val);
     }
       break;
     case LUA_TTABLE:
     {
-      success = luai_get_array (L, 2, &data, &data_size);
+      success = luai_get_array (lua_state, 2, &data, &data_size);
       should_free = true;
     }
       break;
@@ -468,25 +465,25 @@ static int luai_characteristic_set_value (lua_State *L)
     free (data);
   }
 
-  lua_pushboolean (L, success);
+  lua_pushboolean (lua_state, success);
   return 1;
 }
 
-static int luai_descriptor_free (lua_State *L)
+static int luai_descriptor_free (lua_State *lua_state)
 {
-  descriptor_t *descriptor = luai_check_argument_descriptor (L, 1);
+  descriptor_t *descriptor = luai_check_argument_descriptor (lua_state, 1);
   descriptor_free (descriptor);
   return 0;
 }
 
 bool luai_call_update ()
 {
-  return luai_call_function (lua_state, LUA_API_FUNCTION_UPDATE);
+  return luai_call_function (luai_state, LUA_API_FUNCTION_UPDATE);
 }
 
 bool luai_init_state (const char *script_path)
 {
-  if (!init_lua_state (&lua_state, script_path))
+  if (!init_lua_state (&luai_state, script_path))
   {
     printf ("Failed to open luafile\n");
     return false;
@@ -497,8 +494,8 @@ bool luai_init_state (const char *script_path)
 
 void luai_cleanup (void)
 {
-  if (NULL != lua_state)
+  if (NULL != luai_state)
   {
-    lua_close (lua_state);
+    lua_close (luai_state);
   }
 }
