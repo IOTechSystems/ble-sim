@@ -107,6 +107,18 @@ void advertisement_init (
   advertisement->tx_power = ADVERTISEMENT_TX_POWER_DEFAULT;
 }
 
+void advertisement_terminate (advertisement_t *advertisement)
+{
+  if (NULL == advertisement)
+  {
+    return;
+  }
+
+  free (advertisement->object_path);
+  free (advertisement->type);
+  free (advertisement->secondary_channel);
+}
+
 bool advertisement_register (advertisement_t *advertisement)
 {
   return dbusutils_register_object (
@@ -135,12 +147,11 @@ static void on_register_advert_reply (DBusPendingCall *pending_call, void *user_
   }
   else
   {
-    printf ("Succesfully Registered advert for device (%s) with bluez\n", *advertisement->local_name);
+    printf ("Succesfully Registered %s's advertisement with bluez\n", *advertisement->local_name);
     advertisement->registered = true;
   }
 
   dbus_message_unref (reply);
-  dbus_pending_call_unref (pending_call);
 }
 
 bool advertisement_register_with_bluez (
@@ -321,7 +332,8 @@ static void advertisement_get_manufacturer_data (void *advertisement_ptr, DBusMe
 static void advertisement_get_discoverable (void *advertisement_ptr, DBusMessageIter *iter)
 {
   advertisement_t *advertisement = (advertisement_t *) advertisement_ptr;
-  dbus_message_iter_append_basic (iter, DBUS_TYPE_BOOLEAN, &advertisement->discoverable);
+  dbus_bool_t value = advertisement->discoverable ? TRUE : FALSE;
+  dbus_message_iter_append_basic (iter, DBUS_TYPE_BOOLEAN, &value);
 }
 
 static void advertisement_get_discoverable_timeout (void *advertisement_ptr, DBusMessageIter *iter)

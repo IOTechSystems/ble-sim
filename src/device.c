@@ -19,7 +19,10 @@ static DBusMessage *device_get_managed_objects (void *device_ptr, DBusConnection
 
 static service_t *device_get_service (device_t *device, const char *service_uuid);
 
+static bool device_init_controller (device_t *device);
+
 static device_t *device_list_head = NULL;
+
 static unsigned int device_count = 0;
 
 static dbus_method_t device_methods[] =
@@ -27,19 +30,6 @@ static dbus_method_t device_methods[] =
     {DBUS_INTERFACE_OBJECT_MANAGER, DBUS_METHOD_GET_MANAGED_OBJECTS, device_get_managed_objects},
     DBUS_METHOD_NULL
   };
-
-//device list
-void device_cleanup_devices (void)
-{
-  device_t *tmp = NULL;
-  while (device_list_head)
-  {
-    tmp = device_list_head->next;
-    device_free (device_list_head);
-    device_list_head = tmp;
-  }
-  device_count = 0;
-}
 
 static void add_device_to_device_list (device_t *device)
 {
@@ -60,7 +50,7 @@ static void add_device_to_device_list (device_t *device)
 }
 
 //device constructors destructors
-device_t *device_new (const char *device_name, const char *controller)
+device_t *device_new (void)
 {
   device_t *device = calloc (1, sizeof (*device));
   if (NULL == device)
@@ -68,9 +58,16 @@ device_t *device_new (const char *device_name, const char *controller)
     return NULL;
   }
 
+  return device;
+}
+
+device_t *device_init (device_t *device, const char *device_name, int origin)
+{
+  device->origin = origin;
   device->device_name = strdup (device_name);
-  device->controller = strdup (controller);
+  device->controller = NULL;
   device->application_registered = false;
+  device->initialised = false;
   device->services = NULL;
   device->service_count = 0;
   device->object_path = dbusutils_create_object_path (EMPTY_STRING, DEVICE_OBJECT_NAME, device_count);
@@ -90,22 +87,25 @@ void device_free (device_t *device)
   free (device->device_name);
   free (device->object_path);
 
-  service_t *tmp = NULL;
-  while (device->services)
-  {
-    tmp = device->services->next;
-    service_free (device->services);
-    device->services = tmp;
-  }
+  advertisement_terminate (&device->advertisement);
 
-  free (device);
+  if (device->origin == ORIGIN_C)
+  {
+    service_t *tmp = NULL;
+    while (device->services)
+    {
+      tmp = device->services->next;
+      service_free (device->services);
+      device->services = tmp;
+    }
+
+    free (device);
+  }
 }
 
 static DBusMessage *device_get_managed_objects (void *device_ptr, DBusConnection *connection, DBusMessage *message)
 {
   device_t *device = (device_t *) device_ptr;
-  printf ("Device (%s) GetManagedObjects \n", device->device_name);
-
   if (NULL == device || NULL == connection || NULL == message)
   {
     printf ("%s: Parameter was null", __FUNCTION__);
@@ -190,11 +190,15 @@ static void on_register_application_reply (DBusPendingCall *pending_call, void *
   }
 
   dbus_message_unref (reply);
-  dbus_pending_call_unref (pending_call);
 }
 
 static bool device_register_with_bluez (device_t *device, DBusConnection *connection)
 {
+  if (NULL == device->controller)
+  {
+    printf ("%s Device->contoller was NULL\n", __FUNCTION__);
+    return false;
+  }
   DBusMessage *message = dbus_message_new_method_call (BLUEZ_BUS_NAME, device->controller, BLUEZ_GATT_MANAGER_INTERFACE, BLUEZ_METHOD_REGISTER_APPLICATION);
   if (NULL == message)
   {
@@ -241,13 +245,32 @@ static bool device_register_with_bluez (device_t *device, DBusConnection *connec
   return true;
 }
 
-//device manipulators - functions to create device, add services, characterisitcs etc
-bool device_add (device_t *device)
+static bool device_init_controller (device_t *device)
 {
+  device->controller = strdup (DEFAULT_ADAPTER);
+  //TODO: properly init/create controller for device
+  return true;
+}
+
+//device manipulators - functions to create device, add services, characterisitcs etc
+bool device_register (device_t *device)
+{
+  if (device_count >= MAX_DEVICE_COUNT)
+  {
+    printf ("MAX device count reached!");
+    return false;
+  }
+
   bool success = false;
   if (device_get_device (device->device_name))
   {
     printf ("Device with that name already exists\n");
+    return false;
+  }
+
+  success = device_init_controller (device);
+  if (!success)
+  {
     return false;
   }
 
@@ -291,14 +314,20 @@ bool device_add (device_t *device)
     return false;
   }
 
-  //TODO: init/create controller for device
   add_device_to_device_list (device);
+  device->initialised = true;
 
   return true;
 }
 
 bool device_set_discoverable (device_t *device, bool discoverable)
 {
+  if (!device->initialised)
+  {
+    printf ("Error: Device must be initialised to set its discoverability.\n");
+    return false;
+  }
+
   dbus_bool_t value;
   value = discoverable ? TRUE : FALSE;
 
@@ -318,11 +347,18 @@ bool device_set_discoverable (device_t *device, bool discoverable)
   }
 
   printf ("Device (%s) discoverable %s\n", device->device_name, discoverable ? "on" : "off");
+  dbus_message_unref (reply);
   return true;
 }
 
 bool device_set_powered (device_t *device, bool powered)
 {
+  if (!device->initialised)
+  {
+    printf ("Error: Device must be initialised to change its powerd state.\n");
+    return false;
+  }
+
   dbus_bool_t value;
   value = powered ? TRUE : FALSE;
 
@@ -342,6 +378,7 @@ bool device_set_powered (device_t *device, bool powered)
   }
 
   printf ("Device (%s) controller (%s) powered %s\n", device->device_name, device->controller, powered ? "on" : "off");
+  dbus_message_unref (reply);
   return true;
 }
 
@@ -382,9 +419,15 @@ bool device_add_service (device_t *device, service_t *service)
     return false;
   }
 
+  if (NULL != service->device_path)
+  {
+    printf ("ERR: Service already belongs to a device.\n");
+    return false;
+  }
+
   if (device_get_service (device, service->uuid))
   {
-    printf ("Service %s already exists for device %s", service->uuid, device->device_name);
+    printf ("Service %s already exists for device %s\n", service->uuid, device->device_name);
     return false;
   }
 
@@ -401,52 +444,4 @@ bool device_add_service (device_t *device, service_t *service)
 
   device->service_count++;
   return true;
-}
-
-bool device_add_characteristic (device_t *device,
-                                const char *service_uuid,
-                                characteristic_t *characteristic)
-{
-  if (NULL == device)
-  {
-    printf ("Device was null\n");
-    return false;
-  }
-
-  service_t *service = device_get_service (device, service_uuid);
-  if (NULL == service)
-  {
-    printf ("Could not add characteristic to device %s as the service with uuid %s doesn't exist\n", device->device_name, service_uuid);
-    return false;
-  }
-
-  return service_add_characteristic (service, characteristic);
-}
-
-bool device_add_descriptor (device_t *device,
-                            const char *service_uuid,
-                            const char *characteristic_uuid,
-                            descriptor_t *descriptor)
-{
-  if (NULL == device)
-  {
-    printf ("Device was null\n");
-    return false;
-  }
-
-  service_t *service = device_get_service (device, service_uuid);
-  if (NULL == service)
-  {
-    printf ("Could not add descriptor to device %s as the service with uuid %s doesn't exist\n", device->device_name, service_uuid);
-    return false;
-  }
-
-  characteristic_t *characteristic = service_get_characteristic (service, characteristic_uuid);
-  if (NULL == characteristic)
-  {
-    printf ("Could not add characteristic to device %s as the characteristic with uuid %s doesn't exist\n", device->device_name, characteristic_uuid);
-    return false;
-  }
-
-  return characteristic_add_descriptor (characteristic, descriptor);
 }

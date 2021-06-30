@@ -67,6 +67,7 @@ void dbusutils_send_object_properties_changed_signal (
   dbus_message_iter_close_container (&iter, &array);
 
   dbus_connection_send (connection, signal, NULL);
+  dbus_message_unref (signal);
 }
 
 static void append_variant (DBusMessageIter *iter, int type, const void *val)
@@ -460,8 +461,6 @@ DBusMessage *dbusutils_do_method_call (DBusConnection *connection, const char *b
     dbus_error_free (&err);
     return NULL;
   }
-
-  dbus_error_free (&err);
   return dbus_reply;
 }
 
@@ -530,6 +529,6 @@ void dbusutils_mainloop_run (DBusConnection *connection, void (*sim_update_funct
     dispatch (connection);
 
     //TODO: investigate why removing this sleep interferes with dbus sending messages (when updating characteristic values in sim_update_function_ptr)
-    msleep (100);
+    msleep (BLE_SIM_TICK_RATE_MS);
   }
 }

@@ -10,11 +10,20 @@
 
 #include <stdbool.h>
 
+#define SIM_ARGS_OPTION_SCRIPT "--script"
+#define SIM_ARGS_OPTION_HELP "--help"
+
+#define ORIGIN_C 1
+#define ORIGIN_LUA 3
+
+#define BLE_SIM_TICK_RATE_MS 100//ms
 #define BLE_SIM_SERVICE_NAME "org.blesim"
 #define DEFAULT_ADAPTER "/org/bluez/hci1"
 
 #define UUID_LENGTH 32
 #define DEVICE_PATH_LENGTH 22
+
+#define MAX_DEVICE_COUNT 1 //TODO: add functionality to support more than one device
 
 #define EMPTY_STRING ""
 #define ROOT_PATH "/"
@@ -156,5 +165,36 @@
    ({ __typeof__ (a) _a = (a); \
        __typeof__ (b) _b = (b); \
      _a < _b ? _a : _b; })
+
+//lua userdata object names
+#define LUA_USERDATA_DEVICE "device"
+#define LUA_USERDATA_SERVICE "service"
+#define LUA_USERDATA_CHARACTERISTIC "characteristic"
+#define LUA_USERDATA_DESCRIPTOR "descriptor"
+
+#define LUA_INDEX_FIELD "__index"
+#define LUA_GARBAGE_COLLECTOR_FIELD "__gc"
+//lua api names
+#define LUA_API_CREATE_DEVICE "createDevice"
+#define LUA_API_CREATE_SERVICE "createService"
+#define LUA_API_CREATE_CHARACTERISTIC "createCharacteristic"
+#define LUA_API_CREATE_DESCRIPTOR "createDescriptor"
+#define LUA_API_REGISTER_DEVICE "registerDevice"
+
+#define LUA_API_FUNCTION_UPDATE "Update"
+
+//lua device methods
+#define LUA_DEVICE_ADD_SERVICE "addService"
+#define LUA_DEVICE_SET_POWERED "powered"
+#define LUA_DEVICE_SET_DISCOVERABLE "discoverable"
+
+//lua service methods
+#define LUA_SERVICE_ADD_CHARACTERISTIC "addCharacteristic"
+
+//lua characteristic methods
+#define LUA_CHARACTERISTIC_ADD_DESCRIPTOR "addDescriptor"
+#define LUA_CHARACTERISTIC_SET_NOTIFYING "notifying"
+#define LUA_CHARACTERISTIC_SET_VALUE "setValue"
+//lua descriptor methods
 
 #endif //BLE_SIM_DEFINES_H

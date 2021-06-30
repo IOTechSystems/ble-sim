@@ -26,19 +26,26 @@ typedef struct service_t
   char *object_path;
   characteristic_t *characteristics;
   unsigned int characteristic_count;
+  int origin; //where the object was created - influences how we free it
   struct service_t *next;
 } service_t;
 
 /**
- * Allocates memory and initialises values for a new service_t 
- * 
+ * Allocates memory for a new service_t 
+ *
+ * @return allocated service
+ **/
+service_t *service_new (void);
+
+/**
+ * Initialises values for a new service
+ * @param service service to initialise
  * @param uuid the uuid of the service 
- * @param device_path the path to the device the service belongs to 
- * @param primary true/false if the service is the devices primary service
- * @param characteristics services characteristics 
+ * @param primary true/false if the service is a devices primary service
+ * @param the origin of the object used to distinguish if it was created in lua
  * @return initialised service  
  **/
-service_t *service_new (const char *uuid, bool primary);
+service_t *service_init (service_t *service, const char *uuid, bool primary, int origin);
 
 /**
  * Frees a service and it's values
