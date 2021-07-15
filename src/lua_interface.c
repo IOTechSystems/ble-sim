@@ -210,14 +210,12 @@ static void lua_fail (lua_State *L)
 
 static void luai_check_type (lua_State *L, int index, int expected_parameter_type)
 {
-  int recieved_parameter_type = lua_type (L, index);
-  assert (recieved_parameter_type == expected_parameter_type);
+  assert (lua_type (lua_state, index) == expected_parameter_type);
 }
 
 static void luai_check_argument_count (lua_State *L, int expected_argument_count)
 {
-  int recieved_argument_count = lua_gettop (L);
-  assert (recieved_argument_count == expected_argument_count);
+  assert (lua_gettop (lua_state) == expected_argument_count);
 }
 
 static int luai_create_device (lua_State *L)
@@ -237,14 +235,12 @@ static int luai_create_device (lua_State *L)
 
 static int luai_create_service (lua_State *L)
 {
-  luai_check_argument_count (L, 2);
-  luai_check_type (L, 1, LUA_TSTRING);
-  luai_check_type (L, 2, LUA_TBOOLEAN);
-  const char *uuid = lua_tostring(L, 1);
-  bool primary = lua_toboolean (L, 2);
+  luai_check_argument_count (lua_state, 1);
+  luai_check_type (lua_state, 1, LUA_TSTRING);
+  const char *uuid = lua_tostring(lua_state, 1);
 
-  service_t *service = (service_t *) lua_newuserdata (L, sizeof (*service));
-  service_init (service, uuid, primary, ORIGIN_LUA);
+  service_t *service = (service_t *) lua_newuserdata (lua_state, sizeof (*service));
+  service_init (service, uuid, true, ORIGIN_LUA);
 
   luaL_getmetatable (L, LUA_USERDATA_SERVICE); //add the userdata metatable to this object
   lua_setmetatable (L, -2);

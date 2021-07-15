@@ -21,5 +21,4 @@ void luai_cleanup (void);
 
 bool luai_call_update (void);
 
-
 #endif //BLE_SIM_LUA_H
