@@ -127,7 +127,6 @@ void characteristic_free (characteristic_t *characteristic)
   }
 }
 
-
 descriptor_t *characteristic_get_descriptor (characteristic_t *characteristic, const char *descriptor_uuid)
 {
   descriptor_t *descriptor = characteristic->descriptors;

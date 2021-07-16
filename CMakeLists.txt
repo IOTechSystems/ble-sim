@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(ble-server LANGUAGES C)
-
+project(ble-sim LANGUAGES C)
 
 # Package support
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake)

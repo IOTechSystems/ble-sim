@@ -166,7 +166,6 @@
        __typeof__ (b) _b = (b); \
      _a < _b ? _a : _b; })
 
-
 //lua userdata object names
 #define LUA_USERDATA_DEVICE "device"
 #define LUA_USERDATA_SERVICE "service"
