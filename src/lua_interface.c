@@ -474,6 +474,11 @@ static int luai_descriptor_free (lua_State *lua_state)
 
 bool luai_call_update ()
 {
+  if (NULL == luai_state)
+  {
+    return false;
+  }
+
   return luai_call_function (luai_state, LUA_API_FUNCTION_UPDATE);
 }
 

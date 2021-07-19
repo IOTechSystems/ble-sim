@@ -12,6 +12,7 @@
 #include "characteristic.h"
 #include "descriptor.h"
 #include "dbusutils.h"
+#include "utils.h"
 
 static void add_device_to_device_list (device_t *device);
 
@@ -61,7 +62,7 @@ device_t *device_new (void)
   return device;
 }
 
-device_t *device_init (device_t *device, const char *device_name, int origin)
+void device_init (device_t *device, const char *device_name, int origin)
 {
   device->origin = origin;
   device->device_name = strdup (device_name);
@@ -73,7 +74,8 @@ device_t *device_init (device_t *device, const char *device_name, int origin)
   device->object_path = dbusutils_create_object_path (EMPTY_STRING, DEVICE_OBJECT_NAME, device_count);
   device->next = NULL;
 
-  return device;
+  device->virtual_controller = NULL;
+
 }
 
 void device_free (device_t *device)
@@ -88,6 +90,8 @@ void device_free (device_t *device)
   free (device->object_path);
 
   advertisement_terminate (&device->advertisement);
+
+  vhci_close (device->virtual_controller);
 
   if (device->origin == ORIGIN_C)
   {
@@ -247,20 +251,26 @@ static bool device_register_with_bluez (device_t *device, DBusConnection *connec
 
 static bool device_init_controller (device_t *device)
 {
-  device->controller = strdup (DEFAULT_ADAPTER);
-  //TODO: properly init/create controller for device
+  unsigned int adapter_number = device_count + 1;
+  size_t required = snprintf (NULL, 0, BASE_ADAPTER_PATH"%u", adapter_number) + 1;
+  device->controller = malloc (required);
+  sprintf (device->controller , BASE_ADAPTER_PATH"%u", adapter_number);
+
+  //create the virtual controller for the device
+  device->virtual_controller = vhci_open(VHCI_TYPE_LE);
+  if (NULL == device->virtual_controller)
+  {
+    return false;
+  }
+
+  msleep (HCI_WAKEUP_TIME); //give the hci some time to get up and running and for bluez to see that it is up
+
   return true;
 }
 
 //device manipulators - functions to create device, add services, characterisitcs etc
 bool device_register (device_t *device)
 {
-  if (device_count >= MAX_DEVICE_COUNT)
-  {
-    printf ("MAX device count reached!");
-    return false;
-  }
-
   bool success = false;
   if (device_get_device (device->device_name))
   {

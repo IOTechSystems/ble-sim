@@ -39,7 +39,7 @@ const DBusObjectPathVTable object_vtable =
     .unregister_function = dbusutils_object_handle_unregister
   };
 
-bool dbusutils_mainloop_running = false;
+atomic_bool dbusutils_mainloop_running = false;
 
 
 void dbusutils_send_object_properties_changed_signal (
