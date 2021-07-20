@@ -1,53 +1,75 @@
 # BLE Device Simulator
-A bluetooth device simulator.
+A simulator for ble devices.
 
-Currently we use the bluez tool "btvirt" to create a virtual device controller(s), however in future we will create this virtual device controller in the sim.
+# Building
 
 ## Dependencies
-- [D-Bus](https://www.freedesktop.org/wiki/Software/dbus/) -
-D-Bus is an Inter-Process Communication (IPC) and
-Remote Procedure Calling (RPC) mechanism
-specifically designed for efficient and easy-to-use
-communication between processes running on the same
-machine.
+[D-Bus](https://www.freedesktop.org/wiki/Software/dbus/) 
+
+  `sudo apt-get install libdbus-1-dev` 
+
+[Lua5.3](https://www.lua.org/versions.html)
+
+  `sudo apt install liblua5.3-dev` 
+
+[Bluez 5.60](http://www.bluez.org/)
+
+Some of the Bluez 5.60 source is used to build the simulator so we need to download it
+
+  `./scripts/download-deps.sh`
+
+## Building the binary
+
+To build the binary, use the build script:
+
+`./scripts/build.sh`
+
+## Building the Docker image
+
+To build the docker image, use the dockerise script:
+
+`./scripts/dockerise.sh`
+
+# Run
 
 ## Prerequisites
-- [D-Bus](https://www.freedesktop.org/wiki/Software/dbus/) -
-D-Bus daemon is required to be running on the host machine.
+[D-Bus](https://www.freedesktop.org/wiki/Software/dbus/) -
+D-Bus daemon is required to be installed and running on the host machine.
+
+`sudo apt-get install dbus`
  
-- [BlueZ](http://www.bluez.org/) -
-BlueZ Linux module is required to be installed on the host
+[BlueZ](http://www.bluez.org/) -
+BlueZ Linux module is required to be installed and running on the host
 machine.
 
-### Running locally
+`sudo apt-get install bluez`
 
-  we need to build btvirt (a bluez tool), so we need to build bluez. 
-  
-  Bluez dependencies
-  
-  `sudo apt-get install libglib2.0-dev libudev-dev libical-dev `
+[Lua5.3 interpreter](https://www.lua.org/) - 
+The lua 5.3 interpreter is required
 
-  rst2man:
-  
-  `apt-get install python-docutils`
+`sudo apt-get install lua5.3`
 
-## Run the virtual controllers
+## Run locally
 
-  First time you run this, the script will download the source and build the tool.
-
-  `./scripts/run-controller.sh`
-
-## Setup 
-
-  We need to install the ble-sim dbus config file. Use the following script to install:
-
-  `./scripts/setup.sh`
-
-## Build
-
-  `./scripts/build.sh`
-
-
-## Run  
+To run the simulator locally build the binary and then run the command:
 
   `./build/release/ble-sim/ble-sim`
+
+## Running the docker image
+
+After [building](#Building-the-Docker-image) the docker image, run the docker container with the following options:
+
+- **Bind the system bus**
+  - `-v /var/run/dbus/system_bus_socket:/var/run/dbus/system_bus_socket`
+- **Run the container as privileged**
+  - `--privileged`
+
+e.g 
+ 
+ ``` 
+    docker run 
+    --privileged 
+    -v /var/run/dbus/system_bus_socket:/var/run/dbus/system_bus_socket 
+    iotechsys/ble-sim:{VERSION}
+    [ble-sim arguments]
+  ```
