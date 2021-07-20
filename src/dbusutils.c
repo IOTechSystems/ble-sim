@@ -41,7 +41,6 @@ const DBusObjectPathVTable object_vtable =
 
 atomic_bool dbusutils_mainloop_running = false;
 
-
 void dbusutils_send_object_properties_changed_signal (
   DBusConnection *connection,
   const char *path,
