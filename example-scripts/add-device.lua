@@ -6,7 +6,7 @@ TST_DESC1 = "12345678-1234-5678-1234-56789abcdef2"
 TST_DESC2 = "12345678-1234-5678-1234-56789abcdef3"
 
 dev1 = ble.createDevice ("lua-test-dev-1")
-srvc1 = ble.createService (TST_SRVC1, true)
+srvc1 = ble.createService (TST_SRVC1)
 char1 = ble.createCharacteristic (TST_CHR1)
 char2 = ble.createCharacteristic (TST_CHR2)
 desc1 = ble.createDescriptor (TST_DESC1)
