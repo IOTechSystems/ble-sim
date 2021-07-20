@@ -63,6 +63,9 @@ After [building](#Building-the-Docker-image) the docker image, run the docker co
   - `-v /var/run/dbus/system_bus_socket:/var/run/dbus/system_bus_socket`
 - **Run the container as privileged**
   - `--privileged`
+- **Use the --script option to pass in a lua script to run** 
+  - Some example scripts are provided in `./example-scripts/`
+  - `--script multiple-devices.lua`
 
 e.g 
  
@@ -71,5 +74,5 @@ e.g
     --privileged 
     -v /var/run/dbus/system_bus_socket:/var/run/dbus/system_bus_socket 
     iotechsys/ble-sim:{VERSION}
-    [ble-sim arguments]
+    --script ./example-scripts/multiple-devices.lua
   `
