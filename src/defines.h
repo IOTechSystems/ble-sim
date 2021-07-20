@@ -18,7 +18,6 @@
 
 #define HCI_WAKEUP_TIME 100
 #define BLE_SIM_TICK_RATE_MS 100//ms
-#define BLE_SIM_SERVICE_NAME "org.blesim"
 
 #define BASE_ADAPTER_PATH "/org/bluez/hci"
 
