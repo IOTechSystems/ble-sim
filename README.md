@@ -14,7 +14,7 @@ A simulator for ble devices.
 
 [Bluez 5.60](http://www.bluez.org/)
 
-Some of the Bluez 5.60 source is used to build the simulator so we need to download it
+Some of the Bluez 5.60 source is used to build the simulator so we need to download it:
 
   `./scripts/download-deps.sh`
 
@@ -66,10 +66,10 @@ After [building](#Building-the-Docker-image) the docker image, run the docker co
 
 e.g 
  
- ``` 
+ ` 
     docker run 
     --privileged 
     -v /var/run/dbus/system_bus_socket:/var/run/dbus/system_bus_socket 
     iotechsys/ble-sim:{VERSION}
     [ble-sim arguments]
-  ```
+  `
