@@ -137,30 +137,28 @@ static bool parse_args (int argc, char *argv[])
 
 static void update (void *user_data)
 {
-  if (!luai_call_update ())
-  {
-    stop_simulator (0);
-  }
+  luai_call_update ();
 }
 
 static void *controller_mainloop_runner(void* data)
 {
-  mainloop_run();
+  mainloop_run ();
   return NULL;
 }
 
 static void cleanup_simulator (void)
 {
-  pthread_join (controller_mainloop_thread, NULL);
   dbus_cleanup ();
   luai_cleanup ();
+  pthread_cancel (controller_mainloop_thread);
+  pthread_join (controller_mainloop_thread, NULL);
+  mainloop_quit();
 }
 
 static void stop_simulator (int a)
 {
-  printf ("\nStopping simulator...\n");
+  printf ("Stopping simulator...\n");
   dbusutils_mainloop_running = false;
-  mainloop_quit();
 }
 
 int main (int argc, char *argv[])
@@ -176,10 +174,11 @@ int main (int argc, char *argv[])
     return 1;
   }
 
-  //create first controller here
-  mainloop_init(); //bluez mainloop for controllers to run on
+  //bluez mainloop for controllers to run on
+  mainloop_init();
   pthread_create (&controller_mainloop_thread, NULL, controller_mainloop_runner, NULL);
 
+  //create the virtual controller for the devices service to run on
   default_controller = vhci_open (VHCI_TYPE_LE);
   if (NULL == default_controller)
   {
@@ -187,7 +186,9 @@ int main (int argc, char *argv[])
     return 1;
   }
 
-  if (NULL != script_path && !luai_init_state (script_path))
+  printf ("Created virtual controller hci0");
+
+  if (NULL == script_path || !luai_load_script (script_path))
   {
     return 1;
   }
@@ -196,7 +197,6 @@ int main (int argc, char *argv[])
   signal (SIGTERM, stop_simulator);
 
   dbusutils_mainloop_run (global_dbus_connection, &update);
-
   cleanup_simulator ();
 
   return 0;

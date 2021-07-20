@@ -476,13 +476,14 @@ bool luai_call_update ()
 {
   if (NULL == luai_state)
   {
+    printf ("Lua state was null\n");
     return false;
   }
 
   return luai_call_function (luai_state, LUA_API_FUNCTION_UPDATE);
 }
 
-bool luai_init_state (const char *script_path)
+bool luai_load_script (const char *script_path)
 {
   if (!init_lua_state (&luai_state, script_path))
   {
