@@ -9,8 +9,11 @@
 #define BLE_SIM_DEVICE_H
 
 #include <stdlib.h>
+#include <stdbool.h>
 
 #include <dbus/dbus.h>
+
+#include "bluez/emulator/vhci.h"
 
 #include "defines.h"
 #include "service.h"
@@ -28,6 +31,7 @@ typedef struct device_t
   bool application_registered;
   bool initialised; //if device has been sucessfully registered and initialised and is operation
   int origin;//where the object was created - influences how we free it
+  struct vhci *virtual_controller;
   advertisement_t advertisement; //advertisement
   struct device_t *next;
 } device_t;
@@ -45,7 +49,7 @@ device_t *device_new (void);
  * @param the origin of the object used to distinguish if it was created in lua
  * @return initialised device  
  **/
-device_t *device_init (device_t *device, const char *device_name, int origin);
+void device_init (device_t *device, const char *device_name, int origin);
 
 /**
  * Frees a device and it's data 
@@ -62,9 +66,10 @@ void device_free (device_t *device);
 device_t *device_get_device (const char *device_name);
 
 /**
- * Initialises the device: registers it as a dbus object 
- * and attempts to register it with bluez
- * initialises its controller and adds the device to the internal device list,
+ * initialises a devices controller,
+ * registers the device as a dbus object 
+ * registers it with bluez and then
+ * adds the device to the internal device list,
  * 
  * @param device the device to add
  * @return succesful true/false

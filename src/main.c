@@ -6,11 +6,16 @@
  **********************************************************************/
 
 #include <stdio.h>
+#include <stdbool.h>
+
 #include <unistd.h>
 #include <string.h>
 #include <signal.h>
+#include <pthread.h>
 
 #include <dbus/dbus.h>
+
+#include "bluez/src/shared/mainloop.h"
 
 #include "lua_interface.h"
 #include "dbusutils.h"
@@ -21,8 +26,13 @@
 
 DBusConnection *global_dbus_connection;
 char *default_adapter = NULL;
-
 char *script_path = NULL;
+
+pthread_t controller_mainloop_thread;
+
+struct vhci *default_controller = NULL;
+
+static void stop_simulator (int a);
 
 static DBusHandlerResult filter_message (DBusConnection *connection, DBusMessage *message, void *data)
 {
@@ -73,65 +83,6 @@ static void dbus_cleanup (void)
   dbus_connection_unref (global_dbus_connection);
 }
 
-static char *get_default_adapter (void)
-{
-  int count = 0;
-
-  DBusMessage *reply = dbusutils_do_method_call (global_dbus_connection, BLUEZ_BUS_NAME, ROOT_PATH, DBUS_INTERFACE_OBJECT_MANAGER,
-                                                 DBUS_METHOD_GET_MANAGED_OBJECTS);
-  if (NULL == reply)
-  {
-    printf ("List adapters message reply was null\n");
-    return NULL;
-  }
-  DBusMessageIter iter, array;
-
-  dbus_message_iter_init (reply, &iter);
-  dbus_message_iter_recurse (&iter, &array);
-
-  while (dbus_message_iter_has_next (&array)) //loop through array to get object paths
-  {
-    DBusMessageIter dict_entry;
-
-    dbus_message_iter_recurse (&array, &dict_entry);
-    char *object_path;
-    dbus_message_iter_get_basic (&dict_entry, &object_path);
-
-
-    DBusMessageIter properties;
-    dbus_message_iter_next (&dict_entry);
-    dbus_message_iter_recurse (&dict_entry, &properties);
-
-    while (dbus_message_iter_has_next (&properties)) //loop through properties
-    {
-      DBusMessageIter property_entry;
-      char *interface_name;
-      dbus_message_iter_recurse (&properties, &property_entry);
-      dbus_message_iter_get_basic (&property_entry, &interface_name);
-
-      if (strcmp (BLUEZ_GATT_MANAGER_INTERFACE, interface_name) == 0)
-      {
-        //we are trying to return the second adapter, as the first will be used by the device service
-        //once we dynamically create adapters, we can change this behaviour by creating a new adapter each time we create a "device"
-        if (count == 0)
-        {
-          count++;
-        }
-        else
-        {
-          dbus_message_unref (reply);
-          return object_path;
-        }
-      }
-      dbus_message_iter_next (&properties);
-    }
-    dbus_message_iter_next (&array);
-  }
-
-  dbus_message_unref (reply);
-  return NULL;
-}
-
 static void print_usage (const char *filename)
 {
   printf ("Usage: %s [--script script_path]\n", filename);
@@ -146,18 +97,6 @@ static void print_help (const char *filename)
   printf ("To simulate a device using the script register-device.lua, use the following command:\n"
           "%s -s register-device.lua\n",
           filename);
-}
-
-static void cleanup_simulator (void)
-{
-  dbus_cleanup ();
-  luai_cleanup ();
-}
-
-static void stop_simulator (int a)
-{
-  printf ("\nStopping simulator...\n");
-  dbusutils_mainloop_running = false;
 }
 
 static bool parse_args (int argc, char *argv[])
@@ -198,10 +137,28 @@ static bool parse_args (int argc, char *argv[])
 
 static void update (void *user_data)
 {
-  if (!luai_call_update ())
-  {
-    stop_simulator (0);
-  }
+  luai_call_update ();
+}
+
+static void *controller_mainloop_runner(void* data)
+{
+  mainloop_run ();
+  return NULL;
+}
+
+static void cleanup_simulator (void)
+{
+  dbus_cleanup ();
+  luai_cleanup ();
+  pthread_cancel (controller_mainloop_thread);
+  pthread_join (controller_mainloop_thread, NULL);
+  mainloop_quit();
+}
+
+static void stop_simulator (int a)
+{
+  printf ("Stopping simulator...\n");
+  dbusutils_mainloop_running = false;
 }
 
 int main (int argc, char *argv[])
@@ -217,17 +174,21 @@ int main (int argc, char *argv[])
     return 1;
   }
 
-  default_adapter = get_default_adapter ();
-  if (NULL == default_adapter)
+  //bluez mainloop for controllers to run on
+  mainloop_init();
+  pthread_create (&controller_mainloop_thread, NULL, controller_mainloop_runner, NULL);
+
+  //create the virtual controller for the devices service to run on
+  default_controller = vhci_open (VHCI_TYPE_LE);
+  if (NULL == default_controller)
   {
-    printf ("Could not find a bluetooth adapter\n");
-    cleanup_simulator ();
+    printf ("Could not create a virtual controller - make sure you are running as root\n");
     return 1;
   }
-  printf ("Found default adapter: %s\n", default_adapter);
 
+  printf ("Created virtual controller hci0\n");
 
-  if (NULL != script_path && !luai_init_state (script_path))
+  if (NULL == script_path || !luai_load_script (script_path))
   {
     return 1;
   }
@@ -236,7 +197,6 @@ int main (int argc, char *argv[])
   signal (SIGTERM, stop_simulator);
 
   dbusutils_mainloop_run (global_dbus_connection, &update);
-
   cleanup_simulator ();
 
   return 0;

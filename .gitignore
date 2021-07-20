@@ -9,5 +9,5 @@ cmake-*/
 # Project specific
 build/
 
-#things downloaded when using run-local.sh
-run/
+#bluez
+bluez

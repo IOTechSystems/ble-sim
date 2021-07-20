@@ -9,11 +9,12 @@
 #define BLE_SIM_DBUSUTILS_H
 
 #include <stdbool.h>
+#include <stdatomic.h>
 #include <dbus/dbus.h>
 
 #include "defines.h"
 
-extern bool dbusutils_mainloop_running;
+extern atomic_bool dbusutils_mainloop_running;
 extern DBusConnection *global_dbus_connection;
 
 typedef void(*dbus_get_object_property_function) (void *user_data, DBusMessageIter *iter);
