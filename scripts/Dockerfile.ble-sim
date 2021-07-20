@@ -7,17 +7,15 @@ RUN apk add --update --no-cache \
   build-base \
   gcc \
   cmake \
-  make \ 
+  make \
   linux-headers \
   glib \
-  eudev-dev \
-  readline-dev \
-  libical-dev \ 
-  py3-docutils \
-  git \ 
-  automake \
-  autoconf
+  lua5.3 \
+  lua5.3-dev \
+  git
 
+RUN mv /usr/lib/lua5.3/liblua.a /usr/lib/liblua5.3.a
+RUN mv /usr/lib/lua5.3/liblua.so /usr/lib/liblua5.3.so
 
 COPY scripts /ble-sim/scripts
 COPY cmake /ble-sim/cmake
@@ -25,28 +23,24 @@ COPY src /ble-sim/src
 COPY CMakeLists.txt /ble-sim/CMakeLists.txt
 COPY VERSION /ble-sim/VERSION
 
-RUN /ble-sim/scripts/build.sh
-
-## build btvirt
-# RUN git clone https://github.com/bluez/bluez.git 
-# WORKDIR bluez/
-# RUN ./bootstrap
-# RUN ./configure --prefix=/usr --mandir=/usr/share/man --sysconfdir=/etc --localstatedir=/var --enable-experimental --enable-testing --with-systemdsystemunitdir=/lib/systemd/system --with-systemduserunitdir=/usr/lib/systemd
-# RUN make
+WORKDIR /ble-sim/
+RUN scripts/download-deps.sh
+RUN scripts/build.sh
 
 FROM alpine:3.13
 
-RUN apk add --update --no-cache \ 
-  dbus \
-  bluez \
-  openrc
+ARG BUILD_VER
+ARG BUILD_SHA
+ENV VER=$BUILD_VER
+ENV SHA=$BUILD_SHA
+LABEL version="$VER"
+LABEL sha="$SHA"
+LABEL maintainer="iotech <support@iotechsys.com>"
+
+RUN apk add --update --no-cache lua5.3 dbus
 
 COPY --from=builder /ble-sim/build/release/ble-sim/ble-sim ble-sim/ble-sim
-#COPY --from=builder /bluez/emulator/btvirt /ble-sim/btvirt
 COPY --from=builder /ble-sim/scripts/entrypoint.sh /
-
-#need this to run dbus and bluez on the container
-VOLUME [ "/sys/fs/cgroup" ] 
-RUN mkdir -p /run/openrc && touch /run/openrc/softlevel
+COPY example-scripts /example-scripts
 
 ENTRYPOINT [ "./entrypoint.sh" ]
