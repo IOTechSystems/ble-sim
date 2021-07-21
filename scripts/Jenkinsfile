@@ -16,7 +16,7 @@ def buildStage (arch)
 
 def cleanStage (arch)
 {
-  sh "./scripts/dockerise-clean.sh"
+  sh "./scripts/clean-dockerise.sh"
 }
 
 
