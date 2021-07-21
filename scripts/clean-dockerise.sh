@@ -1,4 +1,4 @@
 #!/bin/sh
 . ./scripts/env.sh
 
-docker rmi $EXP/bacnet-server:$VER-$ARCH
+docker rmi $EXP/ble-sim:$VER-$ARCH
