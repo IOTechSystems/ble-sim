@@ -11,13 +11,14 @@ def checkoutStage (arch)
 
 def buildStage (arch)
 {
-  sh "./scripts/build.sh ${env.Archive}"
+  sh "./scripts/dockerise.sh"
 }
 
 def cleanStage (arch)
 {
-  sh "./scripts/clean.sh"
+  sh "./scripts/dockerise-clean.sh"
 }
+
 
 def buildStages (target)
 {
