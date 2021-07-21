@@ -186,7 +186,7 @@ int main (int argc, char *argv[])
     return 1;
   }
 
-  printf ("Created virtual controller hci0");
+  printf ("Created virtual controller hci0\n");
 
   if (NULL == script_path || !luai_load_script (script_path))
   {

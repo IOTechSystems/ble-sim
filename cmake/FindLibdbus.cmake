@@ -22,4 +22,4 @@ if (NOT DBUS_ARCH_INCLUDE_DIR)
 endif ()
 
 include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(LIBDBUS DEFAULT_MSG DBUS_LIBRARIES DBUS_INCLUDE_DIR)
+find_package_handle_standard_args(Libdbus DEFAULT_MSG DBUS_LIBRARIES DBUS_INCLUDE_DIR)
