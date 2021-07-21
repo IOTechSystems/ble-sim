@@ -91,7 +91,6 @@ pipeline
             build job: 'Create-Docker-Manifest', parameters: [string(name: 'BUILD', value: '${params.BUILD}'), string(name: 'Arch', value: 'x86_64'), string(name: 'images', value: "iotechsys/ble-sim:${env.version}-arm, iotechsys/ble-sim:${env.version}-arm64, iotechsys/ble-sim:${env.version}-x86_64"), string(name: 'manifest', value: "iotechsys/ble-sim:${env.version}")]
             
             build job: 'Create-Docker-Manifest', parameters: [string(name: 'BUILD', value: '${params.BUILD}'), string(name: 'Arch', value: 'x86_64'), string(name: 'images', value: "iotechsys/ble-sim:${env.version}-arm, iotechsys/ble-sim:${env.version}-arm64, iotechsys/ble-sim:${env.version}-x86_64"), string(name: 'manifest', value: "iotechsys/ble-sim:${env.verMinor}")]
-
           }
         }
       }
