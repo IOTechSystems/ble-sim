@@ -14,7 +14,7 @@
 #include "lua5.3/lauxlib.h"
 #include "lua5.3/lualib.h"
 
-bool luai_init_state (const char *script_path);
+bool luai_load_script (const char *script_path);
 
 void luai_cleanup (void);
 

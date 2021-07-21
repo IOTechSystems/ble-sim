@@ -12,6 +12,7 @@
 #include "characteristic.h"
 #include "descriptor.h"
 #include "dbusutils.h"
+#include "utils.h"
 
 static void add_device_to_device_list (device_t *device);
 
@@ -24,6 +25,7 @@ static bool device_init_controller (device_t *device);
 static device_t *device_list_head = NULL;
 
 static unsigned int device_count = 0;
+static unsigned int controller_count = 1;
 
 static dbus_method_t device_methods[] =
   {
@@ -37,7 +39,6 @@ static void add_device_to_device_list (device_t *device)
   {
     return;
   }
-  device_count++;
 
   if (device_list_head == NULL)
   {
@@ -61,7 +62,7 @@ device_t *device_new (void)
   return device;
 }
 
-device_t *device_init (device_t *device, const char *device_name, int origin)
+void device_init (device_t *device, const char *device_name, int origin)
 {
   device->origin = origin;
   device->device_name = strdup (device_name);
@@ -73,7 +74,9 @@ device_t *device_init (device_t *device, const char *device_name, int origin)
   device->object_path = dbusutils_create_object_path (EMPTY_STRING, DEVICE_OBJECT_NAME, device_count);
   device->next = NULL;
 
-  return device;
+  device->virtual_controller = NULL;
+
+  device_count++;
 }
 
 void device_free (device_t *device)
@@ -88,6 +91,8 @@ void device_free (device_t *device)
   free (device->object_path);
 
   advertisement_terminate (&device->advertisement);
+
+  vhci_close (device->virtual_controller);
 
   if (device->origin == ORIGIN_C)
   {
@@ -146,9 +151,7 @@ static DBusMessage *device_get_managed_objects (void *device_ptr, DBusConnection
 
   while (service)
   {
-    //call services func
     service_get_object (service, &array);
-
     characteristic = service->characteristics;
     while (characteristic)
     {
@@ -247,20 +250,26 @@ static bool device_register_with_bluez (device_t *device, DBusConnection *connec
 
 static bool device_init_controller (device_t *device)
 {
-  device->controller = strdup (DEFAULT_ADAPTER);
-  //TODO: properly init/create controller for device
+  size_t required = snprintf (NULL, 0, BASE_ADAPTER_PATH"%u", controller_count) + 1;
+  device->controller = malloc (required);
+  sprintf (device->controller , BASE_ADAPTER_PATH"%u", controller_count);
+
+  //create the virtual controller for the device
+  device->virtual_controller = vhci_open(VHCI_TYPE_LE);
+  if (NULL == device->virtual_controller)
+  {
+    return false;
+  }
+  printf ("Created controller hci%u\n", controller_count);
+
+  msleep (HCI_WAKEUP_TIME); //give the hci some time to get up and running and for bluez to see that it is up
+  controller_count++;
   return true;
 }
 
 //device manipulators - functions to create device, add services, characterisitcs etc
 bool device_register (device_t *device)
 {
-  if (device_count >= MAX_DEVICE_COUNT)
-  {
-    printf ("MAX device count reached!");
-    return false;
-  }
-
   bool success = false;
   if (device_get_device (device->device_name))
   {
@@ -271,18 +280,21 @@ bool device_register (device_t *device)
   success = device_init_controller (device);
   if (!success)
   {
+    printf ("Failed to create device (%s) virtual controller\n", device->device_name);
     return false;
   }
 
   success = dbusutils_register_object (global_dbus_connection, device->object_path, NULL, device_methods, device);
   if (!success)
   {
+    printf ("Failed to register device (%s) with dbus\n", device->device_name);
     return false;
   }
 
   success = device_register_with_bluez (device, global_dbus_connection);
   if (!success)
   {
+    printf ("Failed to register device (%s) with bluez\n", device->device_name);
     return false;
   }
 

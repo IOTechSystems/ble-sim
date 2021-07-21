@@ -16,14 +16,14 @@
 #define ORIGIN_C 1
 #define ORIGIN_LUA 3
 
+#define HCI_WAKEUP_TIME 100
 #define BLE_SIM_TICK_RATE_MS 100//ms
 #define BLE_SIM_SERVICE_NAME "org.blesim"
-#define DEFAULT_ADAPTER "/org/bluez/hci1"
+
+#define BASE_ADAPTER_PATH "/org/bluez/hci"
 
 #define UUID_LENGTH 32
 #define DEVICE_PATH_LENGTH 22
-
-#define MAX_DEVICE_COUNT 1 //TODO: add functionality to support more than one device
 
 #define EMPTY_STRING ""
 #define ROOT_PATH "/"
