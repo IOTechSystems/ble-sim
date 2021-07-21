@@ -45,7 +45,7 @@ pipeline
   agent none
   parameters
   {
-    string (defaultValue: 'heads/v1.8-branch', description: 'tags/<tag> or heads/<branch>', name: 'BUILD')
+    string (defaultValue: 'heads/master', description: 'tags/<tag> or heads/<branch>', name: 'BUILD')
     choice (choices: ['x86_64','arm64','arm32', 'all'], description: 'Build Host Architecture', name: 'Arch')
     booleanParam(defaultValue: false, description: 'Archive Docker Image to repository', name: 'Archive')
     booleanParam (defaultValue: false, description: 'Create Docker Manifests?', name: 'MANIFESTS')
