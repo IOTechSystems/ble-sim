@@ -55,6 +55,10 @@ To run the simulator locally build the binary and then run the command:
 
   `./build/release/ble-sim/ble-sim`
 
+To run the simulator with a lua script, pass use the --script option with the path to the lua script as its argument:
+
+  `./build/realease/ble-sim/ble-sim --script ./path/to/lua/script.lua`
+
 ## Running the docker image
 
 After [building](#Building-the-Docker-image) the docker image, run the docker container with the following options:
