@@ -55,7 +55,7 @@ To run the simulator locally build the binary and then run the command:
 
   `./build/release/ble-sim/ble-sim`
 
-To run the simulator with a lua script, pass use the --script option with the path to the lua script as its argument:
+To run the simulator with a lua script, use the --script option with the path to the lua script as its argument:
 
   `./build/realease/ble-sim/ble-sim --script ./path/to/lua/script.lua`
 
