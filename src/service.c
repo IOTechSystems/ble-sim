@@ -10,6 +10,7 @@
 #include "service.h"
 #include "characteristic.h"
 #include "dbusutils.h"
+#include "logger.h"
 
 
 static void service_get_uuid (void *user_data, DBusMessageIter *iter);
