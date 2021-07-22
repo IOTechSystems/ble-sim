@@ -14,6 +14,7 @@
 #include "dbusutils.h"
 #include "defines.h"
 #include "utils.h"
+#include "logger.h"
 
 static void characteristic_set_value (characteristic_t *characteristic, const void *new_value, const uint32_t value_size);
 
@@ -146,13 +147,13 @@ bool characteristic_add_descriptor (characteristic_t *characteristic, descriptor
 {
   if (NULL == characteristic->object_path)
   {
-    printf ("ERR: Characteristic must be added to a service first in order to add a descriptor to it.\n");
+    log_error ("Characteristic must be added to a service first in order to add a descriptor to it.");
     return false;
   }
 
   if (NULL != descriptor->characteristic_path)
   {
-    printf ("ERR: Descriptor already belongs to another characteristic.\n");
+    log_error ("Descriptor already belongs to another characteristic.");
     return false;
   }
 

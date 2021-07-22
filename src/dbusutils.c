@@ -13,6 +13,7 @@
 
 #include "utils.h"
 #include "dbusutils.h"
+#include "logger.h"
 
 typedef struct object_data_t
 {
@@ -119,7 +120,7 @@ void dbusutils_iter_append_string (DBusMessageIter *iter, int type, const char *
 {
   if (NULL == string)
   {
-    printf ("%s: string recieved was null\n", __FUNCTION__);
+    log_error ("%s: string recieved was null", __FUNCTION__);
     return;
   }
   char *tmp = strdup (string);
@@ -229,8 +230,6 @@ const char *dbusutils_get_error_message_from_reply (DBusMessage *reply)
   dbus_message_iter_init (reply, &err_iter);
   dbus_message_iter_get_basic (&err_iter, &error_message);
 
-  printf ("%s\n", error_message);
-
   return error_message;
 }
 
@@ -242,7 +241,7 @@ DBusConnection *dbusutils_get_connection (void)
   DBusConnection *conn = dbus_bus_get (DBUS_BUS_SYSTEM, &err);
   if (dbus_error_is_set (&err))
   {
-    printf ("Connection Error (%s)\n", err.message);
+    log_debug ("D-Bus could not create connection (%s)", err.message);
     dbus_error_free (&err);
   }
   return conn;
@@ -260,7 +259,7 @@ static DBusMessage *dbusutils_object_get_all (DBusConnection *connection, DBusMe
   DBusMessage *reply = dbus_message_new_method_return (message);
   if (reply == NULL)
   {
-    printf ("%s: Could not create a dbus method return message", __FUNCTION__);
+    log_error ("[%s:%u] Could not create a dbus method return message", __FUNCTION__, __LINE__);
     return false;
   }
 
@@ -294,14 +293,14 @@ static DBusMessage *dbusutils_object_get (DBusConnection *connection, DBusMessag
   const char *property_name = get_property_name_from_properties_get_message (message);
   if (NULL == property_name)
   {
-    printf ("Could not get a property name from get property request\n");
+    log_debug ("[%s:%u] Could not get a property name from get property request", __FUNCTION__, __LINE__);
     return NULL;
   }
 
   DBusMessage *reply = dbus_message_new_method_return (message);
   if (reply == NULL)
   {
-    printf ("%s: Could not create a dbus method return message", __FUNCTION__);
+    log_debug ("[%s:%u] Could not create a dbus method return message", __FUNCTION__, __LINE__);
     return NULL;
   }
 
@@ -413,7 +412,7 @@ bool dbusutils_register_object (DBusConnection *connection,
   dbus_connection_try_register_object_path (connection, object_path, &object_vtable, object_data, &err);
   if (dbus_error_is_set (&err))
   {
-    printf ("Error registering object path (%s): (%s)\n", object_path, err.message);
+    log_debug ("[%s:%d] Error registering object path (%s): (%s)", __FUNCTION__, __LINE__, object_path, err.message);
     dbus_error_free (&err);
     return false;
   }
@@ -436,7 +435,7 @@ DBusMessage *dbusutils_do_method_call (DBusConnection *connection, const char *b
 
   if (dbus_error_is_set (&err))
   {
-    printf ("Error Sending method call (%s: %s)\n", err.name, err.message);
+    log_debug ("[%s:%u] Error Sending method call (%s: %s)", __FUNCTION__, __LINE__, err.name, err.message);
     dbus_error_free (&err);
     return NULL;
   }
@@ -474,7 +473,7 @@ DBusMessage *dbusutils_set_property_basic (
 
   if (dbus_error_is_set (&err))
   {
-    printf ("Error Sending method call (%s: %s)\n", err.name, err.message);
+    log_error ("[%s:%u]Error Sending method call (%s: %s)", __FUNCTION__, __LINE__, err.name, err.message);
     dbus_error_free (&err);
     return NULL;
   }
