@@ -47,8 +47,9 @@ pipeline
   {
     string (defaultValue: 'heads/master', description: 'tags/<tag> or heads/<branch>', name: 'BUILD')
     choice (choices: ['x86_64','arm64','arm32', 'all'], description: 'Build Host Architecture', name: 'Arch')
-    booleanParam(defaultValue: false, description: 'Archive Docker Image to repository', name: 'Archive')
+    booleanParam (defaultValue: false, description: 'Archive Docker Image to repository', name: 'Archive')
     booleanParam (defaultValue: false, description: 'Create Docker Manifests?', name: 'MANIFESTS')
+    booleanParam (defaultValue: false, description: 'Build release', name: 'Release')
   }
   stages 
   { 
@@ -81,7 +82,7 @@ pipeline
             env.verDev = env.version.substring(env.version.lastIndexOf("."))
             env.verDev = env.verDev.trim()
             env.verMinor = env.version.substring(0,env.version.lastIndexOf("."))
-            if (( "${verDev}" == ".dev" ))
+            if (( "${verDev}" == ".dev" && "${params.Release}" == "false" ))
             {
                env.verMinor = env.verMinor.substring(0,env.verMinor.lastIndexOf("."))
                env.verMinor = env.verMinor.trim()+env.verDev
