@@ -82,11 +82,11 @@ pipeline
             env.verDev = env.version.substring(env.version.lastIndexOf("."))
             env.verDev = env.verDev.trim()
             env.verMinor = env.version.substring(0,env.version.lastIndexOf("."))
-            if (( "${verDev}" == ".dev" && "${params.Release}" == "false" ))
+            if (( "${verDev}" == ".dev" ))
             {
                env.verMinor = env.verMinor.substring(0,env.verMinor.lastIndexOf("."))
                env.verMinor = env.verMinor.trim()+env.verDev
-            }
+            }            
             println env.verMinor
             
             build job: 'Create-Docker-Manifest', parameters: [string(name: 'BUILD', value: "heads/master"), string(name: 'Arch', value: 'x86_64'), string(name: 'images', value: "iotechsys/ble-sim:${env.version}-arm, iotechsys/ble-sim:${env.version}-arm64, iotechsys/ble-sim:${env.version}-x86_64"), string(name: 'manifest', value: "iotechsys/ble-sim:${env.version}")]

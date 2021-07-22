@@ -72,14 +72,14 @@ device_t *device_get_device (const char *device_name);
  * adds the device to the internal device list,
  * 
  * @param device the device to add
- * @return succesful true/false
+ * @return successful true/false
  **/
 bool device_register (device_t *device);
 
 /**
  * Removes a device from the list
  * @param device_name unique name of the device
- * @return succesful true/false if the device was added to the list
+ * @return successful true/false if the device was added to the list
  **/
 bool device_remove (const char *device_name);
 
@@ -87,7 +87,7 @@ bool device_remove (const char *device_name);
  * Adds a service to device
  * @param device_name unique name of the device to add the service to
  * @param service service to add
- * @return succesful true/false
+ * @return successful true/false
  **/
 bool device_add_service (device_t *device, service_t *service);
 

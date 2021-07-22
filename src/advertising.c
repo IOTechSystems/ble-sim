@@ -11,6 +11,7 @@
 
 #include "advertising.h"
 #include "dbusutils.h"
+#include "logger.h"
 
 static DBusMessage *advertisement_release (void *advertisement_ptr, DBusConnection *connection, DBusMessage *message);
 
@@ -141,13 +142,17 @@ static void on_register_advert_reply (DBusPendingCall *pending_call, void *user_
 
   if (dbus_message_get_type (reply) == DBUS_MESSAGE_TYPE_ERROR)
   {
-    printf ("Unable to Register advert for device (%s) with bluez: (%s : %s)\n", *advertisement->local_name, dbus_message_get_error_name (reply),
-            dbusutils_get_error_message_from_reply (reply));
+    log_error (
+      "Unable to Register advert for device (%s) with bluez: (%s : %s)", 
+      *advertisement->local_name, 
+      dbus_message_get_error_name (reply),
+      dbusutils_get_error_message_from_reply (reply)
+    );
     //TODO : do something more with the error
   }
   else
   {
-    printf ("Succesfully Registered %s's advertisement with bluez\n", *advertisement->local_name);
+    log_debug ("Successfully Registered %s's advertisement with bluez", *advertisement->local_name);
     advertisement->registered = true;
   }
 
@@ -169,7 +174,7 @@ bool advertisement_register_with_bluez (
 
   if (NULL == message)
   {
-    printf ("Register Advertisement: Could not set up message\n");
+    log_error ("Register Advertisement: Could not set up message");
     return false;
   }
 
