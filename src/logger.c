@@ -38,8 +38,8 @@ static void log_log (loglevel_t level, const char* message, va_list args)
 
   char time_fmt [80];
   char time_str [80];
-  strftime(time_fmt, 80, "%Y-%m-%d %H:%M:%S.%%06lu", localtime(&t));
-  snprintf(time_str, sizeof (time_str), time_fmt, tv.tv_usec);
+  strftime(time_fmt, 80, "%Y-%m-%d %H:%M:%S.%%03lu", localtime(&t));
+  snprintf(time_str, sizeof (time_str), time_fmt, tv.tv_usec / 1000);
 
   FILE *out_stream = (level == LOG_ERROR) ? stderr : stdout;
 

@@ -161,6 +161,12 @@ static void stop_simulator (int a)
   dbusutils_mainloop_running = false;
 }
 
+static void exit_simulator (int status)
+{
+  cleanup_simulator();
+  exit (status);
+}
+
 int main (int argc, char *argv[])
 {
 
@@ -174,26 +180,26 @@ int main (int argc, char *argv[])
     return 1;
   }
 
-  log_info ("Starting simulator");
-
   //bluez mainloop for controllers to run on
   mainloop_init();
   pthread_create (&controller_mainloop_thread, NULL, controller_mainloop_runner, NULL);
 
-  //create the virtual controller for the devices service to run on
+  log_info ("Starting simulator...");
+
+  //create the virtual controller for the device service to run on
   default_controller = vhci_open (VHCI_TYPE_LE);
   if (NULL == default_controller)
   {
     log_error ("Could not create a virtual controller - make sure you are running as root");
-    return 1;
+    exit_simulator(1);
   }
-
   log_info ("Created virtual controller hci0");
 
   if (NULL == script_path || !luai_load_script (script_path))
   {
-    return 1;
+    exit_simulator(1);
   }
+ 
 
   signal (SIGINT, stop_simulator);
   signal (SIGTERM, stop_simulator);
