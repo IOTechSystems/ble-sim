@@ -6,7 +6,7 @@ def checkoutStage (arch)
 {
   cleanWs (cleanWhenAborted: true, cleanWhenFailure: true, cleanWhenNotBuilt: true, cleanWhenSuccess: true)
   checkout scm
-  currentBuild.displayName = "Docker-BLE-SIM ${arch}: ${env.BUILD_ID}"
+  currentBuild.displayName = "Docker-BLE-SIM ${params.Arch}: ${env.BUILD_ID}"
 }
 
 def buildStage (arch)
