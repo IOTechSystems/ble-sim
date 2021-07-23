@@ -57,7 +57,12 @@ To run the simulator locally build the binary and then run the command:
 
 To run the simulator with a lua script, use the --script option with the path to the lua script as its argument:
 
-  `./build/realease/ble-sim/ble-sim --script ./path/to/lua/script.lua`
+  `./build/release/ble-sim/ble-sim --script ./path/to/lua/script.lua`
+
+To set the logging level of the simulator, use the --logging option with the desired logging level.
+The logging level can be one of {None|Info|Error|Warn|Debug|Trace} e.g:
+
+  `./build/release/ble-sim/ble-sim --logging Trace`
 
 ## Running the docker image
 
