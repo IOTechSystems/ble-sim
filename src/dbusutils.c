@@ -248,26 +248,6 @@ DBusConnection *dbusutils_get_connection (void)
   return conn;
 }
 
-bool dbusutils_request_application_bus_name (DBusConnection *connection)
-{
-  DBusError err;
-  dbus_error_init (&err);
-
-  int ret = dbus_bus_request_name (connection, BLE_SIM_SERVICE_NAME, DBUS_NAME_FLAG_REPLACE_EXISTING, &err);
-  if (dbus_error_is_set (&err))
-  {
-    fprintf (stderr, "Name Error (%s)\n", err.message);
-    dbus_error_free (&err);
-    return false;
-  }
-
-  if (DBUS_REQUEST_NAME_REPLY_PRIMARY_OWNER != ret)
-  {
-    return false;
-  }
-  return true;
-}
-
 static void dbusutils_object_handle_unregister (DBusConnection *connection, void *data)
 {
   //object_data_t *object_data = (object_data_t*) data;

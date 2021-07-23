@@ -58,10 +58,7 @@ static bool dbus_init (void)
     return false;
   }
 
-  if (!dbusutils_request_application_bus_name (global_dbus_connection))
-  {
-    return false;
-  }
+  dbus_bus_get_unique_name (global_dbus_connection);
 
   //setup filter
   if (dbus_connection_add_filter (global_dbus_connection, filter_message, NULL, NULL) == false)
