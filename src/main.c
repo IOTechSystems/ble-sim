@@ -97,7 +97,7 @@ static void print_help (const char *filename)
            "    script_path - Path to the device simulation Lua script\n\n"
            "--logging level:\n"
            "    level - Sets the logging level, can be one of {None|Info|Error|Warn|Debug|Trace} (case insensitive).\n"
-           "    By default logging is set level 'Warn'\n\n"
+           "    By default logging is set to level 'Warn'\n\n"
            );
 }
 
