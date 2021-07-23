@@ -83,20 +83,22 @@ static void dbus_cleanup (void)
 
 static void print_usage (const char *filename)
 {
-  fprintf (stdout, "Usage: %s [--script script_path]\n", filename);
+  fprintf (stdout, "Usage: %s\n", filename);
+  fprintf (stdout, "          [--script script_path]\n");
+  fprintf (stdout, "          [--logging {None|Info|Error|Warn|Debug|Trace}]\n");
   fprintf (stdout, "          [--help]\n");
 }
 
 static void print_help (const char *filename)
 {
+  print_usage (filename);
   fprintf (stdout, 
-           "Simulate a bluetooth low energy device\n"
-           "--script/-s:\n"
-           "Path to the device simulation Lua script\n");
-  fprintf (stdout, 
-           "To simulate a device using the script register-device.lua, use the following command:\n"
-           "%s -s register-device.lua\n",
-           filename);
+           "\n--script script_path:\n"
+           "    script_path - Path to the device simulation Lua script\n\n"
+           "--logging level:\n"
+           "    level - Sets the logging level, can be one of {None|Info|Error|Warn|Debug|Trace} (case insensitive).\n"
+           "    By default logging is set level 'Warn'\n\n"
+           );
 }
 
 static bool parse_args (int argc, char *argv[])
@@ -125,6 +127,20 @@ static bool parse_args (int argc, char *argv[])
     {
       print_help (filename);
       return false;
+    }
+    else if (strcmp (argv[i], SIM_ARGS_OPTION_LOGGING) == 0)
+    {
+      if (i == argc - 1)
+      {
+        print_usage (filename);
+        return false;
+      }
+      i++;
+      bool success = log_set_level_from_str (argv[i]);
+      if (!success)
+      {
+        return false;
+      }
     }
     else
     {

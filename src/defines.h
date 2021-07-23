@@ -12,6 +12,14 @@
 
 #define SIM_ARGS_OPTION_SCRIPT "--script"
 #define SIM_ARGS_OPTION_HELP "--help"
+#define SIM_ARGS_OPTION_LOGGING "--logging"
+
+#define LOGGING_LEVEL_NONE_STR "None"
+#define LOGGING_LEVEL_INFO_STR "Info"
+#define LOGGING_LEVEL_ERROR_STR "ERROR"
+#define LOGGING_LEVEL_WARN_STR "WARN"
+#define LOGGING_LEVEL_DEBUG_STR "Debug"
+#define LOGGING_LEVEL_TRACE_STR "Trace"
 
 #define ORIGIN_C 1
 #define ORIGIN_LUA 3

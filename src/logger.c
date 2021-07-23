@@ -9,13 +9,59 @@
 #include <time.h>
 #include <sys/time.h>
 #include <string.h>
+#include <strings.h>
 
+#include "defines.h"
 #include "logger.h"
 
 static loglevel_t log_level = DEFAULT_LOG_LEVEL;
-static const char * log_level_strings[] = {"", "Info", "ERROR", "WARN", "Debug", "Trace"};
+static const char * log_level_strings[] = {
+  LOGGING_LEVEL_NONE_STR,
+  LOGGING_LEVEL_INFO_STR,
+  LOGGING_LEVEL_ERROR_STR,
+  LOGGING_LEVEL_WARN_STR,
+  LOGGING_LEVEL_DEBUG_STR,
+  LOGGING_LEVEL_TRACE_STR
+};
 
 static void log_log (loglevel_t level, const char* message,va_list args);
+
+bool log_set_level_from_str (const char* arg)
+{
+  if (strcasecmp (arg, LOGGING_LEVEL_NONE_STR) == 0)
+  {
+    log_set_level (LOG_NONE);
+  }
+  else if (strcasecmp (arg, LOGGING_LEVEL_INFO_STR) == 0)
+  {
+    log_set_level (LOG_INFO);
+  }
+  else if (strcasecmp (arg, LOGGING_LEVEL_ERROR_STR) == 0)
+  {
+    log_set_level (LOG_ERROR);
+  }
+  else if (strcasecmp (arg, LOGGING_LEVEL_WARN_STR) == 0)
+  {
+    log_set_level (LOG_WARN);
+  }
+  else if (strcasecmp (arg, LOGGING_LEVEL_DEBUG_STR) == 0)
+  {
+    log_set_level (LOG_DEBUG);
+  }
+  else if (strcasecmp (arg, LOGGING_LEVEL_TRACE_STR) == 0)
+  {
+    log_set_level (LOG_TRACE);
+  }
+  else
+  {
+    log_info ("Invalid logging level %s", arg);
+    return false;
+  }
+
+  log_info ("Set logging level to %s", arg);
+  return true;
+}
+
 
 void log_set_level (loglevel_t new_level)
 {
