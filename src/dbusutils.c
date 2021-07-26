@@ -120,7 +120,7 @@ void dbusutils_iter_append_string (DBusMessageIter *iter, int type, const char *
 {
   if (NULL == string)
   {
-    log_error ("%s: string recieved was null", __FUNCTION__);
+    log_debug ("[%s:%u] string recieved was null", __FUNCTION__, __LINE__);
     return;
   }
   char *tmp = strdup (string);
