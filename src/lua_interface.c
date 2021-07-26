@@ -10,6 +10,7 @@
 #include "lua_interface.h"
 #include "defines.h"
 #include "device.h"
+#include "logger.h"
 
 static lua_State *luai_state;
 
@@ -134,7 +135,7 @@ static bool luai_call_function (lua_State *lua_state, const char *function_name)
   lua_getglobal (lua_state, function_name);
   if (lua_pcall (lua_state, 0, 0, 0))
   {
-    printf ("No '%s' function found.\n", function_name);
+    log_error ("No '%s' function found.\n", function_name);
     lua_fail (lua_state);
     return false;
   }
@@ -202,7 +203,7 @@ static void luai_setup_lua_sim_api (lua_State *lua_state)
 
 static void lua_fail (lua_State *lua_state)
 {
-  printf ("LUA ERROR: %s\n", lua_tostring(lua_state, -1));
+  log_error ("Lua - %s", lua_tostring(lua_state, -1));
 }
 
 static void luai_check_type (lua_State *lua_state, int index, int expected_parameter_type)
@@ -389,7 +390,7 @@ static int luai_get_array (lua_State *lua_state, int idx, void **array, unsigned
 
     if (!lua_isnumber (lua_state, -1))
     {
-      printf ("Array value at index (%u) was not a number", i);
+      log_warn ("Array value at index (%u) was not a number", i);
       free (buf);
       return false;
     }
@@ -397,7 +398,7 @@ static int luai_get_array (lua_State *lua_state, int idx, void **array, unsigned
 
     if (b < 0 || b > UINT8_MAX)
     {
-      printf ("Array value at index (%u) was too large - should be a byte\n", i);
+      log_warn ("Array value at index (%u) was too large - should be a byte", i);
       free (buf);
       return false;
     }
@@ -446,7 +447,7 @@ static int luai_characteristic_set_value (lua_State *lua_state)
     }
       break;
     default:
-      printf ("Parameter to setValue must be bool, number or byte array!\n");
+      log_warn ("Parameter to setValue must be bool, number or byte array!");
       success = false;
       break;
   }
@@ -476,7 +477,7 @@ bool luai_call_update ()
 {
   if (NULL == luai_state)
   {
-    printf ("Lua state was null\n");
+    log_debug ("Lua state was NULL");
     return false;
   }
 
@@ -487,7 +488,7 @@ bool luai_load_script (const char *script_path)
 {
   if (!init_lua_state (&luai_state, script_path))
   {
-    printf ("Failed to open luafile\n");
+    log_error ("Failed to open luafile");
     return false;
   }
 

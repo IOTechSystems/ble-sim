@@ -10,6 +10,7 @@
 #include "service.h"
 #include "characteristic.h"
 #include "dbusutils.h"
+#include "logger.h"
 
 
 static void service_get_uuid (void *user_data, DBusMessageIter *iter);
@@ -101,13 +102,13 @@ bool service_add_characteristic (service_t *service, characteristic_t *character
 {
   if (NULL == service->object_path)
   {
-    printf ("ERR: Service must be added to a device first in order to add a characteristic to it!\n");
+    log_warn ("Service must be added to a device first in order to add a characteristic to it!");
     return false;
   }
 
   if (NULL != characteristic->service_path)
   {
-    printf ("ERR: Characteristic already belongs to another service.\n");
+    log_warn ("Characteristic already belongs to another service.");
     return false;
   }
 

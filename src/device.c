@@ -13,6 +13,7 @@
 #include "descriptor.h"
 #include "dbusutils.h"
 #include "utils.h"
+#include "logger.h"
 
 static void add_device_to_device_list (device_t *device);
 
@@ -113,14 +114,14 @@ static DBusMessage *device_get_managed_objects (void *device_ptr, DBusConnection
   device_t *device = (device_t *) device_ptr;
   if (NULL == device || NULL == connection || NULL == message)
   {
-    printf ("%s: Parameter was null", __FUNCTION__);
+    log_debug ("[%s:%u] Parameter was null", __FUNCTION__, __LINE__);
     return NULL;
   }
 
   DBusMessage *reply = dbus_message_new_method_return (message);
   if (reply == NULL)
   {
-    printf ("%s: Could not create a dbus method return message", __FUNCTION__);
+    log_debug ("[%s:%u] Could not create a dbus method return message", __FUNCTION__, __LINE__);
     return NULL;
   }
 
@@ -183,12 +184,12 @@ static void on_register_application_reply (DBusPendingCall *pending_call, void *
 
   if (dbus_message_get_type (reply) == DBUS_MESSAGE_TYPE_ERROR)
   {
-    printf ("Unable to Register device with bluez: (%s : %s)\n", dbus_message_get_error_name (reply), dbusutils_get_error_message_from_reply (reply));
+    log_error ("Unable to Register device with bluez: (%s : %s)\n", dbus_message_get_error_name (reply), dbusutils_get_error_message_from_reply (reply));
     //TODO : remove device from list and unregister object
   }
   else
   {
-    printf ("Succesfully Registered device (%s) with bluez\n", device->device_name);
+    log_debug ("Successfully Registered device %s with bluez", device->device_name);
     device->application_registered = true;
   }
 
@@ -199,13 +200,13 @@ static bool device_register_with_bluez (device_t *device, DBusConnection *connec
 {
   if (NULL == device->controller)
   {
-    printf ("%s Device->contoller was NULL\n", __FUNCTION__);
+    log_debug ("[%s:%u] Device->contoller was NULL", __FUNCTION__, __LINE__);
     return false;
   }
   DBusMessage *message = dbus_message_new_method_call (BLUEZ_BUS_NAME, device->controller, BLUEZ_GATT_MANAGER_INTERFACE, BLUEZ_METHOD_REGISTER_APPLICATION);
   if (NULL == message)
   {
-    printf ("Register Application: Could not set up message\n");
+    log_error ("Register Application: Could not set up message");
     return false;
   }
 
@@ -260,7 +261,7 @@ static bool device_init_controller (device_t *device)
   {
     return false;
   }
-  printf ("Created controller hci%u\n", controller_count);
+  log_info ("Created virtual controller hci%u for device %s", controller_count, device->device_name);
 
   msleep (HCI_WAKEUP_TIME); //give the hci some time to get up and running and for bluez to see that it is up
   controller_count++;
@@ -273,28 +274,28 @@ bool device_register (device_t *device)
   bool success = false;
   if (device_get_device (device->device_name))
   {
-    printf ("Device with that name already exists\n");
+    log_warn ("Device with that name already exists");
     return false;
   }
 
   success = device_init_controller (device);
   if (!success)
   {
-    printf ("Failed to create device (%s) virtual controller\n", device->device_name);
+    log_error ("Failed to create device (%s) virtual controller", device->device_name);
     return false;
   }
 
   success = dbusutils_register_object (global_dbus_connection, device->object_path, NULL, device_methods, device);
   if (!success)
   {
-    printf ("Failed to register device (%s) with dbus\n", device->device_name);
+    log_error ("Failed to register device (%s) with dbus", device->device_name);
     return false;
   }
 
   success = device_register_with_bluez (device, global_dbus_connection);
   if (!success)
   {
-    printf ("Failed to register device (%s) with bluez\n", device->device_name);
+    log_error ("Failed to register device (%s) with bluez", device->device_name);
     return false;
   }
 
@@ -329,6 +330,8 @@ bool device_register (device_t *device)
   add_device_to_device_list (device);
   device->initialised = true;
 
+  log_info ("Simulating device %s", device->device_name);
+
   return true;
 }
 
@@ -336,7 +339,7 @@ bool device_set_discoverable (device_t *device, bool discoverable)
 {
   if (!device->initialised)
   {
-    printf ("Error: Device must be initialised to set its discoverability.\n");
+    log_warn ("Device must be initialised to set its discoverability.");
     return false;
   }
 
@@ -358,7 +361,7 @@ bool device_set_discoverable (device_t *device, bool discoverable)
     return false;
   }
 
-  printf ("Device (%s) discoverable %s\n", device->device_name, discoverable ? "on" : "off");
+  log_info ("Device %s %s discoverable ", device->device_name, discoverable ? "" : "not");
   dbus_message_unref (reply);
   return true;
 }
@@ -367,7 +370,7 @@ bool device_set_powered (device_t *device, bool powered)
 {
   if (!device->initialised)
   {
-    printf ("Error: Device must be initialised to change its powerd state.\n");
+    log_warn ("Device must be initialised to change its powerd state.");
     return false;
   }
 
@@ -389,7 +392,7 @@ bool device_set_powered (device_t *device, bool powered)
     return false;
   }
 
-  printf ("Device (%s) controller (%s) powered %s\n", device->device_name, device->controller, powered ? "on" : "off");
+  log_info ("Device %s powered %s", device->device_name, powered ? "on" : "off");
   dbus_message_unref (reply);
   return true;
 }
@@ -427,19 +430,19 @@ bool device_add_service (device_t *device, service_t *service)
 {
   if (NULL == device)
   {
-    printf ("Device was null\n");
+    log_debug ("[%s:%u] Device was NULL", __FUNCTION__, __LINE__);
     return false;
   }
 
   if (NULL != service->device_path)
   {
-    printf ("ERR: Service already belongs to a device.\n");
+    log_warn ("Service already belongs to a device.");
     return false;
   }
 
   if (device_get_service (device, service->uuid))
   {
-    printf ("Service %s already exists for device %s\n", service->uuid, device->device_name);
+    log_warn ("Service %s already exists for device %s", service->uuid, device->device_name);
     return false;
   }
 

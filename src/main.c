@@ -23,6 +23,7 @@
 #include "service.h"
 #include "characteristic.h"
 #include "descriptor.h"
+#include "logger.h"
 
 DBusConnection *global_dbus_connection;
 char *default_adapter = NULL;
@@ -36,7 +37,7 @@ static void stop_simulator (int a);
 
 static DBusHandlerResult filter_message (DBusConnection *connection, DBusMessage *message, void *data)
 {
-  printf ("Incomming DBus Message %d %s : %s %s/%s/%s %s\n",
+  log_trace ("Incomming DBus Message %d %s : %s %s/%s/%s %s",
           dbus_message_get_type (message),
           dbus_message_get_sender (message),
           dbus_message_get_destination (message),
@@ -82,18 +83,22 @@ static void dbus_cleanup (void)
 
 static void print_usage (const char *filename)
 {
-  printf ("Usage: %s [--script script_path]\n", filename);
-  printf ("          [--help]\n");
+  fprintf (stdout, "Usage: %s\n", filename);
+  fprintf (stdout, "          [--script script_path]\n");
+  fprintf (stdout, "          [--logging {None|Info|Error|Warn|Debug|Trace}]\n");
+  fprintf (stdout, "          [--help]\n");
 }
 
 static void print_help (const char *filename)
 {
-  printf ("Simulate a bluetooth low energy device\n"
-          "--script/-s:\n"
-          "Path to the device simulation Lua script\n");
-  printf ("To simulate a device using the script register-device.lua, use the following command:\n"
-          "%s -s register-device.lua\n",
-          filename);
+  print_usage (filename);
+  fprintf (stdout, 
+           "\n--script script_path:\n"
+           "    script_path - Path to the device simulation Lua script\n\n"
+           "--logging level:\n"
+           "    level - Sets the logging level, can be one of {None|Info|Error|Warn|Debug|Trace} (case insensitive).\n"
+           "    By default logging is set to level 'Warn'\n\n"
+           );
 }
 
 static bool parse_args (int argc, char *argv[])
@@ -122,6 +127,20 @@ static bool parse_args (int argc, char *argv[])
     {
       print_help (filename);
       return false;
+    }
+    else if (strcmp (argv[i], SIM_ARGS_OPTION_LOGGING) == 0)
+    {
+      if (i == argc - 1)
+      {
+        print_usage (filename);
+        return false;
+      }
+      i++;
+      bool success = log_set_level_from_str (argv[i]);
+      if (!success)
+      {
+        return false;
+      }
     }
     else
     {
@@ -154,8 +173,14 @@ static void cleanup_simulator (void)
 
 static void stop_simulator (int a)
 {
-  printf ("Stopping simulator...\n");
+  log_info ("Stopping simulator...");
   dbusutils_mainloop_running = false;
+}
+
+static void exit_simulator (int status)
+{
+  cleanup_simulator();
+  exit (status);
 }
 
 int main (int argc, char *argv[])
@@ -175,20 +200,22 @@ int main (int argc, char *argv[])
   mainloop_init();
   pthread_create (&controller_mainloop_thread, NULL, controller_mainloop_runner, NULL);
 
-  //create the virtual controller for the devices service to run on
+  log_info ("Starting simulator...");
+
+  //create the virtual controller for the device service to run on
   default_controller = vhci_open (VHCI_TYPE_LE);
   if (NULL == default_controller)
   {
-    printf ("Could not create a virtual controller - make sure you are running as root\n");
-    return 1;
+    log_error ("Could not create a virtual controller - make sure you are running as root");
+    exit_simulator(1);
   }
-
-  printf ("Created virtual controller hci0\n");
+  log_info ("Created virtual controller hci0");
 
   if (NULL == script_path || !luai_load_script (script_path))
   {
-    return 1;
+    exit_simulator(1);
   }
+ 
 
   signal (SIGINT, stop_simulator);
   signal (SIGTERM, stop_simulator);
