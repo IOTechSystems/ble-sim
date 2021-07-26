@@ -259,7 +259,7 @@ static DBusMessage *dbusutils_object_get_all (DBusConnection *connection, DBusMe
   DBusMessage *reply = dbus_message_new_method_return (message);
   if (reply == NULL)
   {
-    log_error ("[%s:%u] Could not create a dbus method return message", __FUNCTION__, __LINE__);
+    log_debug ("[%s:%u] Could not create a dbus method return message", __FUNCTION__, __LINE__);
     return false;
   }
 
@@ -473,7 +473,7 @@ DBusMessage *dbusutils_set_property_basic (
 
   if (dbus_error_is_set (&err))
   {
-    log_error ("[%s:%u]Error Sending method call (%s: %s)", __FUNCTION__, __LINE__, err.name, err.message);
+    log_debug ("[%s:%u]Error Sending method call (%s: %s)", __FUNCTION__, __LINE__, err.name, err.message);
     dbus_error_free (&err);
     return NULL;
   }
