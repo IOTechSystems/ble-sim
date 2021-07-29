@@ -185,6 +185,7 @@ static void exit_simulator (int status)
 
 int main (int argc, char *argv[])
 {
+  setbuf(stdout, NULL); 
 
   if (!parse_args (argc, argv))
   {
