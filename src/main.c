@@ -183,6 +183,28 @@ static void exit_simulator (int status)
   exit (status);
 }
 
+static bool power_default_controller(void)
+{
+  dbus_bool_t value = TRUE;
+  DBusMessage *reply = dbusutils_set_property_basic (
+    global_dbus_connection,
+    BLUEZ_BUS_NAME,
+    DEFAULT_ADAPTER_PATH,
+    BLUEZ_ADAPTER_INTERFACE,
+    BLUEZ_ADAPTER_PROPERTY_POWERED,
+    DBUS_TYPE_BOOLEAN,
+    &value
+  );
+
+  if (NULL == reply)
+  {
+    return false;
+  } 
+
+  dbus_message_unref (reply);
+  return true;
+}
+
 int main (int argc, char *argv[])
 {
   setbuf(stdout, NULL); 
@@ -194,6 +216,7 @@ int main (int argc, char *argv[])
 
   if (dbus_init () == false)
   {
+    log_error ("Could not initialise DBus Connection");
     return 1;
   }
 
@@ -211,13 +234,17 @@ int main (int argc, char *argv[])
     exit_simulator(1);
   }
   log_info ("Created virtual controller hci0");
+  sleep (1);
+  if (!power_default_controller ())
+  {
+    return false;
+  }
 
   if (NULL == script_path || !luai_load_script (script_path))
   {
     exit_simulator(1);
   }
  
-
   signal (SIGINT, stop_simulator);
   signal (SIGTERM, stop_simulator);
 
