@@ -237,7 +237,8 @@ int main (int argc, char *argv[])
   sleep (1);
   if (!power_default_controller ())
   {
-    return false;
+    log_error ("Could not power the default controller");
+    exit_simulator (1);
   }
 
   if (NULL == script_path || !luai_load_script (script_path))
