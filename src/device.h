@@ -37,12 +37,6 @@ typedef struct device_t
 } device_t;
 
 /**
- * Allocates memory for a new device
- * @return device or NULL if out of memory
- **/
-device_t *device_new (void);
-
-/**
  * Initialises values for a new device_t 
  * @param device device to initialise
  * @param device_name name of the device

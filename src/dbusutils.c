@@ -419,29 +419,6 @@ bool dbusutils_register_object (DBusConnection *connection,
   return true;
 }
 
-DBusMessage *dbusutils_do_method_call (DBusConnection *connection, const char *bus_name, const char *path, const char *iface, const char *method)
-{
-  DBusError err;
-  dbus_error_init (&err);
-
-  DBusMessage *dbus_msg = dbus_message_new_method_call (bus_name, path, iface, method);
-  if (dbus_msg == NULL)
-  {
-    return NULL;
-  }
-
-  DBusMessage *dbus_reply = dbus_connection_send_with_reply_and_block (connection, dbus_msg, DEFAULT_TIMEOUT, &err);
-  dbus_message_unref (dbus_msg);
-
-  if (dbus_error_is_set (&err))
-  {
-    log_debug ("[%s:%u] Error Sending method call (%s: %s)", __FUNCTION__, __LINE__, err.name, err.message);
-    dbus_error_free (&err);
-    return NULL;
-  }
-  return dbus_reply;
-}
-
 DBusMessage *dbusutils_set_property_basic (
   DBusConnection *connection,
   const char *bus_name,

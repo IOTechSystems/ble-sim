@@ -32,17 +32,6 @@ static dbus_method_t service_methods[] =
     DBUS_METHOD_NULL
   };
 
-service_t *service_new (void)
-{
-  service_t *new_service = calloc (1, sizeof (*new_service));
-  if (NULL == new_service)
-  {
-    return NULL;
-  }
-
-  return new_service;
-}
-
 service_t *service_init (service_t *service, const char *uuid, bool primary, int origin)
 {
   service->origin = origin;

@@ -30,13 +30,6 @@ typedef struct characteristic_t
 } characteristic_t;
 
 /**
- * Allocates memory for a new characteristic_t 
- * 
- * @return initialised characteristic  
- **/
-characteristic_t *characteristic_new (void);
-
-/**
  * Initialises values for a new characteristic
  * @param characteristic the characteristic
  * @param uuid the uuid of the characteristic

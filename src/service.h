@@ -31,13 +31,6 @@ typedef struct service_t
 } service_t;
 
 /**
- * Allocates memory for a new service_t 
- *
- * @return allocated service
- **/
-service_t *service_new (void);
-
-/**
  * Initialises values for a new service
  * @param service service to initialise
  * @param uuid the uuid of the service 
