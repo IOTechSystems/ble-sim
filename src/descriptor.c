@@ -52,17 +52,6 @@ static object_flag_t descriptor_flags[] =
     {DESCRIPTOR_FLAG_AUTHORIZE,                   DESCRIPTOR_FLAG_AUTHORIZE_ENABLED_BIT}
   };
 
-descriptor_t *descriptor_new (void)
-{
-  descriptor_t *new_descriptor = calloc (1, sizeof (*new_descriptor));
-  if (NULL == new_descriptor)
-  {
-    return NULL;
-  }
-
-  return new_descriptor;
-}
-
 descriptor_t *descriptor_init (descriptor_t *descriptor, const char *uuid, int origin)
 {
   descriptor->origin = origin;

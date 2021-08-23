@@ -51,18 +51,6 @@ static void add_device_to_device_list (device_t *device)
   device_list_head = device;
 }
 
-//device constructors destructors
-device_t *device_new (void)
-{
-  device_t *device = calloc (1, sizeof (*device));
-  if (NULL == device)
-  {
-    return NULL;
-  }
-
-  return device;
-}
-
 void device_init (device_t *device, const char *device_name, int origin)
 {
   device->origin = origin;

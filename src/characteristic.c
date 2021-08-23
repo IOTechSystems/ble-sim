@@ -73,17 +73,6 @@ static object_flag_t characteristic_flags[] =
     {CHARACTERISTIC_FLAG_AUTHORIZE,                     CHARACTERISTIC_FLAG_AUTHORIZE_ENABLED_BIT}
   };
 
-characteristic_t *characteristic_new (void)
-{
-  characteristic_t *new_characteristic = calloc (1, sizeof (*new_characteristic));
-  if (NULL == new_characteristic)
-  {
-    return NULL;
-  }
-
-  return new_characteristic;
-}
-
 characteristic_t *characteristic_init (characteristic_t *characteristic, const char *uuid, int origin)
 {
   characteristic->origin = origin;

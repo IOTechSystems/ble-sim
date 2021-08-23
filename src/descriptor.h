@@ -28,13 +28,6 @@ typedef struct descriptor_t
 extern DBusObjectPathVTable descriptor_dbus_callbacks;
 
 /**
- * Allocates memory a new characteristic_t 
- * 
- * @return allocated descriptor  
- **/
-descriptor_t *descriptor_new (void);
-
-/**
  * Initialises values for a new descriptor
  * @param descriptor the descriptor
  * @param uuid the uuid of the descriptor
