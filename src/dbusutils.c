@@ -260,7 +260,7 @@ static DBusMessage *dbusutils_object_get_all (DBusConnection *connection, DBusMe
   if (reply == NULL)
   {
     log_debug ("[%s:%u] Could not create a dbus method return message", __FUNCTION__, __LINE__);
-    return false;
+    return NULL;
   }
 
   DBusMessageIter iter;
@@ -427,7 +427,7 @@ DBusMessage *dbusutils_do_method_call (DBusConnection *connection, const char *b
   DBusMessage *dbus_msg = dbus_message_new_method_call (bus_name, path, iface, method);
   if (dbus_msg == NULL)
   {
-    return false;
+    return NULL;
   }
 
   DBusMessage *dbus_reply = dbus_connection_send_with_reply_and_block (connection, dbus_msg, DEFAULT_TIMEOUT, &err);
