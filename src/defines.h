@@ -28,6 +28,7 @@
 #define BLE_SIM_TICK_RATE_MS 100//ms
 
 #define BASE_ADAPTER_PATH "/org/bluez/hci"
+#define DEFAULT_ADAPTER_PATH "/org/bluez/hci0"
 
 #define UUID_LENGTH 32
 #define DEVICE_PATH_LENGTH 22

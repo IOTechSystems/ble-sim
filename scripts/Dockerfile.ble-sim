@@ -1,4 +1,4 @@
-FROM alpine:3.13 as builder
+FROM alpine:latest as builder
 
 RUN apk add --update --no-cache \
   dbus \
@@ -27,7 +27,7 @@ WORKDIR /ble-sim/
 RUN scripts/download-deps.sh
 RUN scripts/build.sh
 
-FROM alpine:3.13
+FROM alpine:latest
 
 ARG BUILD_VER
 ARG BUILD_SHA
