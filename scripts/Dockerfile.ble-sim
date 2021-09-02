@@ -37,7 +37,7 @@ LABEL version="$VER"
 LABEL sha="$SHA"
 LABEL maintainer="iotech <support@iotechsys.com>"
 
-RUN apk add --update --no-cache lua5.3 dbus
+RUN apk add --update --no-cache lua5.3 dbus bluez
 
 COPY --from=builder /ble-sim/build/release/ble-sim/ble-sim ble-sim/ble-sim
 COPY --from=builder /ble-sim/scripts/entrypoint.sh /
