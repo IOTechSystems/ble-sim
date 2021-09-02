@@ -41,6 +41,9 @@ record_sim_devices ()
 }
 
 if [ "$RUN_BLUEZ" == "true" ];then
+  #we need to write bluetooth.conf to the host machine so that dbus has permissions to own the bluez service
+  cp /usr/share/dbus-1/system.d/bluetooth.conf /etc/dbus-1/system.d/bluetooth.conf 
+
   record_sim_devices $DEVICE_COUNT
   echo "Running simulator with bluez in container"
   nsenter --net=/rootns/net /usr/lib/bluetooth/bluetoothd &
