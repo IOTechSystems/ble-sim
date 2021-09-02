@@ -42,10 +42,11 @@ record_sim_devices ()
 
 if [ "$RUN_BLUEZ" == "true" ];then
   record_sim_devices $DEVICE_COUNT
-  echo "Running bluez"
+  echo "Running simulator with bluez in container"
   nsenter --net=/rootns/net /usr/lib/bluetooth/bluetoothd &
   sleep 1
 fi 
 
+echo "Running simulator with host bluez"
 echo "Running ble sim"
 ./ble-sim/ble-sim $@
