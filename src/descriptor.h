@@ -34,7 +34,13 @@ extern DBusObjectPathVTable descriptor_dbus_callbacks;
  * @param the origin of the object used to distinguish if it was created in lua
  * @return initialised descriptor  
  **/
-descriptor_t *descriptor_init (descriptor_t *descriptor, const char *uuid, int origin);
+void descriptor_init (descriptor_t *descriptor, const char *uuid, int origin);
+
+/**
+ * Frees an initialised descriptor values
+ *  @param descriptor descriptor
+ * */
+void descriptor_fini (descriptor_t *descriptor);
 
 /**
  * Frees a descriptor_t and it's values

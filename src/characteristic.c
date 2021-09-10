@@ -73,7 +73,7 @@ static object_flag_t characteristic_flags[] =
     {CHARACTERISTIC_FLAG_AUTHORIZE,                     CHARACTERISTIC_FLAG_AUTHORIZE_ENABLED_BIT}
   };
 
-characteristic_t *characteristic_init (characteristic_t *characteristic, const char *uuid, int origin)
+void characteristic_init (characteristic_t *characteristic, const char *uuid, int origin)
 {
   characteristic->origin = origin;
   characteristic->uuid = strdup (uuid);
@@ -88,10 +88,9 @@ characteristic_t *characteristic_init (characteristic_t *characteristic, const c
   characteristic->descriptors = NULL;
   characteristic->descriptor_count = 0;
   characteristic->next = NULL;
-  return characteristic;
 }
 
-void characteristic_free (characteristic_t *characteristic)
+void characteristic_fini (characteristic_t *characteristic)
 {
   if (NULL == characteristic)
   {
@@ -112,9 +111,14 @@ void characteristic_free (characteristic_t *characteristic)
       descriptor_free (characteristic->descriptors);
       characteristic->descriptors = tmp;
     }
-
-    free (characteristic);
   }
+
+}
+
+void characteristic_free (characteristic_t *characteristic)
+{
+  characteristic_fini (characteristic);
+  free (characteristic);
 }
 
 descriptor_t *characteristic_get_descriptor (characteristic_t *characteristic, const char *descriptor_uuid)

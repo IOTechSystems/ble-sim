@@ -87,7 +87,7 @@ void advertisement_init (
  * Terminates the advertisement and frees all of its allocated mems
  * @param advertisement adveritsement to terminate
  */
-void advertisement_terminate (advertisement_t *advertisement);
+void advertisement_fini (advertisement_t *advertisement);
 
 /**
  * Registers the advertisement object with dbus

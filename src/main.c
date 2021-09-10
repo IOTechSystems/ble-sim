@@ -245,8 +245,9 @@ int main (int argc, char *argv[])
   {
     exit_simulator(1);
   }
- 
+
   signal (SIGINT, stop_simulator);
+  signal (SIGQUIT, stop_simulator);
   signal (SIGTERM, stop_simulator);
 
   dbusutils_mainloop_run (global_dbus_connection, &update);

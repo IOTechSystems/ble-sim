@@ -46,6 +46,12 @@ typedef struct device_t
 void device_init (device_t *device, const char *device_name, int origin);
 
 /**
+ * Frees an initialised devices values
+ *  @param device device
+ * */
+void device_fini (device_t *device);
+
+/**
  * Frees a device and it's data 
  * @param device device to free
  **/

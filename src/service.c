@@ -46,7 +46,7 @@ service_t *service_init (service_t *service, const char *uuid, bool primary, int
   return service;
 }
 
-void service_free (service_t *service)
+void service_fini (service_t *service)
 {
   if (NULL == service)
   {
@@ -67,9 +67,14 @@ void service_free (service_t *service)
       service->characteristics = tmp;
     }
     service->next = NULL;
-
-    free (service);
   }
+
+}
+
+void service_free (service_t *service)
+{
+  service_fini (service);
+  free (service);
 }
 
 characteristic_t *service_get_characteristic (service_t *service, const char *characteristic_uuid)

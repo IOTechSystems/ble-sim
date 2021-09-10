@@ -52,7 +52,7 @@ static object_flag_t descriptor_flags[] =
     {DESCRIPTOR_FLAG_AUTHORIZE,                   DESCRIPTOR_FLAG_AUTHORIZE_ENABLED_BIT}
   };
 
-descriptor_t *descriptor_init (descriptor_t *descriptor, const char *uuid, int origin)
+void descriptor_init (descriptor_t *descriptor, const char *uuid, int origin)
 {
   descriptor->origin = origin;
   descriptor->uuid = strdup (uuid);
@@ -64,25 +64,26 @@ descriptor_t *descriptor_init (descriptor_t *descriptor, const char *uuid, int o
 
   descriptor->flags = DESCRIPTOR_FLAGS_ALL_ENABLED;
   descriptor->next = NULL;
-  return descriptor;
 }
 
-void descriptor_free (descriptor_t *descriptor)
+void descriptor_fini (descriptor_t *descriptor)
 {
   if (NULL == descriptor)
   {
     return;
   }
-
+  
   free (descriptor->object_path);
   free (descriptor->uuid);
   free (descriptor->characteristic_path);
   free (descriptor->value);
+}
 
-  if (descriptor->origin == ORIGIN_C)
-  {
-    free (descriptor);
-  }
+
+void descriptor_free (descriptor_t *descriptor)
+{
+  descriptor_fini (descriptor);
+  free (descriptor);
 }
 
 bool descriptor_register (descriptor_t *descriptor)

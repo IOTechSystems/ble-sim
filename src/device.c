@@ -68,7 +68,7 @@ void device_init (device_t *device, const char *device_name, int origin)
   device_count++;
 }
 
-void device_free (device_t *device)
+void device_fini (device_t *device)
 {
   if (NULL == device)
   {
@@ -79,7 +79,7 @@ void device_free (device_t *device)
   free (device->device_name);
   free (device->object_path);
 
-  advertisement_terminate (&device->advertisement);
+  advertisement_fini (&device->advertisement);
 
   vhci_close (device->virtual_controller);
 
@@ -92,9 +92,14 @@ void device_free (device_t *device)
       service_free (device->services);
       device->services = tmp;
     }
-
-    free (device);
   }
+
+}
+
+void device_free (device_t *device)
+{
+  device_fini (device);
+  free (device);
 }
 
 static DBusMessage *device_get_managed_objects (void *device_ptr, DBusConnection *connection, DBusMessage *message)
@@ -287,21 +292,22 @@ bool device_register (device_t *device)
     return false;
   }
 
+  //setup advertisement
   //TODO: let the user set the manufacturer data and the key
   const uint8_t manufacturer_data[] = {0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5};
   const unsigned int size = 24;
   const uint16_t key = 0xBEEF;
-
-  //setup advertisement
+  char *advert_object_path = dbusutils_create_object_path (device->object_path, ADVERTISEMENT_OBJECT_NAME, 0);
   advertisement_init (
     &device->advertisement,
-    dbusutils_create_object_path (device->object_path, ADVERTISEMENT_OBJECT_NAME, 0),
+    advert_object_path,
     &device->services,
     &device->device_name,
     key,
     manufacturer_data,
     size
   );
+  free (advert_object_path);
 
   success = advertisement_register (&device->advertisement);
   if (!success)
