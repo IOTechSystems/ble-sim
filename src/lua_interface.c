@@ -322,7 +322,7 @@ static int luai_device_set_discoverable (lua_State *lua_state)
 static int luai_device_free (lua_State *lua_state)
 {
   device_t *device = luai_check_argument_device (lua_state, 1);
-  device_free (device);
+  device_fini (device);
   return 0;
 }
 
@@ -340,7 +340,7 @@ static int luai_service_add_characteristic (lua_State *lua_state)
 static int luai_service_free (lua_State *lua_state)
 {
   service_t *service = luai_check_argument_service (lua_state, 1);
-  service_free (service);
+  service_fini (service);
   return 0;
 }
 
@@ -368,7 +368,7 @@ static int luai_characteristic_set_notifying (lua_State *lua_state)
 static int luai_characteristic_free (lua_State *lua_state)
 {
   characteristic_t *characteristic = luai_check_argument_characteristic (lua_state, 1);
-  characteristic_free (characteristic);
+  characteristic_fini (characteristic);
   return 0;
 }
 
@@ -469,7 +469,7 @@ static int luai_characteristic_set_value (lua_State *lua_state)
 static int luai_descriptor_free (lua_State *lua_state)
 {
   descriptor_t *descriptor = luai_check_argument_descriptor (lua_state, 1);
-  descriptor_free (descriptor);
+  descriptor_fini (descriptor);
   return 0;
 }
 

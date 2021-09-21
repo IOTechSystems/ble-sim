@@ -41,6 +41,12 @@ typedef struct service_t
 service_t *service_init (service_t *service, const char *uuid, bool primary, int origin);
 
 /**
+ * Frees an initialised service values
+ *  @param service service
+ * */
+void service_fini (service_t *service);
+
+/**
  * Frees a service and it's values
  * 
  * @param service service to free 

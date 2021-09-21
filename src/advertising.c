@@ -82,7 +82,7 @@ void advertisement_init (
 )
 {
   advertisement->registered = false;
-  advertisement->object_path = object_path;
+  advertisement->object_path = strdup (object_path);
   advertisement->services = services;
   advertisement->local_name = device_name;
 
@@ -108,7 +108,7 @@ void advertisement_init (
   advertisement->tx_power = ADVERTISEMENT_TX_POWER_DEFAULT;
 }
 
-void advertisement_terminate (advertisement_t *advertisement)
+void advertisement_fini (advertisement_t *advertisement)
 {
   if (NULL == advertisement)
   {

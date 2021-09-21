@@ -33,16 +33,23 @@ typedef struct characteristic_t
  * Initialises values for a new characteristic
  * @param characteristic the characteristic
  * @param uuid the uuid of the characteristic
- * @param the origin of the object used to distinguish if it was created in lua
+ * @param origin the origin of the object used to distinguish if it was created in lua
  * @return initialised characteristic  
  **/
-characteristic_t *characteristic_init (characteristic_t *characteristic, const char *uuid, int origin);
+void characteristic_init (characteristic_t *characteristic, const char *uuid, int origin);
+
+/**
+ * Frees an initialised characteristics values
+ *  @param characteristic characteristic
+ * */
+void characteristic_fini (characteristic_t *characteristic);
 
 /**
  * Frees a characteristic_t and it's values
  * @param characteristic characteristic to free 
  **/
 void characteristic_free (characteristic_t *characteristic);
+
 
 /**
  * Searches the characteristic for a descriptor
