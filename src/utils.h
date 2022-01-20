@@ -9,6 +9,7 @@
 #define BLE_SIM_UTILS_H
 
 #include <stdbool.h>
+#include <stdint.h>
 
 /**
  * Checks if a (flag) bit is set on int x 

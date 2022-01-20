@@ -480,8 +480,8 @@ void dbusutils_mainloop_run (DBusConnection *connection, void (*sim_update_funct
   dbusutils_mainloop_running = true;
   while (dbusutils_mainloop_running)
   {
-    sim_update_function_ptr (connection);
     dispatch (connection);
+    sim_update_function_ptr (connection);
 
     //TODO: investigate why removing this sleep interferes with dbus sending messages (when updating characteristic values in sim_update_function_ptr)
     msleep (BLE_SIM_TICK_RATE_MS);

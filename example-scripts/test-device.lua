@@ -29,7 +29,9 @@ ble.registerDevice (dev1)
 dev1:powered (true)
 dev1:discoverable (true)
 
-char1_value = 0 
+char1_value = 1
+char1:setValue(char1_value)
+char1:notifying(true)
 
 char2_value = {0xDE, 0xAD, 0xBE, 0xEE, 0xEE, 0xEE, 0xEE, 0xEE, 0xEE, 0xEE, 0xEE, 0xEF}
 char2:setValue (char2_value)
