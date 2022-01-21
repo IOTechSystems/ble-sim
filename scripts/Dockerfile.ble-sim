@@ -27,6 +27,9 @@ WORKDIR /ble-sim/
 RUN scripts/download-deps.sh
 RUN scripts/build.sh
 
+#RUN git clone --branch v1.2-branch-sdk-update https://github.com/IOTechSystems/xrt-examples
+RUN git clone --branch XRT-1193 https://github.com/IOTechSystems/xrt-examples
+
 FROM alpine:latest
 
 ARG BUILD_VER
@@ -41,6 +44,6 @@ RUN apk add --update --no-cache lua5.3 dbus bluez
 
 COPY --from=builder /ble-sim/build/release/ble-sim/ble-sim ble-sim/ble-sim
 COPY --from=builder /ble-sim/scripts/entrypoint.sh /
-COPY example-scripts /example-scripts
+COPY --from=builder /xrt-examples/Simulators/ble /example-scripts/
 
 ENTRYPOINT [ "./entrypoint.sh" ]

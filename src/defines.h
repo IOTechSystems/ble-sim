@@ -208,8 +208,8 @@
 typedef enum
 { //Datatypes supported by the sim
   BLE_BOOL = 0,
-  BLE_SBYTE = 1,
-  BLE_BYTE = 2,
+  BLE_INT8 = 1,
+  BLE_UINT8 = 2,
   BLE_INT16 = 3,
   BLE_UINT16 = 4,
   BLE_INT32 = 5,

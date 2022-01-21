@@ -230,8 +230,8 @@ static void luai_register_datatype_enums (lua_State *lua_state)
   lua_newtable(lua_state);
   {
     LUA_ENUM(lua_state, BOOL, BLE_BOOL);
-    LUA_ENUM(lua_state, SBYTE, BLE_SBYTE);
-    LUA_ENUM(lua_state, BYTE, BLE_BYTE);
+    LUA_ENUM(lua_state, INT8, BLE_INT8);
+    LUA_ENUM(lua_state, UINT8, BLE_UINT8);
     LUA_ENUM(lua_state, INT16, BLE_INT16);
     LUA_ENUM(lua_state, UINT16, BLE_UINT16);
     LUA_ENUM(lua_state, INT32, BLE_INT32);
@@ -260,12 +260,22 @@ static void lua_fail (lua_State *lua_state)
 
 static void luai_check_type (lua_State *lua_state, int index, int expected_parameter_type)
 {
-  assert (lua_type (lua_state, index) == expected_parameter_type);
+  int type = lua_type (lua_state, index);
+
+  luaL_argcheck (
+    lua_state,
+    type == expected_parameter_type,
+    index,
+    ""
+  );
 }
 
 static void luai_check_argument_count (lua_State *lua_state, int expected_argument_count)
 {
-  assert (lua_gettop (lua_state) == expected_argument_count);
+  if (lua_gettop (lua_state) != expected_argument_count)
+  {
+    luaL_error(lua_state, "Expected %d arguments to function", expected_argument_count);
+  }
 }
 
 static int luai_create_device (lua_State *lua_state)
@@ -434,7 +444,7 @@ static bool luai_lua_number_to_opc_ua_data_type (
 {
   switch (type)
   {
-    case BLE_SBYTE:
+    case BLE_INT8:
     {
       int8_t val = (int8_t) lua_tointeger (lua_state, index);
       *data = malloc (sizeof (int8_t));
@@ -446,7 +456,7 @@ static bool luai_lua_number_to_opc_ua_data_type (
       memcpy (*data, &val, sizeof(int8_t));
     }
       break;
-    case BLE_BYTE:
+    case BLE_UINT8:
     {
       uint8_t val = (uint8_t) lua_tointeger (lua_state, index);
       *data = malloc (sizeof (uint8_t));
