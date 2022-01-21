@@ -28,7 +28,7 @@ RUN scripts/download-deps.sh
 RUN scripts/build.sh
 
 #RUN git clone --branch v1.2-branch-sdk-update https://github.com/IOTechSystems/xrt-examples
-RUN git clone --branch XRT-1193 https://github.com/IOTechSystems/xrt-examples
+RUN git clone --branch XRT-1193-branch https://github.com/IOTechSystems/xrt-examples
 
 FROM alpine:latest
 
