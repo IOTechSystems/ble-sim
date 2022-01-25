@@ -205,4 +205,37 @@
 #define LUA_CHARACTERISTIC_SET_VALUE "setValue"
 //lua descriptor methods
 
+typedef enum
+{ //Datatypes supported by the sim
+  BLE_BOOL = 0,
+  BLE_INT8 = 1,
+  BLE_UINT8 = 2,
+  BLE_INT16 = 3,
+  BLE_UINT16 = 4,
+  BLE_INT32 = 5,
+  BLE_UINT32 = 6,
+  BLE_INT64 = 7,
+  BLE_UINT64 = 8,
+  BLE_FLOAT = 9,
+  BLE_DOUBLE = 10,
+  BLE_STRING = 11,
+} ble_data_type_t;
+
+static const size_t BLE_DATA_TYPE_SIZE[] =
+{
+  1, //BLE_BOOL
+  1, //BLE_SBYTE
+  1, //BLE_BYTE
+  2, //BLE_INT16
+  2, //BLE_UINT16
+  4, //BLE_INT32
+  4, //BLE_UINT32
+  8, //BLE_INT64
+  8, //BLE_UINT64
+  4, //BLE_FLOAT
+  8, //BLE_DOUBLE
+  0, //BLE_STRING
+};
+
+
 #endif //BLE_SIM_DEFINES_H
