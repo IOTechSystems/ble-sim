@@ -59,7 +59,8 @@ static bool dbus_init (void)
     return false;
   }
 
-  dbus_bus_get_unique_name (global_dbus_connection);
+  const char * dbus_name = dbus_bus_get_unique_name (global_dbus_connection);
+  log_trace ("Connection name %s",dbus_name);
 
   //setup filter
   if (dbus_connection_add_filter (global_dbus_connection, filter_message, NULL, NULL) == false)

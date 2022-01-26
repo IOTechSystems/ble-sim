@@ -81,7 +81,6 @@
 #define BLE_PROPERTY_MAX_INTERVAL "MaxInterval"
 #define BLE_PROPERTY_TX_POWER "TxPower"
 
-#define DBUS_INTERFACE_PROPERTIES "org.freedesktop.DBus.Properties"
 #define DBUS_SIGNAL_PROPERTIES_CHANGED "PropertiesChanged"
 #define DBUS_METHOD_SET "Set"
 #define DBUS_METHOD_GET "Get"
