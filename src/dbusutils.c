@@ -50,7 +50,7 @@ void dbusutils_send_object_properties_changed_signal (
   void *object_pointer
 )
 {
-  DBusMessage *signal = dbus_message_new_signal (path, iface, DBUS_SIGNAL_PROPERTIES_CHANGED);
+  DBusMessage *signal = dbus_message_new_signal (path, DBUS_INTERFACE_PROPERTIES, DBUS_SIGNAL_PROPERTIES_CHANGED);
   if (NULL == signal)
   {
     return;
