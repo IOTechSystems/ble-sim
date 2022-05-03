@@ -46,7 +46,7 @@ pipeline
   parameters
   {
     string (defaultValue: 'heads/master', description: 'tags/<tag> or heads/<branch>', name: 'BUILD')
-    choice (choices: ['x86_64','arm64','arm32', 'all'], description: 'Build Host Architecture', name: 'Arch')
+    choice (choices: ['all','x86_64','arm64','arm32'], description: 'Build Host Architecture', name: 'Arch')
     booleanParam (defaultValue: false, description: 'Archive Docker Image to repository', name: 'Archive')
     booleanParam (defaultValue: false, description: 'Create Docker Manifests?', name: 'MANIFESTS')
   }
