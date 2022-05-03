@@ -10,3 +10,5 @@
 - Move lua script examples to xrt-examples
 - Improved lua error messages
 - Changes in values now produce the correct properties changed signal
+
+# v1.0.2
