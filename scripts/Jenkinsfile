@@ -1,6 +1,6 @@
 #!/usr/bin/env groovy
 
-def targets = ['x86_64', 'arm64', 'arm32'] as String[]
+def targets = ['x86_64', 'x86', 'arm64', 'arm32'] as String[]
 
 def checkoutStage (arch)
 {
@@ -46,7 +46,7 @@ pipeline
   parameters
   {
     string (defaultValue: 'heads/master', description: 'tags/<tag> or heads/<branch>', name: 'BUILD')
-    choice (choices: ['all','x86_64','arm64','arm32'], description: 'Build Host Architecture', name: 'Arch')
+    choice (choices: ['all','x86_64','x86','arm64','arm32'], description: 'Build Host Architecture', name: 'Arch')
     booleanParam (defaultValue: false, description: 'Archive Docker Image to repository', name: 'Archive')
     booleanParam (defaultValue: false, description: 'Create Docker Manifests?', name: 'MANIFESTS')
   }
@@ -88,9 +88,17 @@ pipeline
             }            
             println env.verMinor
             
-            build job: 'Create-Docker-Manifest', parameters: [string(name: 'BUILD', value: "heads/master"), string(name: 'Arch', value: 'x86_64'), string(name: 'images', value: "iotechsys/ble-sim:${env.version}-arm, iotechsys/ble-sim:${env.version}-arm64, iotechsys/ble-sim:${env.version}-x86_64"), string(name: 'manifest', value: "iotechsys/ble-sim:${env.version}")]
+            build job: 'Create-Docker-Manifest', parameters: [
+            string(name: 'BUILD', value: "heads/master"),
+            string(name: 'Arch', value: 'x86_64'),
+            string(name: 'images', value: "iotechsys/ble-sim:${env.version}-arm, iotechsys/ble-sim:${env.version}-arm64, iotechsys/ble-sim:${env.version}-x86_64, iotechsys/ble-sim:${env.version}-x86"),
+            string(name: 'manifest', value: "iotechsys/ble-sim:${env.version}")]
             
-            build job: 'Create-Docker-Manifest', parameters: [string(name: 'BUILD', value: "heads/master"), string(name: 'Arch', value: 'x86_64'), string(name: 'images', value: "iotechsys/ble-sim:${env.version}-arm, iotechsys/ble-sim:${env.version}-arm64, iotechsys/ble-sim:${env.version}-x86_64"), string(name: 'manifest', value: "iotechsys/ble-sim:${env.verMinor}")]
+            build job: 'Create-Docker-Manifest', parameters: [
+            string(name: 'BUILD', value: "heads/master"),
+            string(name: 'Arch', value: 'x86_64'),
+            string(name: 'images', value: "iotechsys/ble-sim:${env.version}-arm, iotechsys/ble-sim:${env.version}-arm64, iotechsys/ble-sim:${env.version}-x86_64, iotechsys/ble-sim:${env.version}-x86"),
+            string(name: 'manifest', value: "iotechsys/ble-sim:${env.verMinor}")]
           }
         }
       }
