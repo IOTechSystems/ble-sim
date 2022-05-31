@@ -1,4 +1,4 @@
-FROM alpine:latest as builder
+FROM alpine:3.15 as builder
 
 RUN apk add --update --no-cache \
   dbus \
@@ -30,7 +30,7 @@ RUN scripts/build.sh
 WORKDIR /
 RUN git clone --branch v2.0-branch https://github.com/IOTechSystems/xrt-examples
 
-FROM alpine:latest
+FROM alpine:3.15
 
 ARG BUILD_VER
 ARG BUILD_SHA

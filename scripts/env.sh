@@ -10,6 +10,9 @@ case $MNAME in
   armv7l)
     ARCH=arm
     ;;
+  i686)
+    ARCH=x86
+    ;;
   *)
     ARCH=$MNAME
     ;;
