@@ -1,6 +1,7 @@
 # v1.0.2
 
 - Adding x86 build option
+- Updated to base image Alpine 3.16
 
 # v1.0.1
 
